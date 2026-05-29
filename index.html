@@ -1201,6 +1201,7 @@
       locationRequested: false,
       mapReady: false,
       map: null,
+      userMarker: null,
       markers: []
     };
 
@@ -1959,6 +1960,7 @@
       if (state.map) {
         state.map.remove();
         state.map = null;
+        state.userMarker = null;
       }
 
       state.map = L.map('map', { zoomControl: false }).setView(state.mapView.center, state.mapView.zoom);
@@ -1968,6 +1970,7 @@
         subdomains: 'abcd',
         attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
       }).addTo(state.map);
+      state.map.on('moveend zoomend', saveMapView);
 
       state.markers = filteredPlaces().map(place => {
         const marker = L.marker([place.latitude, place.longitude], {
@@ -1988,17 +1991,7 @@
         return { placeId: place.id, marker };
       });
 
-      if (state.userLocation) {
-        L.marker(state.userLocation, {
-          icon: L.divIcon({
-            className: 'user-location-marker',
-            html: '',
-            iconSize: [22, 22],
-            iconAnchor: [11, 11]
-          }),
-          zIndexOffset: 2000
-        }).addTo(state.map).bindPopup('You are here');
-      }
+      updateUserLocationMarker();
 
       state.map.on('click', () => {
         if (!state.selectedPlaceId && !state.searchOptionsOpen) return;
@@ -2015,6 +2008,26 @@
       if (category === 'Study' || category === 'Transport') return 'community';
       if (category === 'Official') return 'community';
       return 'life';
+    }
+
+    function updateUserLocationMarker() {
+      if (!state.map || !state.userLocation) return;
+
+      if (!state.userMarker) {
+        state.userMarker = L.marker(state.userLocation, {
+          icon: L.divIcon({
+            className: 'user-location-marker',
+            html: '',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+          }),
+          zIndexOffset: 2000
+        }).addTo(state.map).bindPopup('You are here');
+        return;
+      }
+
+      state.userMarker.setLatLng(state.userLocation);
+      if (!state.map.hasLayer(state.userMarker)) state.userMarker.addTo(state.map);
     }
 
     function updateMarkerHighlights() {
@@ -2099,15 +2112,11 @@
         position => {
           const userLocation = [position.coords.latitude, position.coords.longitude];
           state.userLocation = userLocation;
-          state.mapView = {
-            center: userLocation,
-            zoom: 16
-          };
+          updateUserLocationMarker();
           trackEvent('current_location_prompt', {
             location_available: 'yes',
             trigger: 'page_load'
           });
-          renderAll();
         },
         () => {
           trackEvent('current_location_prompt', {
@@ -2153,13 +2162,14 @@
               };
               state.selectedPlaceId = '';
               state.searchOptionsOpen = false;
+              updateUserLocationMarker();
               if (state.map) {
                 state.map.setView(userLocation, 16, { animate: true });
               }
               trackEvent('current_location_click', {
                 location_available: 'yes'
               });
-              renderAll();
+              updateMapSelection();
             },
             () => {
               trackEvent('current_location_click', {
