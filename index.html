@@ -50,6 +50,23 @@
 
     button {
       cursor: pointer;
+      transition:
+        transform 0.16s ease,
+        box-shadow 0.16s ease,
+        border-color 0.16s ease,
+        background-color 0.16s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    select:focus-visible {
+      outline: 3px solid rgba(23, 105, 224, 0.22);
+      outline-offset: 2px;
     }
 
     .page {
@@ -310,6 +327,10 @@
       padding: 0 14px;
       font-weight: 900;
       box-shadow: 0 10px 24px rgba(31, 41, 55, 0.10);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
     }
 
     .map-top-panel .topbar {
@@ -415,6 +436,18 @@
       backdrop-filter: blur(18px);
     }
 
+    .map-overlay[data-open-detail] {
+      cursor: pointer;
+    }
+
+    .tap-hint {
+      display: block;
+      margin-top: 9px;
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
     .place-card {
       display: grid;
       grid-template-columns: 72px minmax(0, 1fr);
@@ -427,6 +460,12 @@
       background: var(--card);
       text-align: left;
       box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
+    }
+
+    .place-card:hover,
+    .quick:hover {
+      border-color: rgba(23, 105, 224, 0.35);
+      box-shadow: 0 14px 28px rgba(31, 41, 55, 0.09);
     }
 
     .thumb {
@@ -499,7 +538,7 @@
     }
 
     .detail {
-      padding: 14px;
+      padding: 16px;
       margin-top: 12px;
     }
 
@@ -521,19 +560,21 @@
     }
 
     .detail-image {
-      height: 138px;
-      border-radius: 16px;
+      height: 168px;
+      border-radius: 20px;
       display: grid;
       place-items: center;
       margin-bottom: 12px;
-      background: linear-gradient(135deg, #eaf3ff, #f0edff);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255, 255, 255, 0.72), transparent 28%),
+        linear-gradient(135deg, #eaf3ff, #f0edff 52%, #fff3df);
       font-size: 42px;
     }
 
     .info-block {
       margin-top: 12px;
-      padding: 12px;
-      border-radius: 16px;
+      padding: 14px;
+      border-radius: 18px;
       border: 1px solid var(--line);
       background: #fffdf9;
     }
@@ -608,6 +649,7 @@
       padding: 12px;
       font-weight: 900;
       margin-top: 12px;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, 0.20);
     }
 
     .secondary {
@@ -618,6 +660,18 @@
       min-height: 40px;
       padding: 8px 12px;
       font-weight: 800;
+    }
+
+    .primary:hover {
+      background: #125cc6;
+      box-shadow: 0 14px 28px rgba(23, 105, 224, 0.26);
+    }
+
+    .secondary:hover,
+    .copy-button:hover,
+    .recommend-button:hover {
+      border-color: rgba(23, 105, 224, 0.32);
+      background: #f8fbff;
     }
 
     .form {
@@ -686,8 +740,9 @@
       gap: 2px;
       padding: 8px 10px 12px;
       border-top: 1px solid var(--line);
-      background: rgba(255, 255, 255, 0.96);
+      background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(14px);
+      box-shadow: 0 -14px 30px rgba(31, 41, 55, 0.06);
     }
 
     .modal-backdrop {
@@ -771,12 +826,18 @@
     }
 
     .nav-button.active {
-      background: var(--brown-soft);
+      background: linear-gradient(135deg, var(--brown-soft), #fff7e8);
       color: var(--brown);
+      box-shadow: inset 0 0 0 1px rgba(138, 90, 50, 0.10);
     }
 
     .screen { display: none; }
     .screen.active { display: block; }
+
+    .screen.active:not(#screen-map) {
+      max-width: 920px;
+      margin: 0 auto;
+    }
 
     .leaflet-pane,
     .leaflet-tile,
@@ -1647,7 +1708,10 @@
         <div class="map-fullscreen">
           <div id="map"></div>
           <div class="map-top-panel ${state.searchOptionsOpen ? '' : 'collapsed'}">
-            <button class="search-toggle" data-search-toggle="true" type="button">⌕ Search or filter places</button>
+            <button class="search-toggle" data-search-toggle="true" type="button">
+              <span>⌕ ${state.searchOptionsOpen ? 'Hide search filters' : 'Search or filter places'}</span>
+              <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
+            </button>
             <div class="topbar">
               <div>
                 <p class="eyebrow">Exchange Map</p>
@@ -1669,6 +1733,7 @@
               <h3>${place.icon} ${place.name}</h3>
               <p class="meta">★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
               ${badges(place)}
+              <span class="tap-hint">Tap this card to view details and reviews</span>
               <button class="primary" id="reviewCta">Leave a review</button>
             </div>
           </div>` : ''}
@@ -1997,7 +2062,7 @@
 
       document.querySelectorAll('[data-search-toggle]').forEach(button => {
         button.onclick = () => {
-          state.searchOptionsOpen = true;
+          state.searchOptionsOpen = !state.searchOptionsOpen;
           renderAll();
         };
       });
