@@ -1007,6 +1007,17 @@
       z-index: 900 !important;
     }
 
+    .user-location-marker {
+      width: 22px !important;
+      height: 22px !important;
+      border: 4px solid #ffffff;
+      border-radius: 50%;
+      background: var(--blue);
+      box-shadow:
+        0 0 0 8px rgba(23, 105, 224, 0.18),
+        0 10px 24px rgba(23, 105, 224, 0.32);
+    }
+
     @media (min-width: 860px) {
       .page {
         padding: 24px;
@@ -1186,6 +1197,7 @@
       reviewModalOpen: false,
       reviewSubmitted: false,
       mapView: { center: [37.4702, 126.9524], zoom: 14 },
+      userLocation: null,
       locationRequested: false,
       mapReady: false,
       map: null,
@@ -1969,6 +1981,18 @@
         return marker;
       });
 
+      if (state.userLocation) {
+        L.marker(state.userLocation, {
+          icon: L.divIcon({
+            className: 'user-location-marker',
+            html: '',
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+          }),
+          zIndexOffset: 2000
+        }).addTo(state.map).bindPopup('You are here');
+      }
+
       state.map.on('click', () => {
         if (!state.selectedPlaceId && !state.searchOptionsOpen) return;
         state.selectedPlaceId = '';
@@ -2031,8 +2055,10 @@
 
       navigator.geolocation.getCurrentPosition(
         position => {
+          const userLocation = [position.coords.latitude, position.coords.longitude];
+          state.userLocation = userLocation;
           state.mapView = {
-            center: [position.coords.latitude, position.coords.longitude],
+            center: userLocation,
             zoom: 16
           };
           trackEvent('current_location_prompt', {
@@ -2068,7 +2094,8 @@
       });
 
       document.querySelectorAll('[data-locate-me]').forEach(button => {
-        button.onclick = () => {
+        button.onclick = event => {
+          event.stopPropagation();
           if (!navigator.geolocation) {
             alert('Current location is not available in this browser.');
             return;
@@ -2076,12 +2103,17 @@
 
           navigator.geolocation.getCurrentPosition(
             position => {
+              const userLocation = [position.coords.latitude, position.coords.longitude];
+              state.userLocation = userLocation;
               state.mapView = {
-                center: [position.coords.latitude, position.coords.longitude],
+                center: userLocation,
                 zoom: 16
               };
               state.selectedPlaceId = '';
               state.searchOptionsOpen = false;
+              if (state.map) {
+                state.map.setView(userLocation, 16, { animate: true });
+              }
               trackEvent('current_location_click', {
                 location_available: 'yes'
               });
@@ -2091,7 +2123,11 @@
               trackEvent('current_location_click', {
                 location_available: 'no'
               });
-              alert('Location permission was not available. You can still move the map manually.');
+              alert(
+                window.location.protocol === 'file:'
+                  ? 'Location may be blocked when opened as a local file. Please test this on the Vercel HTTPS URL.'
+                  : 'Location permission was not available. You can still move the map manually.'
+              );
             },
             { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
           );
