@@ -1,0 +1,18 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Local/editor files
+.vscode/
+.idea/
+
+# Dependencies/build output, if this project later becomes a Vite app
+node_modules/
+dist/
+
+# Local environment files
+.env
+.env.local
+
+# Generated upload archives
+*.zip

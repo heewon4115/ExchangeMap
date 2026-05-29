@@ -1,0 +1,2176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Exchange Map</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIINfQGxgP84T9W7VMdz92F1sDeL+sDJmZs="
+    crossorigin=""
+  />
+
+  <style>
+    :root {
+      --bg: #faf7f0;
+      --card: #ffffff;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --blue: #1769e0;
+      --blue-soft: #eaf3ff;
+      --brown: #8a5a32;
+      --brown-soft: #f4e8d8;
+      --purple: #7b61ff;
+      --purple-soft: #f0edff;
+      --green: #43a86b;
+      --yellow: #f5a623;
+      --red: #e5484d;
+      --shadow: 0 14px 30px rgba(31, 41, 55, 0.10);
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Arial, "Segoe UI", system-ui, sans-serif;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 18px;
+      display: grid;
+      place-items: start center;
+    }
+
+    .phone {
+      width: min(430px, 100%);
+      min-height: calc(100vh - 36px);
+      background: #fffaf3;
+      border: 1px solid rgba(138, 90, 50, 0.14);
+      border-radius: 28px;
+      box-shadow: 0 24px 60px rgba(31, 41, 55, 0.16);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .app {
+      height: calc(100vh - 36px);
+      min-height: 760px;
+      overflow: auto;
+      padding: 18px 16px 92px;
+    }
+
+    .app.map-mode {
+      overflow: hidden;
+      padding: 0 0 78px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .eyebrow {
+      margin: 0 0 4px;
+      color: var(--brown);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .avatar {
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 50%;
+      background: var(--brown-soft);
+      color: var(--brown);
+      font-weight: 900;
+    }
+
+    .search {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 46px;
+      margin: 10px 0 12px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      color: var(--muted);
+      box-shadow: 0 8px 20px rgba(31, 41, 55, 0.05);
+    }
+
+    .search input {
+      width: 100%;
+      border: 0;
+      outline: 0;
+      color: var(--ink);
+      background: transparent;
+      font-size: 14px;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0 10px;
+      scrollbar-width: none;
+    }
+
+    .chip-row::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex: 0 0 auto;
+      min-height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--ink);
+      padding: 7px 12px;
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .chip.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #0f4fb4;
+    }
+
+    .chip.community.active {
+      border-color: var(--purple);
+      background: var(--purple-soft);
+      color: #5139d6;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin: 18px 0 10px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-size: 17px;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.06);
+    }
+
+    .hero-card {
+      padding: 14px;
+      background: linear-gradient(135deg, #fffdf8, #f3ecff);
+    }
+
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .stat {
+      padding: 10px;
+      border: 1px solid rgba(123, 97, 255, 0.18);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 18px;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .map-card {
+      overflow: hidden;
+      position: relative;
+    }
+
+    #map {
+      height: 330px;
+      width: 100%;
+      background: #dce9f5;
+    }
+
+    .map-fullscreen {
+      position: relative;
+      height: calc(100vh - 114px);
+      min-height: 682px;
+      background:
+        linear-gradient(rgba(250, 247, 240, 0.08), rgba(250, 247, 240, 0.08)),
+        #dce9f5;
+      overflow: hidden;
+    }
+
+    .map-fullscreen::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 450;
+      background:
+        radial-gradient(circle at 50% 45%, transparent 0, transparent 42%, rgba(250, 247, 240, 0.24) 100%),
+        linear-gradient(180deg, rgba(250, 247, 240, 0.20), transparent 24%, transparent 72%, rgba(250, 247, 240, 0.30));
+    }
+
+    .map-fullscreen #map {
+      height: 100%;
+    }
+
+    .map-top-panel {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      right: 12px;
+      z-index: 700;
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.86);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 16px 42px rgba(31, 41, 55, 0.14);
+      backdrop-filter: blur(18px);
+    }
+
+    .map-top-panel.collapsed {
+      gap: 10px;
+      padding: 10px;
+    }
+
+    .map-top-panel.collapsed .topbar,
+    .map-top-panel.collapsed .map-filter-area {
+      display: none;
+    }
+
+    .search-toggle {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--ink);
+      text-align: left;
+      padding: 0 14px;
+      font-weight: 900;
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.10);
+    }
+
+    .map-top-panel .topbar {
+      margin-bottom: 0;
+    }
+
+    .map-top-panel h1 {
+      font-size: 20px;
+    }
+
+    .map-top-panel .subtitle {
+      font-size: 12px;
+    }
+
+    .map-top-panel .search {
+      margin: 0;
+      min-height: 40px;
+      box-shadow: none;
+    }
+
+    .map-top-panel .chip-row {
+      padding-bottom: 0;
+    }
+
+    .map-bottom-sheet {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 14px;
+      z-index: 700;
+      display: grid;
+      gap: 10px;
+    }
+
+    .map-bottom-sheet .map-overlay {
+      position: relative;
+      left: auto;
+      right: auto;
+      bottom: auto;
+    }
+
+    .locate-button {
+      position: absolute;
+      right: 14px;
+      bottom: 112px;
+      z-index: 720;
+      width: 46px;
+      height: 46px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--blue);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.18);
+      backdrop-filter: blur(14px);
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .map-place-strip {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .map-place-strip::-webkit-scrollbar { display: none; }
+
+    .map-place-chip {
+      flex: 0 0 auto;
+      max-width: 210px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      padding: 8px 11px;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.08);
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .map-place-chip.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      color: #0f4fb4;
+    }
+
+    .map-overlay {
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 500;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.88);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 18px 48px rgba(31, 41, 55, 0.18);
+      backdrop-filter: blur(18px);
+    }
+
+    .place-card {
+      display: grid;
+      grid-template-columns: 72px minmax(0, 1fr);
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      text-align: left;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
+    }
+
+    .thumb {
+      height: 72px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      background: linear-gradient(135deg, #eaf3ff, #f4e8d8);
+    }
+
+    .place-card h3,
+    .map-overlay h3,
+    .detail h2 {
+      margin: 0 0 4px;
+      font-size: 16px;
+    }
+
+    .meta {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .badge {
+      border-radius: 999px;
+      background: #f3f4f6;
+      color: #475467;
+      padding: 4px 7px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .badge.official { background: var(--blue-soft); color: #0f4fb4; }
+    .badge.student { background: var(--purple-soft); color: #5139d6; }
+    .badge.good { background: #e9f8ef; color: #257947; }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .quick {
+      min-height: 78px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--card);
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      gap: 5px;
+      padding: 10px 6px;
+      font-size: 12px;
+      font-weight: 800;
+      text-align: center;
+    }
+
+    .quick.active {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+    }
+
+    .detail {
+      padding: 14px;
+      margin-top: 12px;
+    }
+
+    .detail-screen {
+      position: relative;
+      padding-top: 48px;
+    }
+
+    .back-top-left {
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 20;
+      width: auto;
+      min-height: 38px;
+      border-radius: 999px;
+      padding: 8px 12px;
+      box-shadow: 0 10px 22px rgba(31, 41, 55, 0.08);
+    }
+
+    .detail-image {
+      height: 138px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #eaf3ff, #f0edff);
+      font-size: 42px;
+    }
+
+    .info-block {
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: #fffdf9;
+    }
+
+    .info-block h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+    }
+
+    .tag-stat {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .tag-stat:first-of-type { border-top: 0; }
+    .tag-stat span:last-child { color: var(--muted); font-weight: 800; }
+
+    .copy-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .copy-button {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--blue);
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .review {
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .review:first-of-type { border-top: 0; }
+    .review strong { font-size: 13px; }
+    .review p { margin: 5px 0 0; color: #475467; font-size: 13px; line-height: 1.45; }
+
+    .recommend-button {
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .recommend-button.active {
+      border-color: var(--purple);
+      background: var(--purple-soft);
+      color: #5139d6;
+    }
+
+    .primary {
+      width: 100%;
+      border: 0;
+      border-radius: 16px;
+      background: var(--blue);
+      color: white;
+      min-height: 46px;
+      padding: 12px;
+      font-weight: 900;
+      margin-top: 12px;
+    }
+
+    .secondary {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      color: var(--ink);
+      min-height: 40px;
+      padding: 8px 12px;
+      font-weight: 800;
+    }
+
+    .form {
+      display: grid;
+      gap: 12px;
+    }
+
+    .field {
+      display: grid;
+      gap: 6px;
+    }
+
+    .field label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .field input,
+    .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      padding: 12px;
+      outline: 0;
+    }
+
+    .stars {
+      display: flex;
+      gap: 5px;
+      color: var(--yellow);
+      font-size: 24px;
+    }
+
+    .rating-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .rating-pill {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--card);
+      color: var(--ink);
+      padding: 7px 10px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .rating-pill.active {
+      border-color: var(--yellow);
+      background: #fff7df;
+      color: #8a5a00;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 2px;
+      padding: 8px 10px 12px;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(14px);
+    }
+
+    .modal-backdrop {
+      position: absolute;
+      inset: 0;
+      z-index: 2000;
+      display: grid;
+      place-items: end center;
+      padding: 16px;
+      background: rgba(31, 41, 55, 0.42);
+    }
+
+    .modal {
+      width: min(420px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: var(--card);
+      box-shadow: 0 24px 70px rgba(31, 41, 55, 0.28);
+      padding: 16px;
+    }
+
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 12px;
+    }
+
+    .modal-head h2 {
+      margin: 0 0 4px;
+      font-size: 20px;
+    }
+
+    .icon-button {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: var(--card);
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      padding: 12px;
+      color: var(--ink);
+      outline: 0;
+    }
+
+    .thank-you {
+      border: 1px solid rgba(67, 168, 107, 0.35);
+      border-radius: 16px;
+      background: #eefaf3;
+      color: #246b42;
+      padding: 12px;
+      line-height: 1.45;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .nav-button {
+      border: 0;
+      border-radius: 14px;
+      background: transparent;
+      color: var(--muted);
+      min-height: 54px;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .nav-button span:first-child {
+      font-size: 20px;
+    }
+
+    .nav-button.active {
+      background: var(--brown-soft);
+      color: var(--brown);
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    .leaflet-pane,
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow,
+    .leaflet-tile-container,
+    .leaflet-pane > svg,
+    .leaflet-pane > canvas,
+    .leaflet-zoom-box,
+    .leaflet-image-layer,
+    .leaflet-layer {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+
+    .leaflet-container {
+      overflow: hidden;
+      background: #dce9f5;
+      outline-offset: 1px;
+      font-family: Arial, "Segoe UI", system-ui, sans-serif;
+    }
+
+    .leaflet-tile,
+    .leaflet-marker-icon,
+    .leaflet-marker-shadow {
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .leaflet-tile {
+      visibility: hidden;
+    }
+
+    .leaflet-tile-loaded {
+      visibility: inherit;
+    }
+
+    .leaflet-zoom-animated {
+      transform-origin: 0 0;
+    }
+
+    .leaflet-interactive {
+      cursor: pointer;
+    }
+
+    .leaflet-top,
+    .leaflet-bottom {
+      position: absolute;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .leaflet-top { top: 0; }
+    .leaflet-right { right: 0; }
+    .leaflet-bottom { bottom: 0; }
+    .leaflet-left { left: 0; }
+
+    .leaflet-control {
+      position: relative;
+      z-index: 800;
+      pointer-events: auto;
+    }
+
+    .leaflet-control-zoom {
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #ffffff;
+    }
+
+    .leaflet-control-zoom a {
+      display: block;
+      width: 30px;
+      height: 30px;
+      line-height: 30px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--ink);
+      font-weight: 900;
+      background: #ffffff;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .leaflet-popup {
+      position: absolute;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .leaflet-popup-content-wrapper {
+      padding: 1px;
+      text-align: left;
+      border-radius: 12px;
+      background: #ffffff;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .leaflet-popup-content {
+      margin: 12px;
+      line-height: 1.4;
+    }
+
+    .leaflet-popup-tip-container {
+      width: 40px;
+      height: 20px;
+      position: absolute;
+      left: 50%;
+      margin-left: -20px;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .leaflet-popup-tip {
+      width: 17px;
+      height: 17px;
+      padding: 1px;
+      margin: -10px auto 0;
+      transform: rotate(45deg);
+      background: #ffffff;
+      box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .leaflet-container a.leaflet-popup-close-button {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 4px 4px 0 0;
+      border: 0;
+      text-align: center;
+      width: 18px;
+      height: 14px;
+      color: #757575;
+      text-decoration: none;
+      font: 16px/14px Tahoma, Verdana, sans-serif;
+    }
+
+    .emoji-marker {
+      width: 38px !important;
+      height: 38px !important;
+      display: grid;
+      place-items: center;
+      border: 3px solid white;
+      border-radius: 18px 18px 18px 6px;
+      background: linear-gradient(135deg, #1769e0, #5c8ff0);
+      box-shadow: 0 12px 24px rgba(31, 41, 55, 0.30);
+      font-size: 18px;
+      line-height: 1;
+      transform: rotate(-45deg);
+    }
+
+    .emoji-marker span {
+      transform: rotate(45deg);
+      display: block;
+    }
+
+    .emoji-marker.health { background: linear-gradient(135deg, #e5484d, #ff8b8f); }
+    .emoji-marker.food { background: linear-gradient(135deg, #f5a623, #ffd37a); }
+    .emoji-marker.life { background: linear-gradient(135deg, #43a86b, #8de0aa); }
+    .emoji-marker.community { background: linear-gradient(135deg, #7b61ff, #b2a4ff); }
+
+    .emoji-marker.selected {
+      box-shadow:
+        0 0 0 5px rgba(23, 105, 224, 0.18),
+        0 14px 28px rgba(31, 41, 55, 0.34);
+      transform: rotate(-45deg) scale(1.12);
+      z-index: 900 !important;
+    }
+
+    @media (min-width: 860px) {
+      .phone {
+        width: min(1100px, 100%);
+        border-radius: 30px;
+      }
+
+      .app {
+        min-height: 780px;
+      }
+
+      .desktop-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 380px;
+        gap: 14px;
+        align-items: start;
+      }
+
+      #map { height: 560px; }
+
+      .map-fullscreen {
+        height: calc(100vh - 114px);
+        min-height: 720px;
+      }
+
+      .map-fullscreen #map { height: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="phone">
+      <main class="app" id="appRoot">
+        <section class="screen active" id="screen-map"></section>
+        <section class="screen" id="screen-detail"></section>
+        <section class="screen" id="screen-home"></section>
+        <section class="screen" id="screen-add"></section>
+        <section class="screen" id="screen-community"></section>
+        <section class="screen" id="screen-log"></section>
+      </main>
+      <div id="modalRoot"></div>
+
+      <nav class="bottom-nav" aria-label="Main navigation">
+        <button class="nav-button" data-tab="home"><span>⌂</span><span>Home</span></button>
+        <button class="nav-button active" data-tab="map"><span>⌖</span><span>Map</span></button>
+        <button class="nav-button" data-tab="add"><span>＋</span><span>Add</span></button>
+        <button class="nav-button" data-tab="community"><span>◈</span><span>Community</span></button>
+        <button class="nav-button" data-tab="log"><span>◇</span><span>My Log</span></button>
+      </nav>
+    </div>
+  </div>
+
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <script>
+    const GA_MEASUREMENT_ID = 'G-XXXXXXXXXX';
+
+    const hasRealGaId = /^G-[A-Z0-9]+$/i.test(GA_MEASUREMENT_ID) && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX';
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { window.dataLayer.push(arguments); }
+
+    if (hasRealGaId) {
+      const gaScript = document.createElement('script');
+      gaScript.async = true;
+      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`;
+      document.head.appendChild(gaScript);
+      gtag('js', new Date());
+      gtag('config', GA_MEASUREMENT_ID, {
+        page_title: document.title,
+        page_location: window.location.href
+      });
+    }
+
+    const state = {
+      tab: 'map',
+      country: 'All',
+      language: 'English',
+      category: 'All',
+      selectedPlaceId: '',
+      searchOptionsOpen: false,
+      selectedTags: ['English-speaking staff', 'foreigner friendly'],
+      selectedRating: 4.5,
+      recommendedReviews: [],
+      submittedReviews: {},
+      reviewModalOpen: false,
+      reviewSubmitted: false,
+      mapView: { center: [37.4702, 126.9524], zoom: 14 },
+      locationRequested: false,
+      mapReady: false,
+      map: null,
+      markers: []
+    };
+
+    const countries = ['All', 'Korea', 'China', 'Vietnam', 'USA', 'Spain'];
+    const languages = ['English', 'Korean', 'Chinese', 'Vietnamese', 'Spanish'];
+    const categories = [
+      { id: 'All', label: 'All', icon: '🌍' },
+      { id: 'Official', label: 'Official Support', icon: '🏫' },
+      { id: 'Hospital', label: 'Hospitals', icon: '🏥' },
+      { id: 'Pharmacy', label: 'Pharmacies', icon: '💊' },
+      { id: 'Food', label: 'Food', icon: '🍱' },
+      { id: 'Embassy', label: 'Embassies', icon: '🏛️' },
+      { id: 'Bank', label: 'Bank / ATM', icon: '🏦' },
+      { id: 'Grocery', label: 'Grocery', icon: '🛒' },
+      { id: 'Laundry', label: 'Laundry', icon: '🧺' },
+      { id: 'Study', label: 'Study Cafe', icon: '📚' },
+      { id: 'Emergency', label: 'Emergency', icon: '🚨' }
+    ];
+
+    const places = [
+      {
+        id: 'snu-oga-cj-international-center',
+        name: 'SNU Office of Global Affairs',
+        category: 'Official',
+        icon: '🏫',
+        latitude: 37.46633,
+        longitude: 126.95119,
+        distance: 'on campus',
+        rating: 4.7,
+        reviewCount: 8,
+        address: 'CJ International Center, Bldg. 152, 1 Gwanak-ro, Gwanak-gu, Seoul 08826',
+        openingHours: 'Mon-Fri 09:00 - 18:00, lunch 12:00 - 13:00',
+        phone: '+82-2-880-8692 / +82-2-880-4447',
+        website: 'https://oia.snu.ac.kr',
+        isOfficial: true,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Official info', 'Exchange support', 'International office'],
+        tags: ['English available', 'visa help', 'exchange program support'],
+        studentTagStats: [
+          ['Exchange program questions', 18],
+          ['Visa and immigration help', 14],
+          ['English available', 13]
+        ],
+        reviews: [
+          { id: 'oga-review-1', name: 'Maya Johnson', country: 'USA', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 15, text: 'Good first place to ask about exchange student paperwork and where to go next.' },
+          { id: 'oga-review-2', name: 'Linh Tran', country: 'Vietnam', school: 'Seoul National University', language: 'English', rating: 5.0, date: 'May 2026', recommends: 12, text: 'Helpful for understanding which office handles visa or exchange questions.' }
+        ]
+      },
+      {
+        id: 'cj-international-center-info-desk',
+        name: 'CJ International Center Info Desk',
+        category: 'Official',
+        icon: 'ℹ️',
+        latitude: 37.46645,
+        longitude: 126.95128,
+        distance: 'on campus',
+        rating: 4.6,
+        reviewCount: 6,
+        address: '1F, CJ International Center, Bldg. 152, Seoul National University',
+        openingHours: 'Mon-Fri 09:00 - 18:00',
+        phone: '+82-2-880-4447',
+        website: 'https://oia.snu.ac.kr/visit-oia',
+        isOfficial: true,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Official info', 'Info desk', 'First stop'],
+        tags: ['foreigner friendly', 'English available', 'campus directions'],
+        studentTagStats: [
+          ['Easy to find', 11],
+          ['Good first stop', 10],
+          ['Campus directions', 8]
+        ],
+        reviews: [
+          { id: 'info-desk-review-1', name: 'Carlos Ruiz', country: 'Spain', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 8, text: 'Useful when you are not sure which OGA office or service you need.' }
+        ]
+      },
+      {
+        id: 'snu-campus-tour-oia',
+        name: 'SNU Campus Tour Office',
+        category: 'Official',
+        icon: '🧭',
+        latitude: 37.46622,
+        longitude: 126.95105,
+        distance: 'on campus',
+        rating: 4.4,
+        reviewCount: 5,
+        address: 'CJ International Centre, Bldg. 152, 1 Gwanak-ro, Gwanak-gu, Seoul 08826',
+        openingHours: '09:00 - 17:00 KST',
+        phone: '+82-2-880-8637',
+        website: 'https://oia-campustours.snu.ac.kr',
+        isOfficial: true,
+        isStudentReviewed: true,
+        isRecentlyUpdated: false,
+        badges: ['Official info', 'Campus tour', 'Visitor help'],
+        tags: ['campus directions', 'visitor information', 'English available'],
+        studentTagStats: [
+          ['Good for first campus visit', 9],
+          ['Helpful landmark', 7],
+          ['Visitor information', 5]
+        ],
+        reviews: [
+          { id: 'campus-tour-review-1', name: 'Chen Wei', country: 'China', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'Apr 2026', recommends: 6, text: 'Good landmark if you are visiting campus for the first time.' }
+        ]
+      },
+      {
+        id: 'snu-food-street',
+        name: 'SNU Station Student Food Street',
+        category: 'Food',
+        icon: '🍜',
+        latitude: 37.4800,
+        longitude: 126.9548,
+        distance: '280m',
+        rating: 4.6,
+        reviewCount: 24,
+        address: 'Restaurants near Seoul Natl Univ. Station, Gwanak-gu, Seoul',
+        openingHours: 'Varies by restaurant',
+        phone: '-',
+        website: '-',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Student reviewed', 'Affordable food', 'Near station'],
+        tags: ['cheap meals', 'student friendly', 'local food'],
+        studentTagStats: [
+          ['Affordable food', 20],
+          ['Easy lunch spot', 17],
+          ['Good for first week', 12]
+        ],
+        reviews: [
+          { id: 'food-street-review-1', name: 'Subin Lee', country: 'Korea', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 18, text: 'There are many affordable Korean food places near Seoul National University Station and Nakseongdae.' },
+          { id: 'food-street-review-2', name: 'Daniel Kim', country: 'USA', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 13, text: 'Affordable food near SNU is perfect for students. Please add specific restaurant names too.' }
+        ]
+      },
+      {
+        id: 'quiet-study-cafe-snu',
+        name: 'Quiet Study Cafe near SNU',
+        category: 'Study',
+        icon: '☕',
+        latitude: 37.4790,
+        longitude: 126.9554,
+        distance: '360m',
+        rating: 4.5,
+        reviewCount: 19,
+        address: 'Study cafes near Seoul Natl Univ. Station, Gwanak-gu, Seoul',
+        openingHours: 'Varies by cafe',
+        phone: '-',
+        website: '-',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: false,
+        badges: ['Student reviewed', 'Quiet', 'Outlets'],
+        tags: ['quiet', 'study-friendly', 'Wi-Fi'],
+        studentTagStats: [
+          ['Enough outlets', 16],
+          ['Quiet morning seats', 14],
+          ['Study-friendly', 13]
+        ],
+        reviews: [
+          { id: 'study-cafe-review-1', name: 'Seoyeon Han', country: 'Korea', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 15, text: 'Look for cafes with outlets, stable Wi-Fi, and enough seating. Morning is usually quieter.' },
+          { id: 'study-cafe-review-2', name: 'Lucia Garcia', country: 'Spain', school: 'Seoul National University', language: 'English', rating: 4.0, date: 'May 2026', recommends: 9, text: 'Outlets are so important for studying. I need quiet cafes for assignments.' }
+        ]
+      },
+      {
+        id: 'olive-young-snu-station',
+        name: 'Olive Young near SNU Station',
+        category: 'Grocery',
+        icon: '🧴',
+        latitude: 37.4810,
+        longitude: 126.9538,
+        distance: '140m',
+        rating: 4.4,
+        reviewCount: 21,
+        address: 'Near Seoul Natl Univ. Station, Gwanak-gu, Seoul',
+        openingHours: 'Varies by store',
+        phone: '-',
+        website: 'https://www.oliveyoung.co.kr',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: false,
+        badges: ['Daily items', 'Skincare', 'Student useful'],
+        tags: ['daily items', 'skincare', 'discounts'],
+        studentTagStats: [
+          ['Basic skincare', 19],
+          ['Daily items', 17],
+          ['Discounts useful', 12]
+        ],
+        reviews: [
+          { id: 'olive-young-review-1', name: 'Minji Park', country: 'Korea', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 14, text: 'Useful for skincare, sunscreen, shampoo, makeup, and small daily items.' },
+          { id: 'olive-young-review-2', name: 'Aisha Reed', country: 'USA', school: 'Seoul National University', language: 'English', rating: 4.0, date: 'May 2026', recommends: 10, text: 'Olive Young was one of the first stores I visited in Korea. The discounts are helpful.' }
+        ]
+      },
+      {
+        id: 'student-mobile-plan-store',
+        name: 'Student Mobile Plan Store',
+        category: 'Official',
+        icon: '📱',
+        latitude: 37.4817,
+        longitude: 126.9517,
+        distance: '180m',
+        rating: 4.2,
+        reviewCount: 13,
+        address: 'Mobile phone stores near Seoul Natl Univ. Station, Gwanak-gu, Seoul',
+        openingHours: 'Varies by store',
+        phone: '-',
+        website: '-',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Student tip', 'SIM card', 'Mobile plan'],
+        tags: ['prepaid SIM', 'student plan', 'passport needed'],
+        studentTagStats: [
+          ['Compare before buying', 12],
+          ['Prepare passport', 10],
+          ['Short-term plans', 7]
+        ],
+        reviews: [
+          { id: 'mobile-store-review-1', name: 'Daniel Kim', country: 'USA', school: 'Seoul National University', language: 'English', rating: 4.0, date: 'May 2026', recommends: 11, text: 'Compare mobile plans before buying a SIM card at the airport. Prepare passport, student ID, and Korean address.' },
+          { id: 'mobile-store-review-2', name: 'Bao Nguyen', country: 'Vietnam', school: 'Seoul National University', language: 'English', rating: 4.0, date: 'Apr 2026', recommends: 6, text: 'I bought mine at the airport, but it was expensive. Check student-friendly plans near campus.' }
+        ]
+      },
+      {
+        id: 'snu-health-center',
+        name: 'SNU Campus Health Center',
+        category: 'Hospital',
+        icon: '🏥',
+        latitude: 37.4635,
+        longitude: 126.9543,
+        distance: '650m',
+        rating: 4.6,
+        reviewCount: 18,
+        address: 'Gwanak-ro, Gwanak-gu, Seoul',
+        openingHours: 'Weekdays 09:00 - 18:00',
+        phone: '02-880-0000',
+        website: 'example.edu/health',
+        isOfficial: true,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Official info', 'Student reviewed', 'English reception'],
+        tags: ['English-speaking staff', 'walk-in available', 'insurance accepted'],
+        studentTagStats: [
+          ['English-speaking staff', 15],
+          ['Foreigner friendly', 14],
+          ['Walk-in available', 10],
+          ['Insurance accepted', 9]
+        ],
+        reviews: [
+          { id: 'health-review-1', name: 'Minji Kim', country: 'Korea', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 12, text: 'Helpful for basic care. Check hours before going.' },
+          { id: 'health-review-2', name: 'Maya Johnson', country: 'USA', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 8, text: 'Reception was patient and the location was easy to find.' }
+        ]
+      },
+      {
+        id: 'station-bus-stop',
+        name: "Seoul Nat'l Univ. Station Bus Stop",
+        category: 'Transport',
+        icon: '🚌',
+        latitude: 37.4812,
+        longitude: 126.9528,
+        distance: '80m',
+        rating: 4.5,
+        reviewCount: 31,
+        address: 'Near Exit 3, Seoul Natl Univ. Station',
+        openingHours: 'Transit hours vary',
+        phone: '-',
+        website: 'example.com/transit',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Student reviewed', 'Campus gateway', 'Saved often'],
+        tags: ['foreigner friendly', 'open late'],
+        studentTagStats: [
+          ['Easy SNU shuttle transfer', 22],
+          ['Good meeting point', 19],
+          ['Taxi pickup nearby', 12]
+        ],
+        reviews: [
+          { id: 'bus-review-1', name: 'Linh Tran', country: 'Vietnam', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 19, text: 'Good first landmark when going to campus.' },
+          { id: 'bus-review-2', name: 'Carlos Ruiz', country: 'Spain', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 11, text: 'Easy place to meet friends before taking the bus.' }
+        ]
+      },
+      {
+        id: 'gwanak-pharmacy',
+        name: 'Gwanak Late Pharmacy',
+        category: 'Pharmacy',
+        icon: '💊',
+        latitude: 37.4804,
+        longitude: 126.9518,
+        distance: '160m',
+        rating: 4.7,
+        reviewCount: 22,
+        address: 'Near Seoul Natl Univ. Station',
+        openingHours: '10:00 - 23:00',
+        phone: '02-000-0000',
+        website: 'example.com/pharmacy',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: false,
+        badges: ['Student reviewed', 'Open late', 'Foreigner friendly'],
+        tags: ['open late', 'foreigner friendly', 'accepts foreign card'],
+        studentTagStats: [
+          ['Open late', 18],
+          ['Accepts foreign card', 16],
+          ['Easy basic medicine', 13]
+        ],
+        reviews: [
+          { id: 'pharmacy-review-1', name: 'Chen Wei', country: 'China', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'Apr 2026', recommends: 14, text: 'Convenient after evening classes.' }
+        ]
+      },
+      {
+        id: 'halal-kitchen',
+        name: 'Halal Kitchen near SNU',
+        category: 'Food',
+        icon: '🍱',
+        latitude: 37.4792,
+        longitude: 126.9540,
+        distance: '260m',
+        rating: 4.5,
+        reviewCount: 27,
+        address: 'Bongcheon-dong, Gwanak-gu',
+        openingHours: '11:00 - 21:00',
+        phone: '02-111-2222',
+        website: 'example.com/halal',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: true,
+        badges: ['Halal-friendly', 'Student reviewed', 'English menu'],
+        tags: ['halal-friendly', 'no pork option', 'English menu'],
+        studentTagStats: [
+          ['Halal-friendly', 20],
+          ['English menu', 17],
+          ['Student discount', 6]
+        ],
+        reviews: [
+          { id: 'halal-review-1', name: 'Aisha Reed', country: 'USA', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 16, text: 'Clear menu and good lunch option near the station.' },
+          { id: 'halal-review-2', name: 'Bao Nguyen', country: 'Vietnam', school: 'Seoul National University', language: 'English', rating: 4.5, date: 'May 2026', recommends: 10, text: 'Staff helped explain ingredients.' }
+        ]
+      },
+      {
+        id: 'snu-library',
+        name: 'SNU Central Library',
+        category: 'Study',
+        icon: '📚',
+        latitude: 37.4619,
+        longitude: 126.9522,
+        distance: '900m',
+        rating: 4.8,
+        reviewCount: 39,
+        address: 'SNU Gwanak Campus',
+        openingHours: '08:00 - 22:00',
+        phone: '02-880-0001',
+        website: 'example.edu/library',
+        isOfficial: true,
+        isStudentReviewed: true,
+        isRecentlyUpdated: false,
+        badges: ['Official info', 'Quiet', 'Study-friendly'],
+        tags: ['quiet', 'study-friendly', 'foreigner friendly'],
+        studentTagStats: [
+          ['Quiet', 28],
+          ['Study-friendly', 24],
+          ['Easy seat search', 9]
+        ],
+        reviews: [
+          { id: 'library-review-1', name: 'Jisoo Park', country: 'Korea', school: 'Seoul National University', language: 'English', rating: 5.0, date: 'May 2026', recommends: 21, text: 'Go early during exam season.' }
+        ]
+      },
+      {
+        id: 'campus-mart',
+        name: 'Campus Convenience Store',
+        category: 'Grocery',
+        icon: '🛒',
+        latitude: 37.4815,
+        longitude: 126.9524,
+        distance: '120m',
+        rating: 4.4,
+        reviewCount: 16,
+        address: 'Near Seoul Natl Univ. Station',
+        openingHours: '24h',
+        phone: '-',
+        website: 'example.com/store',
+        isOfficial: false,
+        isStudentReviewed: true,
+        isRecentlyUpdated: false,
+        badges: ['24h', 'Foreign card', 'Saved often'],
+        tags: ['open late', 'accepts foreign card'],
+        studentTagStats: [
+          ['Open late / 24h', 16],
+          ['Accepts foreign card', 12],
+          ['Cheap snacks', 11]
+        ],
+        reviews: [
+          { id: 'store-review-1', name: 'Lucia Garcia', country: 'Spain', school: 'Seoul National University', language: 'English', rating: 4.0, date: 'Apr 2026', recommends: 9, text: 'Useful for late snacks and transit card top-up.' }
+        ]
+      }
+    ];
+
+    function getUtmParams() {
+      const params = new URLSearchParams(window.location.search);
+      return {
+        utm_source: params.get('utm_source') || '',
+        utm_medium: params.get('utm_medium') || '',
+        utm_campaign: params.get('utm_campaign') || ''
+      };
+    }
+
+    function trackEvent(eventName, params = {}) {
+      const eventParams = { ...params, ...getUtmParams() };
+      console.log('[Exchange Map event]', eventName, eventParams);
+      if (hasRealGaId && typeof gtag === 'function') {
+        gtag('event', eventName, eventParams);
+      }
+    }
+
+    function selectedPlace() {
+      return places.find(place => place.id === state.selectedPlaceId) || places[0];
+    }
+
+    function hasSelectedPlace() {
+      return places.some(place => place.id === state.selectedPlaceId);
+    }
+
+    function filteredPlaces() {
+      return places.filter(place => {
+        const categoryOk = state.category === 'All' || place.category === state.category;
+        const countryOk = state.country === 'All' || reviewsForPlace(place).some(review => review.country === state.country);
+        return categoryOk && countryOk;
+      });
+    }
+
+    function reviewsForPlace(place) {
+      return [...(state.submittedReviews[place.id] || []), ...place.reviews];
+    }
+
+    function header(title, subtitle, eyebrow = 'Exchange Map') {
+      return `
+        <div class="topbar">
+          <div>
+            <p class="eyebrow">${eyebrow}</p>
+            <h1>${title}</h1>
+            <p class="subtitle">${subtitle}</p>
+          </div>
+          <button class="avatar" type="button" aria-label="Profile">EM</button>
+        </div>
+      `;
+    }
+
+    function searchBar(placeholder) {
+      return `<label class="search">⌕ <input aria-label="Search" placeholder="${placeholder}" /></label>`;
+    }
+
+    function chipRow(items, active, key, className = '') {
+      return `
+        <div class="chip-row" data-chip-row="${key}">
+          ${items.map(item => {
+            const value = typeof item === 'string' ? item : item.id;
+            const label = typeof item === 'string' ? item : `${item.icon} ${item.label}`;
+            return `<button class="chip ${className} ${value === active ? 'active' : ''}" data-value="${value}">${label}</button>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function badges(place) {
+      return `<div class="badges">${place.badges.slice(0, 3).map(badge => {
+        const lower = badge.toLowerCase();
+        const type = lower.includes('official') ? 'official' : lower.includes('student') ? 'student' : lower.includes('english') || lower.includes('friendly') ? 'good' : '';
+        return `<span class="badge ${type}">${badge}</span>`;
+      }).join('')}</div>`;
+    }
+
+    function ratingStars(rating) {
+      const full = Math.floor(rating);
+      const half = rating % 1 >= 0.5;
+      const empty = 5 - full - (half ? 1 : 0);
+      return `${'★'.repeat(full)}${half ? '½' : ''}${'☆'.repeat(empty)}`;
+    }
+
+    function placeCard(place) {
+      return `
+        <button class="place-card" data-place-id="${place.id}">
+          <div class="thumb">${place.icon}</div>
+          <div>
+            <h3>${place.name}</h3>
+            <p class="meta">${place.category} · ★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+            ${badges(place)}
+          </div>
+        </button>
+      `;
+    }
+
+    function renderHome() {
+      document.getElementById('screen-home').innerHTML = `
+        ${header('Hi, welcome to Seoul', 'Find useful places reviewed by international students.')}
+        ${searchBar('Search hospitals, halal food, embassies...')}
+        <div class="quick-grid">
+          ${categories.slice(1).map(category => `<button class="quick" data-category="${category.id}"><span>${category.icon}</span><span>${category.label}</span></button>`).join('')}
+        </div>
+        <div class="section-title"><h2>Recently reviewed by students</h2><span>near SNU</span></div>
+        ${places.filter(place => place.isStudentReviewed).slice(0, 3).map(placeCard).join('')}
+        <div class="section-title"><h2>Official info</h2><span>seeded</span></div>
+        ${places.filter(place => place.isOfficial).map(placeCard).join('')}
+        <div class="section-title"><h2>Saved by students</h2><span>warm log</span></div>
+        <div class="hero-card card">
+          <h2 style="margin:0 0 6px;font-size:18px;">Student living notes</h2>
+          <p class="meta">Personal saved places become useful community tips when students choose to share them.</p>
+          <div class="hero-stats">
+            <div class="stat"><strong>124</strong><span>saved places</span></div>
+            <div class="stat"><strong>58</strong><span>student tips</span></div>
+            <div class="stat"><strong>21</strong><span>updated tags</span></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderMapScreen() {
+      const place = hasSelectedPlace() ? selectedPlace() : null;
+      document.getElementById('screen-map').innerHTML = `
+        <div class="map-fullscreen">
+          <div id="map"></div>
+          <div class="map-top-panel ${state.searchOptionsOpen ? '' : 'collapsed'}">
+            <button class="search-toggle" data-search-toggle="true" type="button">⌕ Search or filter places</button>
+            <div class="topbar">
+              <div>
+                <p class="eyebrow">Exchange Map</p>
+                <h1>Practical living map</h1>
+                <p class="subtitle">SNU and Seoul Natl Univ. Station</p>
+              </div>
+              <button class="avatar" type="button" aria-label="Profile">EM</button>
+            </div>
+            <div class="map-filter-area">
+              ${searchBar('Where do you need to go?')}
+              ${chipRow(categories, state.category, 'category')}
+              ${chipRow(countries, state.country, 'country')}
+              ${chipRow(languages, state.language, 'language', 'community')}
+            </div>
+          </div>
+          <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
+          ${place ? `<div class="map-bottom-sheet">
+            <div class="map-overlay" data-open-detail="${place.id}">
+              <h3>${place.icon} ${place.name}</h3>
+              <p class="meta">★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+              ${badges(place)}
+              <button class="primary" id="reviewCta">Leave a review</button>
+            </div>
+          </div>` : ''}
+        </div>
+      `;
+      initMap();
+      setTimeout(() => state.map && state.map.invalidateSize(), 100);
+    }
+
+    function detailHtml(place) {
+      return `
+        <article class="detail card">
+          <div class="detail-image">${place.icon}</div>
+          <h2>${place.name}</h2>
+          <p class="meta">${place.category} · ★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+          ${badges(place)}
+          <div class="info-block">
+            <h3>Official Information</h3>
+            <div class="copy-row">
+              <p class="meta"><strong>Address:</strong> ${place.address}</p>
+              <button class="copy-button" data-copy-address="${place.id}" type="button">Copy</button>
+            </div>
+            <p class="meta"><strong>Hours:</strong> ${place.openingHours}</p>
+            <p class="meta"><strong>Phone:</strong> ${place.phone}</p>
+            <p class="meta"><strong>Website:</strong> ${place.website}</p>
+          </div>
+          <div class="info-block">
+            <h3>Student Summary</h3>
+            ${place.studentTagStats.map(([tag, count]) => `<div class="tag-stat"><span>${tag}</span><span>${count} checked</span></div>`).join('')}
+          </div>
+          <div class="info-block">
+            <h3>Recent student reviews</h3>
+            ${reviewsForPlace(place).map(review => `
+              <div class="review">
+                <strong>${review.name} · ${review.country} · exchange at ${review.school}</strong>
+                <p class="meta">${ratingStars(review.rating)} · ${review.rating.toFixed(1)} · ${review.date} · ${review.language}</p>
+                <p>${review.text}</p>
+                <button class="recommend-button ${state.recommendedReviews.includes(review.id) ? 'active' : ''}" data-review-id="${review.id}" data-place-id="${place.id}" type="button">
+                  ${state.recommendedReviews.includes(review.id) ? 'Recommended' : 'Recommend'} · ${(review.recommends || 0) + (state.recommendedReviews.includes(review.id) ? 1 : 0)}
+                </button>
+              </div>
+            `).join('')}
+          </div>
+          <button class="primary" id="reviewCta">Leave a review</button>
+        </article>
+      `;
+    }
+
+    function renderDetailScreen() {
+      const place = selectedPlace();
+      document.getElementById('screen-detail').innerHTML = `
+        <div class="detail-screen">
+          <button class="secondary back-top-left" data-back-to-map="true" type="button">← Back to map</button>
+          ${header(place.name, 'Place information, photos, and student reviews.', 'Place detail')}
+          ${detailHtml(place)}
+        </div>
+      `;
+    }
+
+    function renderAdd() {
+      const tags = [
+        'vegan option', 'vegetarian option', 'halal-friendly', 'no pork option', 'English menu',
+        'foreign card accepted', 'foreigner friendly', 'English-speaking staff', 'open late',
+        'student discount', 'quiet', 'study-friendly', 'walk-in available', 'insurance accepted'
+      ];
+      const ratingOptions = [];
+      for (let rating = 0.5; rating <= 5; rating += 0.5) ratingOptions.push(rating);
+      document.getElementById('screen-add').innerHTML = `
+        ${header('Add a student tip', 'Save a practical note for yourself or share it with other students.', 'Warm student log')}
+        <div class="form">
+          <div class="field"><label>Place</label><input value="${selectedPlace().name}" /></div>
+          <div class="field"><label>Add photos</label><button class="secondary" type="button">＋ Add photo placeholder</button></div>
+          <div class="field">
+            <label>Rating</label>
+            <div class="stars">${ratingStars(state.selectedRating)} <span class="meta">${state.selectedRating.toFixed(1)}</span></div>
+            <div class="rating-options">
+              ${ratingOptions.map(rating => `<button class="rating-pill ${rating === state.selectedRating ? 'active' : ''}" data-rating="${rating}" type="button">${rating.toFixed(1)}</button>`).join('')}
+            </div>
+          </div>
+          <div class="field"><label>One-line review</label><input placeholder="What should another student know?" /></div>
+          <div class="field"><label>Optional memo</label><textarea rows="3" placeholder="Private note, details, or reminder"></textarea></div>
+          <div class="field">
+            <label>Practical tags</label>
+            <div class="chip-row" data-chip-row="tags">
+              ${tags.map(tag => `<button class="chip ${state.selectedTags.includes(tag) ? 'active' : ''}" data-value="${tag}">${tag}</button>`).join('')}
+            </div>
+          </div>
+          <div class="field">
+            <label>Privacy</label>
+            <div class="chip-row">
+              <button class="chip active">Private</button>
+              <button class="chip">Anonymous public</button>
+              <button class="chip">Same school only</button>
+            </div>
+          </div>
+          <button class="primary" type="button">Save Record</button>
+          <button class="secondary" type="button">Share as student tip</button>
+        </div>
+      `;
+    }
+
+    function renderCommunity() {
+      document.getElementById('screen-community').innerHTML = `
+        ${header('Student community info', 'Official info plus real student experience.', 'Community knowledge')}
+        <div class="hero-card card">
+          <h2 style="margin:0 0 8px;font-size:18px;">Campus signal board</h2>
+          <div class="hero-stats">
+            <div class="stat"><strong>1,248</strong><span>place saves</span></div>
+            <div class="stat"><strong>563</strong><span>student tips</span></div>
+            <div class="stat"><strong>87</strong><span>recent updates</span></div>
+          </div>
+        </div>
+        <div class="section-title"><h2>Hot places students checked</h2><span>this week</span></div>
+        ${places.slice(0, 4).map(placeCard).join('')}
+        <div class="section-title"><h2>Questions from students</h2><span>practical</span></div>
+        ${[
+          'English-speaking dentist near campus?',
+          'Where can I find halal-friendly lunch?',
+          'Pharmacy open after 10 PM?',
+          'Clinic that accepts international student insurance?'
+        ].map(question => `
+          <div class="card" style="padding:12px;margin-bottom:10px;">
+            <strong>${question}</strong>
+            <div class="badges"><span class="badge student">student question</span><span class="badge good">needs local tip</span></div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    function renderLog() {
+      document.getElementById('screen-log').innerHTML = `
+        ${header('My Log', 'Your saved memories and useful places.', 'Warm student log')}
+        ${chipRow(['All', 'Food', 'Health', 'Life', 'Embassy', 'Saved'], 'All', 'log')}
+        ${places.slice(0, 4).map(place => `
+          <article class="place-card">
+            <div class="thumb">${place.icon}</div>
+            <div>
+              <h3>${place.name}</h3>
+              <p class="meta">May 2026 · ★ ${place.rating} · ${place.category}</p>
+              ${badges(place)}
+              <p class="meta" style="margin-top:8px;">Personal note: useful for the first month near SNU.</p>
+            </div>
+          </article>
+        `).join('')}
+        <div class="section-title"><h2>My Categories</h2><span>student notes</span></div>
+        ${['English-speaking hospitals', 'Vegan places', 'Places I reviewed', 'Needs sorting'].map(item => `
+          <div class="card" style="padding:13px;margin-bottom:8px;"><strong>${item}</strong><p class="meta">Saved list for quick access.</p></div>
+        `).join('')}
+        <button class="primary" data-add-record="true">＋ Add new record</button>
+      `;
+    }
+
+    function renderModal() {
+      const modalRoot = document.getElementById('modalRoot');
+      const place = selectedPlace();
+
+      if (!state.reviewModalOpen) {
+        modalRoot.innerHTML = '';
+        return;
+      }
+
+      modalRoot.innerHTML = `
+        <div class="modal-backdrop">
+          <section class="modal" role="dialog" aria-modal="true" aria-label="Leave a review">
+            <div class="modal-head">
+              <div>
+                <h2>Leave a review</h2>
+                <p class="meta">${place.icon} ${place.name}</p>
+              </div>
+              <button class="icon-button" id="closeReviewModal" type="button" aria-label="Close">x</button>
+            </div>
+            ${state.reviewSubmitted ? `
+              <div class="thank-you">Thanks! This is a prototype. Your feedback helps us improve Exchange Map.</div>
+              <button class="primary" id="doneReviewModal" type="button">Done</button>
+            ` : `
+              <div class="form">
+                <div class="field">
+                  <label>Country</label>
+                  <select id="reviewCountry">
+                    ${countries.filter(country => country !== 'All').map(country => `<option value="${country}" ${country === state.country ? 'selected' : ''}>${country}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Rating</label>
+                  <select id="reviewRating">
+                    ${[1, 2, 3, 4, 5].map(rating => `<option value="${rating}" ${rating === Math.round(state.selectedRating) ? 'selected' : ''}>${rating}</option>`).join('')}
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Review text</label>
+                  <textarea id="reviewText" rows="4" placeholder="What should another student know?"></textarea>
+                </div>
+                <button class="primary" id="submitReview" type="button">Submit review</button>
+              </div>
+            `}
+          </section>
+        </div>
+      `;
+    }
+
+    function initMap() {
+      const mapEl = document.getElementById('map');
+      if (!mapEl || typeof L === 'undefined') return;
+      if (state.map) {
+        state.map.remove();
+        state.map = null;
+      }
+
+      state.map = L.map('map', { zoomControl: false }).setView(state.mapView.center, state.mapView.zoom);
+      L.control.zoom({ position: 'topright' }).addTo(state.map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+        subdomains: 'abcd',
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+      }).addTo(state.map);
+
+      state.markers = filteredPlaces().map(place => {
+        const marker = L.marker([place.latitude, place.longitude], {
+          icon: L.divIcon({
+            className: `emoji-marker ${markerType(place.category)} ${place.id === state.selectedPlaceId ? 'selected' : ''}`,
+            html: `<span>${place.icon}</span>`,
+            iconSize: [38, 38],
+            iconAnchor: [19, 38],
+            popupAnchor: [0, -38]
+          })
+        }).addTo(state.map);
+        marker.on('click', event => {
+          if (event && event.originalEvent) L.DomEvent.stopPropagation(event.originalEvent);
+          selectPlace(place, 'marker_click');
+        });
+        marker.bindPopup(`<strong>${place.name}</strong><br>${place.category} · ★ ${place.rating}`);
+        if (place.id === state.selectedPlaceId) marker.setZIndexOffset(1000);
+        return marker;
+      });
+
+      state.map.on('click', () => {
+        if (!state.selectedPlaceId && !state.searchOptionsOpen) return;
+        state.selectedPlaceId = '';
+        state.searchOptionsOpen = false;
+        saveMapView();
+        renderAll();
+      });
+    }
+
+    function markerType(category) {
+      if (category === 'Hospital' || category === 'Pharmacy') return 'health';
+      if (category === 'Food') return 'food';
+      if (category === 'Study' || category === 'Transport') return 'community';
+      if (category === 'Official') return 'community';
+      return 'life';
+    }
+
+    function selectPlace(place, source) {
+      saveMapView();
+      state.selectedPlaceId = place.id;
+      state.searchOptionsOpen = false;
+      trackEvent(source, {
+        place_id: place.id,
+        place_name: place.name,
+        place_category: place.category,
+        selected_country: state.country,
+        selected_language: state.language
+      });
+      renderAll();
+      trackEvent('review_panel_open', {
+        place_id: place.id,
+        place_name: place.name,
+        visible_review_count: reviewsForPlace(place).filter(review => state.country === 'All' || review.country === state.country).length
+      });
+    }
+
+    function openDetail(place) {
+      saveMapView();
+      state.selectedPlaceId = place.id;
+      trackEvent('place_list_click', {
+        place_id: place.id,
+        place_name: place.name
+      });
+      state.tab = 'detail';
+      renderAll();
+    }
+
+    function saveMapView() {
+      if (!state.map) return;
+      const center = state.map.getCenter();
+      state.mapView = {
+        center: [center.lat, center.lng],
+        zoom: state.map.getZoom()
+      };
+    }
+
+    function requestCurrentLocationOnLoad() {
+      if (state.locationRequested || !navigator.geolocation) return;
+      state.locationRequested = true;
+
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          state.mapView = {
+            center: [position.coords.latitude, position.coords.longitude],
+            zoom: 16
+          };
+          trackEvent('current_location_prompt', {
+            location_available: 'yes',
+            trigger: 'page_load'
+          });
+          renderAll();
+        },
+        () => {
+          trackEvent('current_location_prompt', {
+            location_available: 'no',
+            trigger: 'page_load'
+          });
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+      );
+    }
+
+    function bindEvents() {
+      document.querySelectorAll('[data-tab]').forEach(button => {
+        button.onclick = () => {
+          state.tab = button.dataset.tab;
+          if (state.tab === 'map') state.searchOptionsOpen = false;
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-search-toggle]').forEach(button => {
+        button.onclick = () => {
+          state.searchOptionsOpen = true;
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-locate-me]').forEach(button => {
+        button.onclick = () => {
+          if (!navigator.geolocation) {
+            alert('Current location is not available in this browser.');
+            return;
+          }
+
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              state.mapView = {
+                center: [position.coords.latitude, position.coords.longitude],
+                zoom: 16
+              };
+              state.selectedPlaceId = '';
+              state.searchOptionsOpen = false;
+              trackEvent('current_location_click', {
+                location_available: 'yes'
+              });
+              renderAll();
+            },
+            () => {
+              trackEvent('current_location_click', {
+                location_available: 'no'
+              });
+              alert('Location permission was not available. You can still move the map manually.');
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
+          );
+        };
+      });
+
+      document.querySelectorAll('[data-chip-row="category"] .chip').forEach(button => {
+        button.onclick = () => {
+          state.category = button.dataset.value;
+          state.searchOptionsOpen = true;
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-chip-row="country"] .chip').forEach(button => {
+        button.onclick = () => {
+          state.country = button.dataset.value;
+          state.searchOptionsOpen = true;
+          trackEvent('country_filter_click', { country: state.country });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-chip-row="language"] .chip').forEach(button => {
+        button.onclick = () => {
+          state.language = button.dataset.value;
+          state.searchOptionsOpen = true;
+          trackEvent('language_select', { language: state.language });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-chip-row="tags"] .chip').forEach(button => {
+        button.onclick = () => {
+          const tag = button.dataset.value;
+          if (state.selectedTags.includes(tag)) {
+            state.selectedTags = state.selectedTags.filter(item => item !== tag);
+          } else {
+            state.selectedTags.push(tag);
+          }
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-rating]').forEach(button => {
+        button.onclick = () => {
+          state.selectedRating = Number(button.dataset.rating);
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-place-id]').forEach(button => {
+        if (button.dataset.reviewId) return;
+        button.onclick = () => {
+          const place = places.find(item => item.id === button.dataset.placeId);
+          if (!place) return;
+          if (state.tab === 'map' && state.selectedPlaceId === place.id) {
+            openDetail(place);
+            return;
+          }
+          selectPlace(place, 'place_list_click');
+        };
+      });
+
+      document.querySelectorAll('[data-open-detail]').forEach(button => {
+        button.onclick = () => {
+          const place = places.find(item => item.id === button.dataset.openDetail);
+          if (place) openDetail(place);
+        };
+      });
+
+      document.querySelectorAll('[data-back-to-map]').forEach(button => {
+        button.onclick = () => {
+          state.tab = 'map';
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-copy-address]').forEach(button => {
+        button.onclick = async event => {
+          event.stopPropagation();
+          const place = places.find(item => item.id === button.dataset.copyAddress);
+          if (!place) return;
+
+          try {
+            await navigator.clipboard.writeText(place.address);
+            button.textContent = 'Copied';
+            trackEvent('address_copy_click', {
+              place_id: place.id,
+              place_name: place.name
+            });
+            setTimeout(() => {
+              button.textContent = 'Copy';
+            }, 1200);
+          } catch (error) {
+            trackEvent('address_copy_click', {
+              place_id: place.id,
+              place_name: place.name,
+              copy_available: 'no'
+            });
+            alert(`Copy this address:\n${place.address}`);
+          }
+        };
+      });
+
+      document.querySelectorAll('[data-review-id]').forEach(button => {
+        button.onclick = () => {
+          const reviewId = button.dataset.reviewId;
+          const placeId = button.dataset.placeId;
+          const place = places.find(item => item.id === placeId);
+          const review = place && reviewsForPlace(place).find(item => item.id === reviewId);
+          if (!place || !review) return;
+
+          if (state.recommendedReviews.includes(reviewId)) {
+            state.recommendedReviews = state.recommendedReviews.filter(item => item !== reviewId);
+          } else {
+            state.recommendedReviews.push(reviewId);
+          }
+
+          trackEvent('review_recommend_click', {
+            place_id: place.id,
+            place_name: place.name,
+            review_id: review.id,
+            recommended: state.recommendedReviews.includes(reviewId) ? 'yes' : 'no'
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('#reviewCta').forEach(reviewCta => {
+        reviewCta.onclick = event => {
+          event.stopPropagation();
+          const place = selectedPlace();
+          trackEvent('review_cta_click', {
+            place_id: place.id,
+            place_name: place.name,
+            selected_country: state.country,
+            selected_language: state.language
+          });
+          state.reviewModalOpen = true;
+          state.reviewSubmitted = false;
+          renderAll();
+        };
+      });
+
+      const closeReviewModal = document.getElementById('closeReviewModal');
+      if (closeReviewModal) {
+        closeReviewModal.onclick = () => {
+          state.reviewModalOpen = false;
+          renderAll();
+        };
+      }
+
+      const doneReviewModal = document.getElementById('doneReviewModal');
+      if (doneReviewModal) {
+        doneReviewModal.onclick = () => {
+          state.reviewModalOpen = false;
+          renderAll();
+        };
+      }
+
+      const submitReview = document.getElementById('submitReview');
+      if (submitReview) {
+        submitReview.onclick = () => {
+          const place = selectedPlace();
+          const country = document.getElementById('reviewCountry').value;
+          const rating = Number(document.getElementById('reviewRating').value);
+          const reviewText = document.getElementById('reviewText').value.trim();
+          const newReview = {
+            id: `submitted-${place.id}-${Date.now()}`,
+            name: 'You',
+            country,
+            school: 'Seoul National University',
+            language: state.language,
+            rating,
+            date: 'Just now',
+            recommends: 0,
+            text: reviewText || 'Prototype review submitted by a tester.'
+          };
+
+          state.submittedReviews = {
+            ...state.submittedReviews,
+            [place.id]: [newReview, ...(state.submittedReviews[place.id] || [])]
+          };
+
+          trackEvent('review_submit', {
+            place_id: place.id,
+            place_name: place.name,
+            country,
+            rating
+          });
+          state.reviewSubmitted = true;
+          renderAll();
+        };
+      }
+
+      document.querySelectorAll('[data-add-record]').forEach(button => {
+        button.onclick = () => {
+          state.tab = 'add';
+          renderAll();
+        };
+      });
+    }
+
+    function renderAll() {
+      renderHome();
+      renderMapScreen();
+      renderDetailScreen();
+      renderAdd();
+      renderCommunity();
+      renderLog();
+
+      document.querySelectorAll('.screen').forEach(screen => {
+        screen.classList.toggle('active', screen.id === `screen-${state.tab}`);
+      });
+      document.querySelectorAll('.nav-button').forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === state.tab);
+      });
+      document.getElementById('appRoot').classList.toggle('map-mode', state.tab === 'map');
+      renderModal();
+      bindEvents();
+      if (state.tab === 'map') setTimeout(() => state.map && state.map.invalidateSize(), 100);
+    }
+
+    renderAll();
+
+    trackEvent('prototype_view', {
+      page_title: document.title,
+      page_location: window.location.href
+    });
+
+    const utmParams = getUtmParams();
+    if (utmParams.utm_source || utmParams.utm_medium || utmParams.utm_campaign) {
+      trackEvent('qr_landing', utmParams);
+    }
+
+    requestCurrentLocationOnLoad();
+  </script>
+</body>
+</html>
