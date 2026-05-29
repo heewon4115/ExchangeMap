@@ -1740,19 +1740,26 @@
             </div>
           </div>
           <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
-          ${place ? `<div class="map-bottom-sheet">
-            <div class="map-overlay" data-open-detail="${place.id}">
-              <h3>${place.icon} ${place.name}</h3>
-              <p class="meta">★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
-              ${badges(place)}
-              <span class="tap-hint">Tap this card to view details and reviews</span>
-              <button class="primary" id="reviewCta">Leave a review</button>
-            </div>
-          </div>` : ''}
+          <div id="mapBottomSheet">${mapBottomSheetHtml(place)}</div>
         </div>
       `;
       initMap();
       setTimeout(() => state.map && state.map.invalidateSize(), 100);
+    }
+
+    function mapBottomSheetHtml(place) {
+      if (!place) return '';
+      return `
+        <div class="map-bottom-sheet">
+          <div class="map-overlay" data-open-detail="${place.id}">
+            <h3>${place.icon} ${place.name}</h3>
+            <p class="meta">★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+            ${badges(place)}
+            <span class="tap-hint">Tap this card to view details and reviews</span>
+            <button class="primary" id="reviewCta">Leave a review</button>
+          </div>
+        </div>
+      `;
     }
 
     function detailHtml(place) {
@@ -1976,9 +1983,9 @@
           if (event && event.originalEvent) L.DomEvent.stopPropagation(event.originalEvent);
           selectPlace(place, 'marker_click');
         });
-        marker.bindPopup(`<strong>${place.name}</strong><br>${place.category} · ★ ${place.rating}`);
+        marker.bindPopup(`<strong>${place.name}</strong><br>${place.category} · ★ ${place.rating}`, { autoPan: false });
         if (place.id === state.selectedPlaceId) marker.setZIndexOffset(1000);
-        return marker;
+        return { placeId: place.id, marker };
       });
 
       if (state.userLocation) {
@@ -1998,7 +2005,7 @@
         state.selectedPlaceId = '';
         state.searchOptionsOpen = false;
         saveMapView();
-        renderAll();
+        updateMapSelection();
       });
     }
 
@@ -2008,6 +2015,37 @@
       if (category === 'Study' || category === 'Transport') return 'community';
       if (category === 'Official') return 'community';
       return 'life';
+    }
+
+    function updateMarkerHighlights() {
+      state.markers.forEach(item => {
+        const isSelected = item.placeId === state.selectedPlaceId;
+        const markerEl = item.marker.getElement();
+        if (markerEl) markerEl.classList.toggle('selected', isSelected);
+        item.marker.setZIndexOffset(isSelected ? 1000 : 0);
+      });
+    }
+
+    function updateMapSelection() {
+      const place = hasSelectedPlace() ? selectedPlace() : null;
+      const sheet = document.getElementById('mapBottomSheet');
+      const topPanel = document.querySelector('.map-top-panel');
+      const searchToggle = document.querySelector('[data-search-toggle]');
+
+      if (!sheet || !topPanel || !searchToggle) {
+        renderAll();
+        return;
+      }
+
+      sheet.innerHTML = mapBottomSheetHtml(place);
+      topPanel.classList.toggle('collapsed', !state.searchOptionsOpen);
+      searchToggle.innerHTML = `
+        <span>⌕ ${state.searchOptionsOpen ? 'Hide search filters' : 'Search or filter places'}</span>
+        <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
+      `;
+      updateMarkerHighlights();
+      renderModal();
+      bindEvents();
     }
 
     function selectPlace(place, source) {
@@ -2021,7 +2059,11 @@
         selected_country: state.country,
         selected_language: state.language
       });
-      renderAll();
+      if (state.tab === 'map' && state.map) {
+        updateMapSelection();
+      } else {
+        renderAll();
+      }
       trackEvent('review_panel_open', {
         place_id: place.id,
         place_name: place.name,
