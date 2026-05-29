@@ -53,7 +53,7 @@
     }
 
     .page {
-      min-height: 100vh;
+      min-height: 100dvh;
       padding: 18px;
       display: grid;
       place-items: start center;
@@ -61,7 +61,7 @@
 
     .phone {
       width: min(430px, 100%);
-      min-height: calc(100vh - 36px);
+      min-height: calc(100dvh - 36px);
       background: #fffaf3;
       border: 1px solid rgba(138, 90, 50, 0.14);
       border-radius: 28px;
@@ -71,8 +71,8 @@
     }
 
     .app {
-      height: calc(100vh - 36px);
-      min-height: 760px;
+      height: calc(100dvh - 36px);
+      min-height: min(760px, calc(100dvh - 36px));
       overflow: auto;
       padding: 18px 16px 92px;
     }
@@ -248,8 +248,8 @@
 
     .map-fullscreen {
       position: relative;
-      height: calc(100vh - 114px);
-      min-height: 682px;
+      height: calc(100dvh - 114px);
+      min-height: min(682px, calc(100dvh - 114px));
       background:
         linear-gradient(rgba(250, 247, 240, 0.08), rgba(250, 247, 240, 0.08)),
         #dce9f5;
@@ -285,6 +285,8 @@
       background: rgba(255, 255, 255, 0.88);
       box-shadow: 0 16px 42px rgba(31, 41, 55, 0.14);
       backdrop-filter: blur(18px);
+      max-height: calc(100dvh - 220px);
+      overflow: auto;
     }
 
     .map-top-panel.collapsed {
@@ -340,6 +342,8 @@
       z-index: 700;
       display: grid;
       gap: 10px;
+      max-height: 42dvh;
+      overflow: auto;
     }
 
     .map-bottom-sheet .map-overlay {
@@ -943,30 +947,119 @@
     }
 
     @media (min-width: 860px) {
+      .page {
+        padding: 24px;
+      }
+
       .phone {
-        width: min(1100px, 100%);
+        width: min(1280px, 100%);
+        min-height: calc(100dvh - 48px);
         border-radius: 30px;
       }
 
       .app {
-        min-height: 780px;
+        height: calc(100dvh - 48px);
+        min-height: min(820px, calc(100dvh - 48px));
+        padding-left: 22px;
+        padding-right: 22px;
+      }
+
+      .app.map-mode {
+        padding: 0 0 82px;
+      }
+
+      h1 {
+        font-size: 34px;
       }
 
       .desktop-grid {
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 380px;
-        gap: 14px;
+        grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
+        gap: 18px;
         align-items: start;
       }
 
-      #map { height: 560px; }
+      #map { height: 640px; }
 
       .map-fullscreen {
-        height: calc(100vh - 114px);
-        min-height: 720px;
+        height: calc(100dvh - 130px);
+        min-height: min(780px, calc(100dvh - 130px));
       }
 
       .map-fullscreen #map { height: 100%; }
+
+      .map-top-panel {
+        top: 18px;
+        left: 18px;
+        right: auto;
+        width: min(520px, calc(100% - 36px));
+      }
+
+      .map-bottom-sheet {
+        left: 18px;
+        right: auto;
+        bottom: 18px;
+        width: min(430px, calc(100% - 36px));
+      }
+
+      .locate-button {
+        right: 22px;
+        bottom: 108px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        padding: 0;
+      }
+
+      .phone {
+        width: 100%;
+        min-height: 100dvh;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .app {
+        height: 100dvh;
+        min-height: 100dvh;
+        padding: 14px 12px 86px;
+      }
+
+      .app.map-mode {
+        padding: 0 0 74px;
+      }
+
+      .map-fullscreen {
+        height: calc(100dvh - 74px);
+        min-height: calc(100dvh - 74px);
+      }
+
+      .map-top-panel {
+        top: 10px;
+        left: 10px;
+        right: 10px;
+        border-radius: 18px;
+      }
+
+      .map-bottom-sheet {
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+      }
+
+      .bottom-nav {
+        padding: 7px 8px 10px;
+      }
+
+      .nav-button {
+        min-height: 50px;
+      }
+
+      .detail-screen {
+        padding-top: 44px;
+      }
     }
   </style>
 </head>
