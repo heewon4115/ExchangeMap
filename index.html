@@ -4371,7 +4371,6 @@
           ${boards.map(board => `
             <button class="board-chip ${board.id === activeBoard.id ? 'active' : ''}" data-community-board="${board.id}" type="button">
               ${board.label}
-              <span>${board.title}</span>
             </button>
           `).join('')}
         </div>
