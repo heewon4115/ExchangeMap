@@ -73,7 +73,7 @@
 
     .page {
       min-height: 100dvh;
-      padding: 18px;
+      padding: 16px;
       display: grid;
       place-items: start center;
     }
@@ -83,8 +83,8 @@
       min-height: calc(100dvh - 36px);
       background: #fffaf3;
       border: 1px solid rgba(138, 90, 50, 0.14);
-      border-radius: 28px;
-      box-shadow: 0 24px 60px rgba(31, 41, 55, 0.16);
+      border-radius: 26px;
+      box-shadow: 0 22px 52px rgba(31, 41, 55, 0.14);
       overflow: hidden;
       position: relative;
     }
@@ -93,7 +93,7 @@
       height: calc(100dvh - 36px);
       min-height: min(760px, calc(100dvh - 36px));
       overflow: auto;
-      padding: 18px 16px 92px;
+      padding: 14px 16px 92px;
     }
 
     .app.map-mode {
@@ -106,7 +106,7 @@
       justify-content: space-between;
       gap: 12px;
       align-items: flex-start;
-      margin-bottom: 14px;
+      margin-bottom: 10px;
     }
 
     .screen.active:not(#screen-map) .topbar {
@@ -123,13 +123,13 @@
 
     h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 27px;
       line-height: 1.08;
       letter-spacing: 0;
     }
 
     .subtitle {
-      margin: 6px 0 0;
+      margin: 5px 0 0;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.45;
@@ -260,20 +260,20 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
-      margin: 4px 0 12px;
+      margin: 2px 0 10px;
     }
 
     .board-chip {
-      min-height: 44px;
+      min-height: 40px;
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 14px;
       background: var(--card);
       color: var(--ink);
-      padding: 9px 10px;
+      padding: 8px 10px;
       text-align: center;
       font-size: 12px;
       font-weight: 900;
-      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.06);
+      box-shadow: 0 6px 14px rgba(31, 41, 55, 0.05);
     }
 
     .board-chip span {
@@ -293,13 +293,13 @@
     .tip-composer {
       display: grid;
       gap: 10px;
-      padding: 14px;
-      margin-bottom: 14px;
+      padding: 13px;
+      margin-bottom: 12px;
       border: 1px solid rgba(123, 97, 255, 0.16);
-      border-radius: 22px;
+      border-radius: 18px;
       background:
         linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 252, 247, 0.94));
-      box-shadow: 0 14px 30px rgba(31, 41, 55, 0.08);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.07);
     }
 
     .tip-composer h3 {
@@ -321,15 +321,15 @@
 
     .community-floating-action button {
       width: auto;
-      min-width: 168px;
-      min-height: 48px;
+      min-width: 154px;
+      min-height: 44px;
       margin: 0;
-      padding: 11px 18px;
+      padding: 10px 16px;
       border-radius: 999px;
       pointer-events: auto;
       background: #2563eb;
       color: white;
-      box-shadow: 0 16px 40px rgba(37, 99, 235, 0.3);
+      box-shadow: 0 14px 32px rgba(37, 99, 235, 0.28);
     }
 
     .community-floating-action button::before {
@@ -357,8 +357,8 @@
     }
 
     .tip-card {
-      padding: 14px;
-      margin-bottom: 12px;
+      padding: 13px;
+      margin-bottom: 10px;
     }
 
     .tip-actions {
@@ -414,8 +414,8 @@
     }
 
     .recommendation-post {
-      padding: 14px;
-      margin-bottom: 12px;
+      padding: 13px;
+      margin-bottom: 10px;
       border: 1px solid rgba(176, 128, 78, 0.16);
       background: rgba(255, 255, 255, 0.96);
       cursor: pointer;
@@ -423,7 +423,7 @@
 
     .recommendation-post h3 {
       margin: 0 0 8px;
-      font-size: 18px;
+      font-size: 17px;
       line-height: 1.25;
     }
 
@@ -578,7 +578,7 @@
       justify-content: space-between;
       align-items: center;
       gap: 12px;
-      margin: 20px 0 11px;
+      margin: 15px 0 9px;
     }
 
     .section-title h2 {
@@ -594,9 +594,9 @@
 
     .card {
       border: 1px solid var(--line);
-      border-radius: 20px;
+      border-radius: 18px;
       background: var(--card);
-      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.06);
+      box-shadow: 0 8px 20px rgba(31, 41, 55, 0.055);
     }
 
     .hero-card {
@@ -669,12 +669,12 @@
 
     .map-controls-stack {
       position: absolute;
-      top: 42px;
+      top: 14px;
       left: 12px;
       right: 12px;
       z-index: 700;
       display: grid;
-      gap: 8px;
+      gap: 7px;
       align-items: start;
       pointer-events: none;
     }
@@ -686,12 +686,12 @@
     .map-top-panel {
       position: relative;
       display: grid;
-      gap: 9px;
-      padding: 10px;
+      gap: 8px;
+      padding: 9px;
       border: 1px solid rgba(255, 255, 255, 0.86);
-      border-radius: 22px;
+      border-radius: 20px;
       background: rgba(255, 255, 255, 0.92);
-      box-shadow: 0 14px 34px rgba(31, 41, 55, 0.12);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.11);
       backdrop-filter: blur(18px);
       max-height: calc(100dvh - 220px);
       overflow: auto;
@@ -705,15 +705,15 @@
     }
 
     .filter-button {
-      min-height: 44px;
+      min-height: 40px;
       border: 1px solid rgba(23, 105, 224, 0.16);
-      border-radius: 16px;
+      border-radius: 14px;
       background: var(--card);
       color: var(--blue);
-      padding: 0 13px;
+      padding: 0 12px;
       font-size: 13px;
       font-weight: 900;
-      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.08);
+      box-shadow: 0 7px 16px rgba(31, 41, 55, 0.07);
       white-space: nowrap;
     }
 
@@ -729,15 +729,15 @@
 
     .map-category-button {
       flex: 0 0 auto;
-      min-height: 36px;
+      min-height: 34px;
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 13px;
       background: rgba(255, 255, 255, 0.94);
       color: var(--ink);
-      padding: 7px 10px;
+      padding: 6px 10px;
       font-size: 12px;
       font-weight: 900;
-      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.06);
+      box-shadow: 0 6px 14px rgba(31, 41, 55, 0.05);
       white-space: nowrap;
     }
 
@@ -848,7 +848,7 @@
 
     .map-top-panel .search {
       margin: 0;
-      min-height: 40px;
+      min-height: 38px;
       box-shadow: none;
     }
 
@@ -857,9 +857,9 @@
       right: 14px;
       bottom: 166px;
       z-index: 720;
-      width: 46px;
-      height: 46px;
-      min-height: 46px;
+      width: 44px;
+      height: 44px;
+      min-height: 44px;
       border: 1px solid rgba(255, 255, 255, 0.9);
       padding: 0;
       border-radius: 50%;
@@ -900,8 +900,8 @@
       right: 14px;
       bottom: 112px;
       z-index: 720;
-      width: 46px;
-      height: 46px;
+      width: 44px;
+      height: 44px;
       border: 1px solid rgba(255, 255, 255, 0.9);
       border-radius: 50%;
       background: rgba(255, 255, 255, 0.94);
@@ -949,12 +949,12 @@
       right: 12px;
       bottom: 12px;
       z-index: 500;
-      padding: 14px;
-      padding-right: 64px;
+      padding: 13px;
+      padding-right: 58px;
       border: 1px solid rgba(255, 255, 255, 0.88);
-      border-radius: 24px;
+      border-radius: 22px;
       background: rgba(255, 255, 255, 0.94);
-      box-shadow: 0 20px 50px rgba(31, 41, 55, 0.18);
+      box-shadow: 0 18px 42px rgba(31, 41, 55, 0.16);
       backdrop-filter: blur(18px);
     }
 
@@ -1409,12 +1409,12 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
-      padding: 8px;
+      padding: 7px;
       border: 1px solid rgba(255, 255, 255, 0.86);
-      border-radius: 22px;
+      border-radius: 20px;
       background: rgba(255, 255, 255, 0.94);
       backdrop-filter: blur(14px);
-      box-shadow: 0 14px 38px rgba(31, 41, 55, 0.16);
+      box-shadow: 0 12px 30px rgba(31, 41, 55, 0.14);
     }
 
     .modal-backdrop {
@@ -1482,21 +1482,21 @@
 
     .nav-button {
       border: 0;
-      border-radius: 16px;
+      border-radius: 14px;
       background: transparent;
       color: var(--muted);
-      min-height: 48px;
+      min-height: 46px;
       display: flex;
       place-items: center;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 900;
     }
 
     .nav-button span:first-child {
-      font-size: 18px;
+      font-size: 17px;
     }
 
     .nav-button.active {
@@ -1697,13 +1697,13 @@
 
     @media (min-width: 860px) {
       .page {
-        padding: 24px;
+        padding: 20px;
       }
 
       .phone {
         width: min(1280px, 100%);
         min-height: calc(100dvh - 48px);
-        border-radius: 30px;
+        border-radius: 28px;
       }
 
       .app {
@@ -1746,7 +1746,7 @@
       .map-fullscreen #map { height: 100%; }
 
       .map-controls-stack {
-        top: 44px;
+        top: 18px;
         left: 18px;
         right: auto;
         width: min(520px, calc(100% - 36px));
@@ -1785,7 +1785,7 @@
       .app {
         height: 100dvh;
         min-height: 100dvh;
-        padding: 16px 12px 96px;
+        padding: 12px 12px 92px;
       }
 
       .app.map-mode {
@@ -1798,7 +1798,7 @@
       }
 
       .map-controls-stack {
-        top: 42px;
+        top: 10px;
         left: 10px;
         right: 10px;
       }
@@ -1827,16 +1827,16 @@
         left: 10px;
         right: 10px;
         bottom: 8px;
-        padding: 7px;
+        padding: 6px;
       }
 
       .nav-button {
-        min-height: 50px;
+        min-height: 48px;
       }
 
       .screen.active:not(#screen-map) .topbar {
         padding-right: 0;
-        padding-top: 8px;
+        padding-top: 4px;
       }
 
       .hero-stats {
