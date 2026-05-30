@@ -2997,11 +2997,8 @@
 
     function renderNav() {
       const navItems = [
-        ['home', '⌂', 'navHome'],
         ['map', '⌖', 'navMap'],
-        ['add', '＋', 'navAdd'],
-        ['community', '◈', 'navCommunity'],
-        ['log', '◇', 'navLog']
+        ['community', '◈', 'navCommunity']
       ];
       document.getElementById('bottomNav').innerHTML = navItems.map(([tab, icon, labelKey]) => `
         <button class="nav-button ${state.tab === tab ? 'active' : ''}" data-tab="${tab}" type="button"><span>${icon}</span><span>${t(labelKey)}</span></button>
