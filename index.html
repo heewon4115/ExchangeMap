@@ -230,6 +230,40 @@
       color: #5139d6;
     }
 
+    .board-chip-row {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin: 4px 0 12px;
+    }
+
+    .board-chip {
+      min-height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--card);
+      color: var(--ink);
+      padding: 8px 10px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.06);
+    }
+
+    .board-chip span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .board-chip.active {
+      border-color: rgba(123, 97, 255, 0.36);
+      background: var(--purple-soft);
+      color: #5139d6;
+    }
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -1240,6 +1274,7 @@
       selectedPlaceId: '',
       searchOptionsOpen: false,
       uiLanguage: 'en',
+      communityBoard: 'info',
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -2537,6 +2572,55 @@
     }
 
     function renderCommunity() {
+      const boards = [
+        {
+          id: 'info',
+          label: '정보 게시판',
+          title: 'Information Board',
+          hint: 'visa, housing, campus',
+          posts: [
+            ['How to book the immigration office visit?', 'What documents should exchange students prepare first?', 'Maya · USA · SNU exchange', 11],
+            ['Where do students buy bedding near campus?', 'Looking for cheap bedding and hangers after moving in.', 'Chen · China · SNU exchange', 7],
+            ['Best way from Incheon Airport to SNU?', 'Airport bus, subway, or taxi with luggage?', 'Linh · Vietnam · SNU exchange', 9]
+          ]
+        },
+        {
+          id: 'social',
+          label: '친목 게시판',
+          title: 'Social Board',
+          hint: 'friends, meals, meetups',
+          posts: [
+            ['Anyone wants dinner near SNU Station?', 'Thinking vegan or halal-friendly food this Friday.', 'Carlos · Spain · SNU exchange', 14],
+            ['Language exchange coffee group', 'Korean / English / Chinese casual meetup near campus.', 'Subin · Korea · SNU', 18],
+            ['Looking for gym buddy', 'Beginner-friendly workouts around Gwanak-gu.', 'Aisha · USA · SNU exchange', 6]
+          ]
+        },
+        {
+          id: 'travel',
+          label: '여행 게시판',
+          title: 'Travel Board',
+          hint: 'trips, plans, routes',
+          posts: [
+            ['Busan weekend trip plan?', 'Trying to make a 2-day route with other exchange students.', 'Lucia · Spain · SNU exchange', 12],
+            ['Jeju in June: who is interested?', 'Looking for people to split car rental and hostel.', 'Bao · Vietnam · SNU exchange', 10],
+            ['Day trip near Seoul recommendations', 'Any easy trip without missing Monday class?', 'Daniel · USA · SNU exchange', 8]
+          ]
+        },
+        {
+          id: 'qa',
+          label: 'Q&A 게시판',
+          title: 'Q&A Board',
+          hint: 'questions, answers, help',
+          posts: [
+            ['English-speaking dentist near campus?', 'Does anyone know a clinic where the dentist can explain treatment in English?', 'Maya · USA · SNU exchange', 8],
+            ['Where can I find halal-friendly lunch?', 'Looking for reliable lunch places near SNU Station or campus.', 'Aisha · USA · SNU exchange', 12],
+            ['Pharmacy open after 10 PM?', 'Need a late-night pharmacy that students actually use.', 'Linh · Vietnam · SNU exchange', 5],
+            ['Clinic that accepts international student insurance?', 'Please share places where foreign insurance was not confusing.', 'Carlos · Spain · SNU exchange', 9]
+          ]
+        }
+      ];
+      const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
+
       document.getElementById('screen-community').innerHTML = `
         ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
         <div class="hero-card card">
@@ -2550,36 +2634,20 @@
         <div class="section-title"><h2>${t('hotPlaces')}</h2><span>${t('thisWeek')}</span></div>
         ${places.slice(0, 4).map(placeCard).join('')}
         <div class="section-title"><h2>${t('community')}</h2><span>${t('studentPosts')}</span></div>
-        ${[
-          {
-            title: 'English-speaking dentist near campus?',
-            body: 'Does anyone know a clinic where the dentist can explain treatment in English?',
-            author: 'Maya · USA · SNU exchange',
-            replies: 8
-          },
-          {
-            title: 'Where can I find halal-friendly lunch?',
-            body: 'Looking for reliable lunch places near SNU Station or campus.',
-            author: 'Aisha · USA · SNU exchange',
-            replies: 12
-          },
-          {
-            title: 'Pharmacy open after 10 PM?',
-            body: 'Need a late-night pharmacy that students actually use.',
-            author: 'Linh · Vietnam · SNU exchange',
-            replies: 5
-          },
-          {
-            title: 'Clinic that accepts international student insurance?',
-            body: 'Please share places where foreign insurance was not confusing.',
-            author: 'Carlos · Spain · SNU exchange',
-            replies: 9
-          }
-        ].map(post => `
+        <div class="board-chip-row">
+          ${boards.map(board => `
+            <button class="board-chip ${board.id === activeBoard.id ? 'active' : ''}" data-community-board="${board.id}" type="button">
+              ${board.label}
+              <span>${board.title}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
+        ${activeBoard.posts.map(([title, body, author, replies]) => `
           <div class="card" style="padding:12px;margin-bottom:10px;">
-            <strong>${post.title}</strong>
-            <p class="meta" style="margin-top:6px;">${post.body}</p>
-            <p class="meta" style="margin-top:8px;">${post.author} · 💬 ${post.replies}</p>
+            <strong>${title}</strong>
+            <p class="meta" style="margin-top:6px;">${body}</p>
+            <p class="meta" style="margin-top:8px;">${author} · 💬 ${replies}</p>
             <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">${t('needsTip')}</span></div>
           </div>
         `).join('')}
@@ -2931,6 +2999,14 @@
           } else {
             state.selectedTags.push(tag);
           }
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-community-board]').forEach(button => {
+        button.onclick = () => {
+          state.communityBoard = button.dataset.communityBoard;
+          trackEvent('community_board_click', { board: state.communityBoard });
           renderAll();
         };
       });
