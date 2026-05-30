@@ -361,13 +361,28 @@
       margin-bottom: 12px;
     }
 
-    .tip-actions,
+    .tip-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-top: 9px;
+    }
+
     .comment-row {
       display: grid;
       grid-template-columns: 88px minmax(0, 1fr) auto;
       gap: 6px;
       align-items: center;
       margin-top: 9px;
+    }
+
+    [data-tip-delete] {
+      min-height: 30px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      width: auto;
     }
 
     .tip-comments {
