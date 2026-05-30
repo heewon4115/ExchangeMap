@@ -66,9 +66,22 @@ create table if not exists community_post_comments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists community_posts (
+  id text primary key,
+  board text not null default 'info',
+  title text not null,
+  body text not null default '',
+  author text not null default 'Exchange Map',
+  source text not null default 'app',
+  recommends integer not null default 0,
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+
 alter table community_tips enable row level security;
 alter table community_comments enable row level security;
 alter table community_post_comments enable row level security;
+alter table community_posts enable row level security;
 
 create policy "Anyone can read tips"
 on community_tips for select
@@ -101,6 +114,22 @@ create policy "Anyone can create board post comments"
 on community_post_comments for insert
 with check (true);
 
+drop policy if exists "Anyone can read board posts" on community_posts;
+create policy "Anyone can read board posts"
+on community_posts for select
+using (true);
+
+drop policy if exists "Anyone can create board posts" on community_posts;
+create policy "Anyone can create board posts"
+on community_posts for insert
+with check (true);
+
+drop policy if exists "Anyone can update board posts" on community_posts;
+create policy "Anyone can update board posts"
+on community_posts for update
+using (true)
+with check (true);
+
 create or replace function delete_community_tip(
   p_tip_id uuid,
   p_delete_code_hash text
@@ -125,6 +154,18 @@ grant execute on function delete_community_tip(uuid, text) to anon, authenticate
 If you already created the Supabase tables before board post comments were added, run this once:
 
 ```sql
+create table if not exists community_posts (
+  id text primary key,
+  board text not null default 'info',
+  title text not null,
+  body text not null default '',
+  author text not null default 'Exchange Map',
+  source text not null default 'app',
+  recommends integer not null default 0,
+  created_at timestamptz not null default now(),
+  last_seen_at timestamptz not null default now()
+);
+
 create table if not exists community_post_comments (
   id uuid primary key default gen_random_uuid(),
   post_id text not null,
@@ -135,6 +176,23 @@ create table if not exists community_post_comments (
 );
 
 alter table community_post_comments enable row level security;
+alter table community_posts enable row level security;
+
+drop policy if exists "Anyone can read board posts" on community_posts;
+create policy "Anyone can read board posts"
+on community_posts for select
+using (true);
+
+drop policy if exists "Anyone can create board posts" on community_posts;
+create policy "Anyone can create board posts"
+on community_posts for insert
+with check (true);
+
+drop policy if exists "Anyone can update board posts" on community_posts;
+create policy "Anyone can update board posts"
+on community_posts for update
+using (true)
+with check (true);
 
 drop policy if exists "Anyone can read board post comments" on community_post_comments;
 create policy "Anyone can read board post comments"

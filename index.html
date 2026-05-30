@@ -1925,6 +1925,7 @@
     const COMMUNITY_RECOMMENDS_STORAGE_KEY = 'exchange_map_community_recommended_tips';
     const COMMUNITY_POST_COMMENTS_STORAGE_KEY = 'exchange_map_community_post_comments';
     const LOG_FEATURE_LIKES_STORAGE_KEY = 'exchange_map_log_feature_likes';
+    const syncedCommunityPostRecordIds = new Set();
 
     function loadStoredJson(key, fallback) {
       try {
@@ -2280,6 +2281,35 @@
         })
       });
       return normalizeCommunityPostComment(rows[0]);
+    }
+
+    async function recordCommunityPostsInSupabase(records = []) {
+      if (!hasSupabaseConfig()) return;
+      const newRecords = (records || [])
+        .filter(record => record.id && !syncedCommunityPostRecordIds.has(record.id))
+        .map(record => ({
+          id: record.id,
+          board: record.board || 'info',
+          title: record.title || 'Untitled post',
+          body: record.body || '',
+          author: record.author || 'Exchange Map',
+          source: record.source || 'app',
+          recommends: Number(record.recommends || 0),
+          last_seen_at: new Date().toISOString()
+        }));
+
+      if (!newRecords.length) return;
+
+      try {
+        await supabaseRequest('/rest/v1/community_posts?on_conflict=id', {
+          method: 'POST',
+          headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify(newRecords)
+        });
+        newRecords.forEach(record => syncedCommunityPostRecordIds.add(record.id));
+      } catch (error) {
+        console.warn('Community post records could not be synced to Supabase yet.', error);
+      }
     }
 
     const state = {
@@ -4755,6 +4785,66 @@
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
       const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
       const schoolLifeBoardPosts = schoolLifePosts.filter(post => post.board === activeBoard.id);
+      const curatedPostRecords = activeBoard.id === 'info' ? [
+        {
+          id: 'summer-festivals-korea',
+          board: 'info',
+          title: postText('summerTitle'),
+          body: postText('summerIntro'),
+          author: 'Exchange Map',
+          source: 'curated',
+          recommends: 21
+        },
+        {
+          id: 'korean-campus-culture',
+          board: 'info',
+          title: postText('campusTitle'),
+          body: postText('campusIntro'),
+          author: 'Exchange Map',
+          source: 'curated',
+          recommends: 18
+        },
+        {
+          id: 'cafe-recommendations-snu',
+          board: 'info',
+          title: postText('cafeTitle'),
+          body: postText('cafeIntro'),
+          author: 'Exchange Map',
+          source: 'curated',
+          recommends: 24
+        }
+      ] : [];
+      const communityPostRecords = [
+        ...curatedPostRecords,
+        ...schoolLifeBoardPosts.map(post => ({
+          id: post.id,
+          board: post.board,
+          title: post.title,
+          body: post.content,
+          author: post.country || 'Student',
+          source: 'school_life',
+          recommends: post.recommends
+        })),
+        ...activeBoard.posts.map(([title, body, author, replies], index) => ({
+          id: `${activeBoard.id}-static-${index}`,
+          board: activeBoard.id,
+          title,
+          body,
+          author,
+          source: 'sample_board',
+          recommends: replies
+        })),
+        ...localTips.filter(tip => isSupabaseId(tip.id)).map(tip => ({
+          id: tip.id,
+          board: tip.board,
+          title: tip.title,
+          body: tip.body,
+          author: tip.author,
+          source: 'user_tip',
+          recommends: tip.recommends || 0
+        }))
+      ];
+      recordCommunityPostsInSupabase(communityPostRecords);
       const communitySaveNote = {
         loading: ct('syncLoading'),
         online: ct('syncOnline'),
@@ -5564,6 +5654,15 @@
             try {
               const savedTip = await createCommunityTipInSupabase(newTip);
               state.communityTips = state.communityTips.map(tip => tip.id === newTip.id ? savedTip : tip);
+              await recordCommunityPostsInSupabase([{
+                id: savedTip.id,
+                board: savedTip.board,
+                title: savedTip.title,
+                body: savedTip.body,
+                author: savedTip.author,
+                source: 'user_tip',
+                recommends: savedTip.recommends || 0
+              }]);
               state.communitySyncStatus = 'online';
               saveCommunityTips();
               renderAll();
