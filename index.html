@@ -505,11 +505,23 @@
       padding: 4px 7px;
       font-size: 11px;
       font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .badge.official { background: var(--blue-soft); color: #0f4fb4; }
     .badge.student { background: var(--purple-soft); color: #5139d6; }
     .badge.good { background: #e9f8ef; color: #257947; }
+
+    .badge-count {
+      padding-left: 2px;
+      color: inherit;
+      opacity: 0.86;
+      font-size: 10px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
 
     .quick-grid {
       display: grid;
@@ -595,6 +607,13 @@
 
     .tag-stat:first-of-type { border-top: 0; }
     .tag-stat span:last-child { color: var(--muted); font-weight: 800; }
+
+    .tag-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--ink) !important;
+    }
 
     .copy-row {
       display: grid;
@@ -1663,11 +1682,24 @@
       `;
     }
 
+    function normalizedLabel(value) {
+      return value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+    }
+
+    function badgeCheckCount(place, badge) {
+      const badgeKey = normalizedLabel(badge);
+      const stat = place.studentTagStats.find(([tag]) => normalizedLabel(tag) === badgeKey);
+      if (stat) return stat[1];
+      if (badge.toLowerCase().includes('student')) return place.reviewCount;
+      return null;
+    }
+
     function badges(place) {
       return `<div class="badges">${place.badges.slice(0, 3).map(badge => {
         const lower = badge.toLowerCase();
         const type = lower.includes('official') ? 'official' : lower.includes('student') ? 'student' : lower.includes('english') || lower.includes('friendly') ? 'good' : '';
-        return `<span class="badge ${type}">${badge}</span>`;
+        const count = badgeCheckCount(place, badge);
+        return `<span class="badge ${type}">${badge}${count ? `<span class="badge-count">👍 ${count}</span>` : ''}</span>`;
       }).join('')}</div>`;
     }
 
@@ -1782,7 +1814,7 @@
           </div>
           <div class="info-block">
             <h3>Student Summary</h3>
-            ${place.studentTagStats.map(([tag, count]) => `<div class="tag-stat"><span>${tag}</span><span>${count} checked</span></div>`).join('')}
+            ${place.studentTagStats.map(([tag, count]) => `<div class="tag-stat"><span>${tag}</span><span class="tag-count">👍 ${count}</span></div>`).join('')}
           </div>
           <div class="info-block">
             <h3>Recent student reviews</h3>
