@@ -2292,10 +2292,7 @@
           board: record.board || 'info',
           title: record.title || 'Untitled post',
           body: record.body || '',
-          author: record.author || 'Exchange Map',
-          source: record.source || 'app',
-          recommends: Number(record.recommends || 0),
-          last_seen_at: new Date().toISOString()
+          author: record.author || 'Exchange Map'
         }));
 
       if (!newRecords.length) return;
