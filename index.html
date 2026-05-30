@@ -383,6 +383,10 @@
       line-height: 1.45;
     }
 
+    .comment-author-input {
+      flex: 0 0 92px;
+    }
+
     .recommendation-post {
       padding: 15px;
       margin-bottom: 14px;
@@ -2585,6 +2589,7 @@
         syncLocal: 'Tips are saved in this browser until Supabase tables are ready.',
         studentTip: 'student tip',
         deleteButton: 'Delete',
+        commentAuthorPlaceholder: 'Name',
         commentPlaceholder: 'Add a comment',
         commentButton: 'Comment',
         readMore: 'Tap to read more',
@@ -2634,6 +2639,7 @@
         syncLocal: '在 Supabase 表准备好之前，提示会先保存在此浏览器中。',
         studentTip: '学生提示',
         deleteButton: '删除',
+        commentAuthorPlaceholder: '姓名',
         commentPlaceholder: '添加评论',
         commentButton: '评论',
         readMore: '点击查看更多',
@@ -2683,6 +2689,7 @@
         syncLocal: 'Supabase 테이블이 준비될 때까지 이 브라우저에 저장됩니다.',
         studentTip: '학생 팁',
         deleteButton: '삭제',
+        commentAuthorPlaceholder: '이름',
         commentPlaceholder: '댓글 추가',
         commentButton: '댓글',
         readMore: '눌러서 더 보기',
@@ -4200,7 +4207,7 @@
     function renderBoardPostComments(postId, baseComments = []) {
       const userComments = state.communityPostComments[postId] || [];
       const allComments = [
-        ...baseComments.map(comment => ({ author: '', text: comment })),
+        ...baseComments.map(comment => ({ author: 'Student', text: comment })),
         ...userComments
       ];
       return `
@@ -4211,6 +4218,7 @@
             </div>
           `).join('')}
           <div class="comment-row">
+            <input class="comment-input comment-author-input" data-post-comment-author="${postId}" placeholder="${ct('commentAuthorPlaceholder')}" />
             <input class="comment-input" data-post-comment-input="${postId}" placeholder="${ct('commentPlaceholder')}" />
             <button class="secondary" data-post-comment-submit="${postId}" type="button">${ct('commentButton')}</button>
           </div>
@@ -4595,6 +4603,7 @@
               <div class="tip-comments">
                 ${(tip.comments || []).map(comment => `<div class="tip-comment"><strong>${escapeHtml(comment.author)}:</strong> ${escapeHtml(comment.text)}</div>`).join('')}
                 <div class="comment-row">
+                  <input class="comment-input comment-author-input" data-tip-comment-author="${tip.id}" placeholder="${ct('commentAuthorPlaceholder')}" />
                   <input class="comment-input" data-tip-comment-input="${tip.id}" placeholder="${ct('commentPlaceholder')}" />
                   <button class="secondary" data-tip-comment-submit="${tip.id}" type="button">${ct('commentButton')}</button>
                 </div>
@@ -5214,7 +5223,9 @@
         button.onclick = event => {
           event.stopPropagation();
           const postId = button.dataset.postCommentSubmit;
+          const authorInput = document.querySelector(`[data-post-comment-author="${postId}"]`);
           const input = document.querySelector(`[data-post-comment-input="${postId}"]`);
+          const author = authorInput ? authorInput.value.trim() : '';
           const text = input ? input.value.trim() : '';
           if (!postId || !text) return;
 
@@ -5222,7 +5233,7 @@
             ...(state.communityPostComments[postId] || []),
             {
               id: `post-comment-${Date.now()}`,
-              author: 'You',
+              author: author || 'Anonymous student',
               text,
               createdAt: 'Just now'
             }
@@ -5231,6 +5242,7 @@
           trackEvent('community_post_comment_submit', {
             post_id: postId,
             board: state.communityBoard,
+            comment_author_provided: author ? 'yes' : 'no',
             comment_length: text.length,
             storage_target: 'local'
           });
@@ -5431,14 +5443,16 @@
       document.querySelectorAll('[data-tip-comment-submit]').forEach(button => {
         button.onclick = async () => {
           const tipId = button.dataset.tipCommentSubmit;
+          const authorInput = document.querySelector(`[data-tip-comment-author="${tipId}"]`);
           const input = document.querySelector(`[data-tip-comment-input="${tipId}"]`);
+          const author = authorInput ? authorInput.value.trim() : '';
           const text = input ? input.value.trim() : '';
           const tip = state.communityTips.find(item => item.id === tipId);
           if (!tip || !text) return;
 
           const newComment = {
             id: `comment-${Date.now()}`,
-            author: 'You',
+            author: author || 'Anonymous student',
             text,
             createdAt: 'Just now'
           };
@@ -5452,6 +5466,7 @@
           trackEvent('community_tip_comment_submit', {
             tip_id: tip.id,
             board: tip.board,
+            comment_author_provided: author ? 'yes' : 'no',
             comment_length: text.length,
             storage_target: state.communitySyncStatus === 'online' && isSupabaseId(tip.id) ? 'supabase' : 'local'
           });
