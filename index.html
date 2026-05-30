@@ -1900,16 +1900,38 @@
         </div>
         <div class="section-title"><h2>Hot places students checked</h2><span>this week</span></div>
         ${places.slice(0, 4).map(placeCard).join('')}
-        <div class="section-title"><h2>Questions from students</h2><span>practical</span></div>
+        <div class="section-title"><h2>Community</h2><span>student posts</span></div>
         ${[
-          'English-speaking dentist near campus?',
-          'Where can I find halal-friendly lunch?',
-          'Pharmacy open after 10 PM?',
-          'Clinic that accepts international student insurance?'
-        ].map(question => `
+          {
+            title: 'English-speaking dentist near campus?',
+            body: 'Does anyone know a clinic where the dentist can explain treatment in English?',
+            author: 'Maya · USA · SNU exchange',
+            replies: 8
+          },
+          {
+            title: 'Where can I find halal-friendly lunch?',
+            body: 'Looking for reliable lunch places near SNU Station or campus.',
+            author: 'Aisha · USA · SNU exchange',
+            replies: 12
+          },
+          {
+            title: 'Pharmacy open after 10 PM?',
+            body: 'Need a late-night pharmacy that students actually use.',
+            author: 'Linh · Vietnam · SNU exchange',
+            replies: 5
+          },
+          {
+            title: 'Clinic that accepts international student insurance?',
+            body: 'Please share places where foreign insurance was not confusing.',
+            author: 'Carlos · Spain · SNU exchange',
+            replies: 9
+          }
+        ].map(post => `
           <div class="card" style="padding:12px;margin-bottom:10px;">
-            <strong>${question}</strong>
-            <div class="badges"><span class="badge student">student question</span><span class="badge good">needs local tip</span></div>
+            <strong>${post.title}</strong>
+            <p class="meta" style="margin-top:6px;">${post.body}</p>
+            <p class="meta" style="margin-top:8px;">${post.author} · 💬 ${post.replies}</p>
+            <div class="badges"><span class="badge student">community post</span><span class="badge good">needs local tip</span></div>
           </div>
         `).join('')}
       `;
