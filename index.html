@@ -1826,6 +1826,7 @@
 
     const COMMUNITY_TIPS_STORAGE_KEY = 'exchange_map_community_tips';
     const COMMUNITY_RECOMMENDS_STORAGE_KEY = 'exchange_map_community_recommended_tips';
+    const COMMUNITY_POST_COMMENTS_STORAGE_KEY = 'exchange_map_community_post_comments';
     const LOG_FEATURE_LIKES_STORAGE_KEY = 'exchange_map_log_feature_likes';
 
     function loadStoredJson(key, fallback) {
@@ -1868,6 +1869,7 @@
       try {
         localStorage.setItem(COMMUNITY_TIPS_STORAGE_KEY, JSON.stringify(state.communityTips));
         localStorage.setItem(COMMUNITY_RECOMMENDS_STORAGE_KEY, JSON.stringify(state.recommendedCommunityTips));
+        localStorage.setItem(COMMUNITY_POST_COMMENTS_STORAGE_KEY, JSON.stringify(state.communityPostComments));
       } catch (error) {
         console.warn('Community tips could not be saved locally.', error);
       }
@@ -2042,6 +2044,7 @@
       communityBoard: 'info',
       communityComposerOpen: false,
       expandedCommunityPost: '',
+      communityPostComments: loadStoredJson(COMMUNITY_POST_COMMENTS_STORAGE_KEY, {}),
       copiedCafeAddress: '',
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
@@ -4144,6 +4147,27 @@
       }
     ];
 
+    function renderBoardPostComments(postId, baseComments = []) {
+      const userComments = state.communityPostComments[postId] || [];
+      const allComments = [
+        ...baseComments.map(comment => ({ author: '', text: comment })),
+        ...userComments
+      ];
+      return `
+        <div class="tip-comments" data-post-comments="${postId}">
+          ${allComments.map(comment => `
+            <div class="tip-comment">
+              ${comment.author ? `<strong>${escapeHtml(comment.author)}:</strong> ` : ''}${escapeHtml(comment.text)}
+            </div>
+          `).join('')}
+          <div class="comment-row">
+            <input class="comment-input" data-post-comment-input="${postId}" placeholder="${ct('commentPlaceholder')}" />
+            <button class="secondary" data-post-comment-submit="${postId}" type="button">${ct('commentButton')}</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderCafeRecommendationPost() {
       const isExpanded = state.expandedCommunityPost === 'cafe-recommendations-snu';
       return `
@@ -4177,6 +4201,7 @@
               `).join('')}
             </div>
             <p class="cafe-note"><b>${ct('note')}:</b> ${ct('cafeNote')}</p>
+            ${renderBoardPostComments('cafe-recommendations-snu')}
           ` : `
             <div class="badges">
               <span class="badge">7 cafes</span>
@@ -4269,6 +4294,7 @@
               </section>
             </div>
             <p class="cafe-note"><b>Note:</b> Event rules, ticket policies, and entry restrictions can be different depending on the university and event. Please check official announcements before visiting.</p>
+            ${renderBoardPostComments('korean-campus-culture')}
           ` : `
             <div class="badges">
               <span class="badge">Ilil Hof</span>
@@ -4375,6 +4401,7 @@
               </section>
             </div>
             <p class="cafe-note"><b>Note:</b> Festival dates, ticket rules, age restrictions, and entry policies can change every year. Please check the official festival website, official social media, and ticketing platform before buying tickets or visiting.</p>
+            ${renderBoardPostComments('summer-festivals-korea')}
           ` : `
             <div class="badges">
               <span class="badge">Waterbomb</span>
@@ -4567,9 +4594,7 @@
             ${isExpanded ? `
               <div class="expanded-body">
                 <p class="meta">${post.content}</p>
-                <div class="comment-list">
-                  ${post.comments.map(comment => `<div class="source-comment">${comment}</div>`).join('')}
-                </div>
+                ${renderBoardPostComments(postId, post.comments)}
               </div>
             ` : ''}
             <div class="tip-actions">
@@ -4594,6 +4619,7 @@
               <div class="expanded-body">
                 <p class="meta">${body}</p>
                 <p class="meta" style="margin-top:8px;">${ct('postReplyPrompt')}</p>
+                ${renderBoardPostComments(postId)}
               </div>
             ` : ''}
             <div class="tip-actions">
@@ -5150,13 +5176,42 @@
       });
 
       document.querySelectorAll('[data-community-post-toggle]').forEach(post => {
-        post.onclick = () => {
+        post.onclick = event => {
+          if (event.target.closest('[data-post-comments]')) return;
           const postId = post.dataset.communityPostToggle;
           const willOpen = state.expandedCommunityPost !== postId;
           state.expandedCommunityPost = willOpen ? postId : '';
           trackEvent('community_post_toggle', {
             post_id: postId,
             expanded: willOpen ? 'yes' : 'no'
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-post-comment-submit]').forEach(button => {
+        button.onclick = event => {
+          event.stopPropagation();
+          const postId = button.dataset.postCommentSubmit;
+          const input = document.querySelector(`[data-post-comment-input="${postId}"]`);
+          const text = input ? input.value.trim() : '';
+          if (!postId || !text) return;
+
+          state.communityPostComments[postId] = [
+            ...(state.communityPostComments[postId] || []),
+            {
+              id: `post-comment-${Date.now()}`,
+              author: 'You',
+              text,
+              createdAt: 'Just now'
+            }
+          ];
+          saveCommunityTips();
+          trackEvent('community_post_comment_submit', {
+            post_id: postId,
+            board: state.communityBoard,
+            comment_length: text.length,
+            storage_target: 'local'
           });
           renderAll();
         };
