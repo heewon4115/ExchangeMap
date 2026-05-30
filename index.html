@@ -2061,8 +2061,51 @@
       }, {});
     }
 
+    function flattenCommunityPostComments(groupedComments = {}) {
+      return Object.entries(groupedComments || {}).flatMap(([postId, comments]) =>
+        (comments || []).map(comment => ({ postId, comment }))
+      );
+    }
+
+    function mergeCommunityPostCommentGroups(remoteComments = {}, localComments = {}) {
+      const merged = { ...remoteComments };
+      flattenCommunityPostComments(localComments).forEach(({ postId, comment }) => {
+        const current = merged[postId] || [];
+        const alreadyExists = current.some(remoteComment =>
+          remoteComment.id === comment.id ||
+          (
+            remoteComment.author === comment.author &&
+            remoteComment.text === comment.text &&
+            remoteComment.createdAt === comment.createdAt
+          )
+        );
+        if (!alreadyExists) {
+          merged[postId] = [...current, comment];
+        }
+      });
+      return merged;
+    }
+
+    async function syncLocalCommunityPostCommentsToSupabase(localComments = {}) {
+      const synced = {};
+      for (const [postId, comments] of Object.entries(localComments || {})) {
+        for (const comment of comments || []) {
+          if (isSupabaseId(comment.id)) continue;
+          try {
+            const savedComment = await createCommunityPostCommentInSupabase(postId, comment.board || state.communityBoard, comment);
+            synced[postId] = [...(synced[postId] || []), savedComment];
+          } catch (error) {
+            console.warn('Local board post comment could not be synced to Supabase yet.', error);
+            synced[postId] = [...(synced[postId] || []), comment];
+          }
+        }
+      }
+      return synced;
+    }
+
     async function loadCommunityTipsFromSupabase() {
       if (!hasSupabaseConfig()) return;
+      const localPostComments = state.communityPostComments;
       state.communitySyncStatus = 'loading';
       renderAll();
       try {
@@ -2079,8 +2122,11 @@
         state.communitySyncStatus = 'online';
         try {
           const postComments = await supabaseRequest('/rest/v1/community_post_comments?select=*&order=created_at.asc');
-          state.communityPostComments = groupCommunityPostComments(postComments);
+          const remotePostComments = groupCommunityPostComments(postComments);
+          const syncedLocalComments = await syncLocalCommunityPostCommentsToSupabase(localPostComments);
+          state.communityPostComments = mergeCommunityPostCommentGroups(remotePostComments, syncedLocalComments);
         } catch (postCommentError) {
+          state.communityPostComments = localPostComments;
           console.warn('Supabase board post comments are not ready yet. Falling back to local board comments.', postCommentError);
         }
         saveCommunityTips();
