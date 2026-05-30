@@ -96,6 +96,12 @@ on community_tips for update
 using (true)
 with check (true);
 
+drop policy if exists "Anyone can delete tips with password filter"
+on community_tips;
+create policy "Anyone can delete tips with password filter"
+on community_tips for delete
+using (true);
+
 create policy "Anyone can read comments"
 on community_comments for select
 using (true);
@@ -210,6 +216,12 @@ If you already created the table before adding deletion passwords, run this once
 ```sql
 alter table community_tips
 add column if not exists delete_code_hash text;
+
+drop policy if exists "Anyone can delete tips with password filter"
+on community_tips;
+create policy "Anyone can delete tips with password filter"
+on community_tips for delete
+using (true);
 
 create or replace function delete_community_tip(
   p_tip_id uuid,

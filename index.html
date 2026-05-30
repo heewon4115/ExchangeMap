@@ -2251,13 +2251,23 @@
     }
 
     async function deleteCommunityTipInSupabase(tipId, deleteCodeHash) {
-      return supabaseRequest('/rest/v1/rpc/delete_community_tip', {
-        method: 'POST',
-        body: JSON.stringify({
-          p_tip_id: tipId,
-          p_delete_code_hash: deleteCodeHash
-        })
-      });
+      try {
+        return await supabaseRequest('/rest/v1/rpc/delete_community_tip', {
+          method: 'POST',
+          body: JSON.stringify({
+            p_tip_id: tipId,
+            p_delete_code_hash: deleteCodeHash
+          })
+        });
+      } catch (error) {
+        const message = String(error.message || error);
+        if (!message.includes('delete_community_tip') && !message.includes('PGRST202')) throw error;
+        const deletedRows = await supabaseRequest(`/rest/v1/community_tips?id=eq.${encodeURIComponent(tipId)}&delete_code_hash=eq.${encodeURIComponent(deleteCodeHash)}`, {
+          method: 'DELETE',
+          headers: { Prefer: 'return=representation' }
+        });
+        return Array.isArray(deletedRows) ? deletedRows.length > 0 : true;
+      }
     }
 
     async function updateCommunityTipRecommendationInSupabase(tipId, recommends) {
