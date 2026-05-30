@@ -547,6 +547,7 @@
     .badge.official { background: var(--blue-soft); color: #0f4fb4; }
     .badge.student { background: var(--purple-soft); color: #5139d6; }
     .badge.good { background: #e9f8ef; color: #257947; }
+    .badge.vegan { background: #dcfce7; color: #166534; }
 
     .badge-count {
       padding-left: 2px;
@@ -2345,7 +2346,7 @@
     function badges(place) {
       return `<div class="badges">${place.badges.slice(0, 3).map(badge => {
         const lower = badge.toLowerCase();
-        const type = lower.includes('official') ? 'official' : lower.includes('student') ? 'student' : lower.includes('english') || lower.includes('friendly') ? 'good' : '';
+        const type = lower.includes('vegan') || lower.includes('vegetarian') ? 'vegan' : lower.includes('official') ? 'official' : lower.includes('student') ? 'student' : lower.includes('english') || lower.includes('friendly') ? 'good' : '';
         const count = badgeCheckCount(place, badge);
         return `<span class="badge ${type}">${badge}${count ? `<span class="badge-count">👍 ${count}</span>` : ''}</span>`;
       }).join('')}</div>`;
