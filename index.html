@@ -366,6 +366,34 @@
       font-size: 15px;
     }
 
+    .guide-section {
+      display: grid;
+      gap: 7px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.05);
+    }
+
+    .guide-section h4 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+
+    .guide-section p,
+    .guide-section li {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .guide-section ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+
     .cafe-keywords {
       display: flex;
       flex-wrap: wrap;
@@ -3079,6 +3107,95 @@
       `;
     }
 
+    function renderKoreanCampusCulturePost() {
+      const isExpanded = state.expandedCommunityPost === 'korean-campus-culture';
+      return `
+        <article class="card recommendation-post" data-community-post-toggle="korean-campus-culture">
+          <div class="badges">
+            <span class="badge good">Tips</span>
+            <span class="badge student">Campus Life</span>
+          </div>
+          <h3>Korean University Culture: One-Day Pubs and Campus Festivals 🎪</h3>
+          <p>Korean university life is not only about classes and exams. This friendly guide explains Ilil Hof, campus festivals, and how exchange students can enjoy them safely.</p>
+          ${isExpanded ? `
+            <div class="cafe-grid">
+              <section class="guide-section">
+                <h4>🍻 What is Ilil Hof?</h4>
+                <p>Ilil Hof, also called a One-Day Pub, is a casual university social event usually organized by a department, student council, club, or student group.</p>
+                <p>For one night, students rent a pub or restaurant and invite friends, classmates, seniors, juniors, and sometimes students from other departments.</p>
+                <p>It is not just about drinking. It is also a way to meet people, support student groups, and experience Korean campus culture.</p>
+              </section>
+              <section class="guide-section">
+                <h4>✅ Tips for going to an Ilil Hof</h4>
+                <ul>
+                  <li>Go with Korean friends, classmates, or your buddy if possible.</li>
+                  <li>Check the event poster for time, location, entrance fee, and reservation rules.</li>
+                  <li>Some events may be crowded, so arriving early can help.</li>
+                  <li>You do not have to drink alcohol if you do not want to.</li>
+                  <li>Bring your ID if alcohol is served.</li>
+                  <li>Respect your own limits and do not feel pressured to drink.</li>
+                  <li>If you are unsure about anything, ask the organizers or your Korean friends.</li>
+                </ul>
+              </section>
+              <section class="guide-section">
+                <h4>🎤 What are Korean university festivals like?</h4>
+                <p>Korean university festivals are one of the most exciting parts of campus life. During the day, you can find food booths, games, student performances, club booths, and small events around campus.</p>
+                <p>At night, many universities invite singers, bands, rappers, or K-pop artists for live performances. The atmosphere is usually energetic, crowded, and fun.</p>
+              </section>
+              <section class="guide-section">
+                <h4>🚶 Can exchange students visit other university festivals?</h4>
+                <p>Yes, sometimes you can. Many university festivals in Korea are open to visitors, so exchange students can sometimes visit festivals at other universities too.</p>
+                <p>Rules are different for each school. Some concerts, student zones, or special events may require a ticket, student ID, or advance reservation.</p>
+              </section>
+              <section class="guide-section">
+                <h4>🔎 How to find festival information</h4>
+                <ul>
+                  <li>Check your university's student council Instagram.</li>
+                  <li>Follow major university festival Instagram accounts.</li>
+                  <li>Ask your Korean buddy or classmates.</li>
+                  <li>Look for posters around campus.</li>
+                  <li>Search the university name plus "festival" or "축제".</li>
+                  <li>Check whether the event is open to outsiders.</li>
+                </ul>
+              </section>
+              <section class="guide-section">
+                <h4>🗣️ Useful Korean words</h4>
+                <div class="cafe-keywords">
+                  <span class="badge">일일호프: One-Day Pub</span>
+                  <span class="badge">축제: Festival</span>
+                  <span class="badge">주점: Pub booth</span>
+                  <span class="badge">부스: Booth</span>
+                  <span class="badge">공연: Performance</span>
+                  <span class="badge">라인업: Lineup</span>
+                  <span class="badge">입장료: Entrance fee</span>
+                  <span class="badge">예매: Reservation</span>
+                  <span class="badge">학생증: Student ID</span>
+                  <span class="badge">외부인: Non-student visitor</span>
+                </div>
+              </section>
+              <section class="guide-section">
+                <h4>💡 Final tips</h4>
+                <p>Korean university events can be a great way to make memories during your exchange semester. Try going with friends, stay respectful, check event rules in advance, and enjoy the atmosphere even if you do not drink or know the performers.</p>
+                <p>These events are a fun way to understand Korean student culture beyond the classroom.</p>
+              </section>
+            </div>
+            <p class="cafe-note"><b>Note:</b> Event rules, ticket policies, and entry restrictions can be different depending on the university and event. Please check official announcements before visiting.</p>
+          ` : `
+            <div class="badges">
+              <span class="badge">Ilil Hof</span>
+              <span class="badge">festivals</span>
+              <span class="badge">Korean words</span>
+              <span class="badge">safety tips</span>
+            </div>
+          `}
+          <div class="post-expand-row">
+            <span>${isExpanded ? 'Tap to collapse' : 'Tap to open campus culture guide'}</span>
+            <span>${isExpanded ? '⌃' : '⌄'}</span>
+          </div>
+        </article>
+      `;
+    }
+
     function renderCommunity() {
       const boards = [
         {
@@ -3170,7 +3287,7 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
-        ${activeBoard.id === 'info' ? renderCafeRecommendationPost() : ''}
+        ${activeBoard.id === 'info' ? `${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
           const recommendCount = tip.recommends || 0;
