@@ -823,19 +823,23 @@
     }
 
     .map-add-button {
-      justify-self: start;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      position: absolute;
+      right: 14px;
+      bottom: 166px;
+      z-index: 720;
       width: 48px;
       height: 48px;
       min-height: 48px;
-      margin-top: 0;
+      border: 1px solid rgba(255, 255, 255, 0.9);
       padding: 0;
       border-radius: 50%;
-      font-size: 28px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--blue);
+      box-shadow: 0 12px 28px rgba(31, 41, 55, 0.18);
+      backdrop-filter: blur(14px);
+      font-size: 24px;
+      font-weight: 900;
       line-height: 1;
-      box-shadow: 0 12px 28px rgba(23, 105, 224, 0.26);
     }
 
     .map-top-panel .chip-row {
@@ -1694,6 +1698,10 @@
       .locate-button {
         right: 22px;
         bottom: 108px;
+      }
+
+      .map-add-button {
+        right: 22px;
       }
     }
 
@@ -3699,8 +3707,8 @@
               ${mapCategoryButtons()}
               ${mapFilterSheet()}
             </div>
-            <button class="primary map-add-button" data-add-record="true" type="button" aria-label="${t('addNewRecord')}">+</button>
           </div>
+          <button class="map-add-button" data-add-record="true" type="button" aria-label="${t('addNewRecord')}">+</button>
           <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
           <div id="mapBottomSheet">${mapBottomSheetHtml(place)}</div>
         </div>
@@ -4847,18 +4855,22 @@
 
     function positionLocateButton() {
       const locateButton = document.querySelector('.locate-button');
+      const addButton = document.querySelector('.map-add-button');
       const sheet = document.querySelector('.map-bottom-sheet');
       if (!locateButton) return;
 
       const baseBottom = window.matchMedia('(max-width: 520px)').matches ? 98 : 108;
       if (!sheet) {
         locateButton.style.bottom = `${baseBottom}px`;
+        if (addButton) addButton.style.bottom = `${baseBottom + 56}px`;
         return;
       }
 
       const sheetHeight = Math.ceil(sheet.getBoundingClientRect().height);
       const sheetBottom = window.matchMedia('(max-width: 520px)').matches ? 10 : 18;
-      locateButton.style.bottom = `${sheetHeight + sheetBottom + 14}px`;
+      const locateBottom = sheetHeight + sheetBottom + 14;
+      locateButton.style.bottom = `${locateBottom}px`;
+      if (addButton) addButton.style.bottom = `${locateBottom + 56}px`;
     }
 
     function selectPlace(place, source) {
