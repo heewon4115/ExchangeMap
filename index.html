@@ -3031,20 +3031,8 @@
         <div class="quick-grid">
           ${categories.slice(1).map(category => `<button class="quick" data-category="${category.id}"><span>${category.icon}</span><span>${translatedCategory(category.id)}</span></button>`).join('')}
         </div>
-        <div class="section-title"><h2>${t('recentReviewed')}</h2><span>${t('nearSnu')}</span></div>
+        <div class="section-title"><h2>${t('hotPlaces')}</h2><span>${t('nearSnu')}</span></div>
         ${places.filter(place => place.isStudentReviewed).slice(0, 3).map(placeCard).join('')}
-        <div class="section-title"><h2>${t('officialInfo')}</h2><span>${t('seeded')}</span></div>
-        ${places.filter(place => place.isOfficial).map(placeCard).join('')}
-        <div class="section-title"><h2>${t('savedByStudents')}</h2><span>${t('warmLog')}</span></div>
-        <div class="hero-card card">
-          <h2 style="margin:0 0 6px;font-size:18px;">${t('livingNotes')}</h2>
-          <p class="meta">${t('livingNotesBody')}</p>
-          <div class="hero-stats">
-            <div class="stat"><strong>124</strong><span>${t('savedPlaces')}</span></div>
-            <div class="stat"><strong>58</strong><span>${t('studentTips')}</span></div>
-            <div class="stat"><strong>21</strong><span>${t('updatedTags')}</span></div>
-          </div>
-        </div>
       `;
     }
 
