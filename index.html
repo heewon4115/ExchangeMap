@@ -579,7 +579,7 @@
 
     .map-top-panel {
       position: absolute;
-      top: 12px;
+      top: 58px;
       left: 12px;
       right: 12px;
       z-index: 700;
@@ -718,6 +718,7 @@
       bottom: 12px;
       z-index: 500;
       padding: 12px;
+      padding-right: 64px;
       border: 1px solid rgba(255, 255, 255, 0.88);
       border-radius: 22px;
       background: rgba(255, 255, 255, 0.92);
@@ -727,6 +728,23 @@
 
     .map-overlay[data-open-detail] {
       cursor: pointer;
+    }
+
+    .card-locate-button {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 2;
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.96);
+      color: var(--blue);
+      box-shadow: 0 10px 22px rgba(31, 41, 55, 0.15);
+      backdrop-filter: blur(14px);
+      font-size: 18px;
+      font-weight: 900;
     }
 
     .tap-hint {
@@ -1370,7 +1388,7 @@
       .map-fullscreen #map { height: 100%; }
 
       .map-top-panel {
-        top: 18px;
+        top: 64px;
         left: 18px;
         right: auto;
         width: min(520px, calc(100% - 36px));
@@ -1418,7 +1436,7 @@
       }
 
       .map-top-panel {
-        top: 10px;
+        top: 58px;
         left: 10px;
         right: 10px;
         border-radius: 18px;
@@ -3100,7 +3118,7 @@
               ${chipRow(languages, state.language, 'language', 'community')}
             </div>
           </div>
-          <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
+          ${place ? '' : '<button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>'}
           <div id="mapBottomSheet">${mapBottomSheetHtml(place)}</div>
         </div>
       `;
@@ -3113,6 +3131,7 @@
       return `
         <div class="map-bottom-sheet">
           <div class="map-overlay" data-open-detail="${place.id}">
+            <button class="card-locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
             <h3>${place.icon} ${place.name}</h3>
             <p class="meta">★ ${place.rating} · ${place.reviewCount} ${t('reviewCount')} · ${place.distance}</p>
             ${badges(place)}
