@@ -179,6 +179,26 @@
       box-shadow: 0 6px 14px rgba(31, 41, 55, 0.16);
     }
 
+    .phone.map-mode > .language-switcher {
+      display: none;
+    }
+
+    .map-language-switcher {
+      position: static;
+      justify-self: start;
+      align-self: start;
+      margin-top: -2px;
+      box-shadow: none;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .language-switcher.search-hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-4px);
+      transition: opacity 0.16s ease, transform 0.16s ease;
+    }
+
     .search {
       display: flex;
       align-items: center;
@@ -3504,11 +3524,19 @@
       return `${translatedCategory(place.category)} · ★ ${place.rating} · ${place.reviewCount} ${t('reviewCount')} · ${place.distance}`;
     }
 
-    function renderLanguageSwitcher() {
-      document.documentElement.lang = uiLanguages.find(language => language.id === state.uiLanguage).htmlLang;
-      document.getElementById('uiLanguageSwitcher').innerHTML = uiLanguages.map(language => `
+    function languageSwitcherButtonsHtml() {
+      return uiLanguages.map(language => `
         <button class="${language.id === state.uiLanguage ? 'active' : ''}" data-ui-language="${language.id}" type="button">${language.label}</button>
       `).join('');
+    }
+
+    function languageSwitcherHtml(extraClass = '') {
+      return `<div class="language-switcher ${extraClass}" aria-label="Site language">${languageSwitcherButtonsHtml()}</div>`;
+    }
+
+    function renderLanguageSwitcher() {
+      document.documentElement.lang = uiLanguages.find(language => language.id === state.uiLanguage).htmlLang;
+      document.getElementById('uiLanguageSwitcher').innerHTML = languageSwitcherButtonsHtml();
     }
 
     function renderNav() {
@@ -3642,6 +3670,7 @@
                 ${searchBar(t('mapSearch'))}
                 <button class="filter-button" data-search-toggle="true" type="button">☷ ${t('filterButton')}</button>
               </div>
+              ${languageSwitcherHtml('map-language-switcher')}
               ${mapCategoryButtons()}
               ${mapFilterSheet()}
             </div>
@@ -4898,6 +4927,15 @@
     }
 
     function bindEvents() {
+      document.querySelectorAll('.search input').forEach(input => {
+        input.onfocus = () => {
+          document.querySelectorAll('.language-switcher').forEach(switcher => switcher.classList.add('search-hidden'));
+        };
+        input.onblur = () => {
+          document.querySelectorAll('.language-switcher').forEach(switcher => switcher.classList.remove('search-hidden'));
+        };
+      });
+
       document.querySelectorAll('[data-ui-language]').forEach(button => {
         button.onclick = () => {
           state.uiLanguage = button.dataset.uiLanguage;
@@ -5618,6 +5656,7 @@
         button.classList.toggle('active', button.dataset.tab === state.tab);
       });
       document.getElementById('appRoot').classList.toggle('map-mode', state.tab === 'map');
+      document.querySelector('.phone').classList.toggle('map-mode', state.tab === 'map');
       renderModal();
       bindEvents();
       if (state.tab === 'map') setTimeout(() => state.map && state.map.invalidateSize(), 100);
