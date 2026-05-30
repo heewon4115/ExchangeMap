@@ -2685,6 +2685,10 @@
       return lang[key] || communityCopy.en[key] || key;
     }
 
+    function postText(key) {
+      return communityCopy.en[key] || key;
+    }
+
     function boardCopy(boardId) {
       const lang = communityCopy[state.uiLanguage] || communityCopy.en;
       return (lang.boards && lang.boards[boardId]) || communityCopy.en.boards[boardId];
@@ -4180,31 +4184,31 @@
       const isExpanded = state.expandedCommunityPost === 'cafe-recommendations-snu';
       return `
         <article class="card recommendation-post" data-community-post-toggle="cafe-recommendations-snu">
-          <h3>${ct('cafeTitle')} ☕</h3>
-          <p>${ct('cafeIntro')}</p>
+          <h3>${postText('cafeTitle')} ☕</h3>
+          <p>${postText('cafeIntro')}</p>
           ${isExpanded ? `
-            <p>${ct('cafeBody')}</p>
-            <p>${ct('cafeCheck')}</p>
+            <p>${postText('cafeBody')}</p>
+            <p>${postText('cafeCheck')}</p>
             <div class="cafe-grid">
               ${cafeRecommendations.map(cafe => `
                 <section class="cafe-card">
                   <strong>☕ ${cafe.name}</strong>
-                  <p class="meta"><b>${ct('area')}:</b> ${cafe.area}</p>
+                  <p class="meta"><b>${postText('area')}:</b> ${cafe.area}</p>
                   <div class="address-row">
                     <span class="address-label">Address:</span>
                     <span class="address-text">${cafe.address}</span>
                     <button type="button" class="copy-address-button" data-cafe-address="${cafe.address}" data-cafe-name="${cafe.name}">Copy</button>
                   </div>
                   ${state.copiedCafeAddress === cafe.address ? `<p class="copy-success-message">Address copied! Paste it into Naver Map or Kakao Map.</p>` : ''}
-                  <p class="meta"><b>${ct('bestFor')}:</b> ${cafe.bestFor}</p>
+                  <p class="meta"><b>${postText('bestFor')}:</b> ${cafe.bestFor}</p>
                   <p class="meta">${cafe.description}</p>
                 </section>
               `).join('')}
             </div>
-            <p class="cafe-note"><b>${ct('note')}:</b> ${ct('cafeNote')}</p>
+            <p class="cafe-note"><b>${postText('note')}:</b> ${postText('cafeNote')}</p>
             ${renderBoardPostComments('cafe-recommendations-snu')}
           ` : `
-            <p class="meta">${ct('cafeBody')}</p>
+            <p class="meta">${postText('cafeBody')}</p>
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('cafe-recommendations-snu', 24)}
@@ -4221,8 +4225,8 @@
       const isExpanded = state.expandedCommunityPost === 'korean-campus-culture';
       return `
         <article class="card recommendation-post" data-community-post-toggle="korean-campus-culture">
-          <h3>${ct('campusTitle')} 🎪</h3>
-          <p>${ct('campusIntro')}</p>
+          <h3>${postText('campusTitle')} 🎪</h3>
+          <p>${postText('campusIntro')}</p>
           ${isExpanded ? `
             <div class="cafe-grid">
               <section class="guide-section">
@@ -4288,7 +4292,7 @@
             <p class="cafe-note"><b>Note:</b> Event rules, ticket policies, and entry restrictions can be different depending on the university and event. Please check official announcements before visiting.</p>
             ${renderBoardPostComments('korean-campus-culture')}
           ` : `
-            <p class="meta">${ct('campusIntro')}</p>
+            <p class="meta">${postText('campusIntro')}</p>
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('korean-campus-culture', 18)}
@@ -4305,8 +4309,8 @@
       const isExpanded = state.expandedCommunityPost === 'summer-festivals-korea';
       return `
         <article class="card recommendation-post" data-community-post-toggle="summer-festivals-korea">
-          <h3>${ct('summerTitle')} 💦</h3>
-          <p>${ct('summerIntro')}</p>
+          <h3>${postText('summerTitle')} 💦</h3>
+          <p>${postText('summerIntro')}</p>
           ${isExpanded ? `
             <div class="cafe-grid">
               <section class="guide-section">
@@ -4386,7 +4390,7 @@
             <p class="cafe-note"><b>Note:</b> Festival dates, ticket rules, age restrictions, and entry policies can change every year. Please check the official festival website, official social media, and ticketing platform before buying tickets or visiting.</p>
             ${renderBoardPostComments('summer-festivals-korea')}
           ` : `
-            <p class="meta">${ct('summerIntro')}</p>
+            <p class="meta">${postText('summerIntro')}</p>
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('summer-festivals-korea', 21)}
@@ -4471,7 +4475,7 @@
           ]
         }
       };
-      const localizedPosts = staticPosts[state.uiLanguage] || staticPosts.en;
+      const localizedPosts = staticPosts.en;
       const boards = [
         {
           id: 'info',
