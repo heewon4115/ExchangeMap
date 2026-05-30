@@ -187,7 +187,7 @@
       position: static;
       justify-self: start;
       align-self: start;
-      margin-top: -2px;
+      margin-top: 0;
       box-shadow: none;
       background: rgba(255, 255, 255, 0.72);
     }
@@ -3703,10 +3703,10 @@
                 ${searchBar(t('mapSearch'))}
                 <button class="filter-button" data-search-toggle="true" type="button">☷ ${t('filterButton')}</button>
               </div>
-              ${languageSwitcherHtml('map-language-switcher')}
               ${mapCategoryButtons()}
               ${mapFilterSheet()}
             </div>
+            ${languageSwitcherHtml('map-language-switcher')}
           </div>
           <button class="map-add-button" data-add-record="true" type="button" aria-label="${t('addNewRecord')}">+</button>
           <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
