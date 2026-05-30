@@ -68,16 +68,36 @@ If Git is not installed, use GitHub's website:
 
 ## GA events tracked
 
+All events also include common context so GA4 Realtime and Explorations are easier to read:
+
+- `event_group`: map, filter, review, community, navigation, or prototype.
+- `activity_label`: readable event label.
+- `current_tab`, `ui_language`, `country_filter`, `category_filter`, `review_language_filter`, `community_board`.
+- `selected_place_id`, `selected_place_name` when a place is selected.
+- `visitor_id`, `session_id`, and `event_index` for prototype-level behavior tracing.
+- `ga_connected`: yes/no, useful while testing before GA is connected.
+
 - `prototype_view`: fires when the page loads with page title and current URL.
 - `qr_landing`: fires when the URL has UTM parameters.
+- `tab_click` and `screen_view`: fire when users move between Home, Map, Add, Community, and My Log.
+- `search_filter_toggle`: fires when the map search/filter panel opens or closes.
+- `category_filter_click`: fires when a category filter is clicked.
 - `language_select`: fires when a language button is clicked.
+- `ui_language_select`: fires when ENG, CH, or KOR is clicked.
 - `country_filter_click`: fires when a country filter is clicked.
 - `marker_click`: fires when a map marker is clicked.
+- `map_clear_click`: fires when the map is tapped to clear the selected place or close filters.
 - `place_list_click`: fires when the selected place card is opened as a detail page.
+- `place_detail_open`: fires when the detail page opens.
 - `review_panel_open`: fires when the place detail/review panel opens.
 - `review_cta_click`: fires when the Leave a review button is clicked.
 - `review_recommend_click`: fires when a student recommendation button on a review is clicked.
 - `review_submit`: fires when the prototype review modal is submitted.
+- `review_modal_close`: fires when the review modal is closed.
+- `community_board_click`: fires when users switch between information, social, travel, and Q&A boards.
+- `address_copy_click`: fires when users copy a place address.
+- `current_location_prompt` and `current_location_click`: fire for location permission/result testing.
+- `add_record_click`: fires when users go to add a new record.
 
 ## Add real places, pins, and reviews
 

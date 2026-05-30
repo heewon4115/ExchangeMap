@@ -1281,6 +1281,7 @@
       submittedReviews: {},
       reviewModalOpen: false,
       reviewSubmitted: false,
+      analyticsEventCount: 0,
       mapView: { center: [37.4702, 126.9524], zoom: 14 },
       userLocation: null,
       locationRequested: false,
@@ -2272,9 +2273,71 @@
       };
     }
 
+    function getPrototypeVisitorId() {
+      const storageKey = 'exchange_map_visitor_id';
+      try {
+        let visitorId = localStorage.getItem(storageKey);
+        if (!visitorId) {
+          visitorId = `visitor_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          localStorage.setItem(storageKey, visitorId);
+        }
+        return visitorId;
+      } catch (error) {
+        return 'visitor_storage_unavailable';
+      }
+    }
+
+    const analyticsSessionId = `session_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    const prototypeVisitorId = getPrototypeVisitorId();
+
+    function eventGroup(eventName) {
+      if (eventName.includes('review')) return 'review';
+      if (eventName.includes('filter') || eventName.includes('language') || eventName.includes('search')) return 'filter';
+      if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('map') || eventName.includes('location')) return 'map';
+      if (eventName.includes('community')) return 'community';
+      if (eventName.includes('tab') || eventName.includes('screen')) return 'navigation';
+      return 'prototype';
+    }
+
+    function readableEventLabel(eventName) {
+      return eventName
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
+
+    function analyticsContext() {
+      const place = hasSelectedPlace() ? selectedPlace() : null;
+      return {
+        app_name: 'Exchange Map',
+        prototype_version: 'snu-ga-prototype',
+        visitor_id: prototypeVisitorId,
+        session_id: analyticsSessionId,
+        event_index: state.analyticsEventCount,
+        current_tab: state.tab,
+        ui_language: state.uiLanguage,
+        review_language_filter: state.language,
+        country_filter: state.country,
+        category_filter: state.category,
+        community_board: state.communityBoard,
+        selected_place_id: place ? place.id : '',
+        selected_place_name: place ? place.name : '',
+        page_path: window.location.pathname || '/',
+        page_url: window.location.href,
+        ga_connected: hasRealGaId ? 'yes' : 'no'
+      };
+    }
+
     function trackEvent(eventName, params = {}) {
-      const eventParams = { ...params, ...getUtmParams() };
-      console.log('[Exchange Map event]', eventName, eventParams);
+      state.analyticsEventCount += 1;
+      const eventParams = {
+        event_group: eventGroup(eventName),
+        activity_label: readableEventLabel(eventName),
+        ...analyticsContext(),
+        ...params,
+        ...getUtmParams()
+      };
+      console.log(`[Exchange Map event #${state.analyticsEventCount}] ${eventName}`, eventParams);
       if (hasRealGaId && typeof gtag === 'function') {
         gtag('event', eventName, eventParams);
       }
@@ -2766,9 +2829,15 @@
 
       state.map.on('click', () => {
         if (!state.selectedPlaceId && !state.searchOptionsOpen) return;
+        const hadSelectedPlace = Boolean(state.selectedPlaceId);
+        const hadSearchOptionsOpen = state.searchOptionsOpen;
         state.selectedPlaceId = '';
         state.searchOptionsOpen = false;
         saveMapView();
+        trackEvent('map_clear_click', {
+          cleared_place: hadSelectedPlace ? 'yes' : 'no',
+          closed_search_filters: hadSearchOptionsOpen ? 'yes' : 'no'
+        });
         updateMapSelection();
       });
     }
@@ -2840,8 +2909,12 @@
         place_id: place.id,
         place_name: place.name,
         place_category: place.category,
-        selected_country: state.country,
-        selected_language: state.language
+        place_rating: place.rating,
+        place_review_count: place.reviewCount,
+        place_badges: place.badges.join(', '),
+        place_tags: place.tags.join(', '),
+        country_filter: state.country,
+        language_filter: state.language
       });
       if (state.tab === 'map' && state.map) {
         updateMapSelection();
@@ -2860,9 +2933,18 @@
       state.selectedPlaceId = place.id;
       trackEvent('place_list_click', {
         place_id: place.id,
-        place_name: place.name
+        place_name: place.name,
+        place_category: place.category,
+        place_rating: place.rating,
+        place_review_count: place.reviewCount
       });
       state.tab = 'detail';
+      trackEvent('place_detail_open', {
+        place_id: place.id,
+        place_name: place.name,
+        place_category: place.category,
+        visible_review_count: reviewsForPlace(place).length
+      });
       renderAll();
     }
 
@@ -2910,8 +2992,16 @@
 
       document.querySelectorAll('[data-tab]').forEach(button => {
         button.onclick = () => {
+          const previousTab = state.tab;
           state.tab = button.dataset.tab;
           if (state.tab === 'map') state.searchOptionsOpen = false;
+          trackEvent('tab_click', {
+            previous_tab: previousTab,
+            destination_tab: state.tab
+          });
+          trackEvent('screen_view', {
+            screen_name: state.tab
+          });
           renderAll();
         };
       });
@@ -2919,6 +3009,9 @@
       document.querySelectorAll('[data-search-toggle]').forEach(button => {
         button.onclick = () => {
           state.searchOptionsOpen = !state.searchOptionsOpen;
+          trackEvent('search_filter_toggle', {
+            search_filters_open: state.searchOptionsOpen ? 'yes' : 'no'
+          });
           renderAll();
         };
       });
@@ -2967,26 +3060,42 @@
 
       document.querySelectorAll('[data-chip-row="category"] .chip').forEach(button => {
         button.onclick = () => {
+          const previousCategory = state.category;
           state.category = button.dataset.value;
           state.searchOptionsOpen = true;
+          trackEvent('category_filter_click', {
+            previous_category: previousCategory,
+            category: state.category,
+            visible_place_count: filteredPlaces().length
+          });
           renderAll();
         };
       });
 
       document.querySelectorAll('[data-chip-row="country"] .chip').forEach(button => {
         button.onclick = () => {
+          const previousCountry = state.country;
           state.country = button.dataset.value;
           state.searchOptionsOpen = true;
-          trackEvent('country_filter_click', { country: state.country });
+          trackEvent('country_filter_click', {
+            previous_country: previousCountry,
+            country: state.country,
+            visible_place_count: filteredPlaces().length
+          });
           renderAll();
         };
       });
 
       document.querySelectorAll('[data-chip-row="language"] .chip').forEach(button => {
         button.onclick = () => {
+          const previousLanguage = state.language;
           state.language = button.dataset.value;
           state.searchOptionsOpen = true;
-          trackEvent('language_select', { language: state.language });
+          trackEvent('language_select', {
+            previous_language: previousLanguage,
+            language: state.language,
+            visible_place_count: filteredPlaces().length
+          });
           renderAll();
         };
       });
@@ -3005,8 +3114,12 @@
 
       document.querySelectorAll('[data-community-board]').forEach(button => {
         button.onclick = () => {
+          const previousBoard = state.communityBoard;
           state.communityBoard = button.dataset.communityBoard;
-          trackEvent('community_board_click', { board: state.communityBoard });
+          trackEvent('community_board_click', {
+            previous_board: previousBoard,
+            board: state.communityBoard
+          });
           renderAll();
         };
       });
@@ -3089,7 +3202,10 @@
           trackEvent('review_recommend_click', {
             place_id: place.id,
             place_name: place.name,
+            place_category: place.category,
             review_id: review.id,
+            review_author_country: review.country,
+            review_language: review.language,
             recommended: state.recommendedReviews.includes(reviewId) ? 'yes' : 'no'
           });
           renderAll();
@@ -3103,8 +3219,9 @@
           trackEvent('review_cta_click', {
             place_id: place.id,
             place_name: place.name,
-            selected_country: state.country,
-            selected_language: state.language
+            place_category: place.category,
+            country_filter: state.country,
+            language_filter: state.language
           });
           state.reviewModalOpen = true;
           state.reviewSubmitted = false;
@@ -3115,6 +3232,7 @@
       const closeReviewModal = document.getElementById('closeReviewModal');
       if (closeReviewModal) {
         closeReviewModal.onclick = () => {
+          trackEvent('review_modal_close', { close_source: 'x_button' });
           state.reviewModalOpen = false;
           renderAll();
         };
@@ -3123,6 +3241,7 @@
       const doneReviewModal = document.getElementById('doneReviewModal');
       if (doneReviewModal) {
         doneReviewModal.onclick = () => {
+          trackEvent('review_modal_close', { close_source: 'thank_you_done' });
           state.reviewModalOpen = false;
           renderAll();
         };
@@ -3155,8 +3274,11 @@
           trackEvent('review_submit', {
             place_id: place.id,
             place_name: place.name,
+            place_category: place.category,
             country,
-            rating
+            rating,
+            review_text_length: reviewText.length,
+            has_review_text: reviewText ? 'yes' : 'no'
           });
           state.reviewSubmitted = true;
           renderAll();
@@ -3165,7 +3287,9 @@
 
       document.querySelectorAll('[data-add-record]').forEach(button => {
         button.onclick = () => {
+          trackEvent('add_record_click', { source_tab: state.tab });
           state.tab = 'add';
+          trackEvent('screen_view', { screen_name: state.tab });
           renderAll();
         };
       });
@@ -3197,7 +3321,11 @@
 
     trackEvent('prototype_view', {
       page_title: document.title,
-      page_location: window.location.href
+      page_location: window.location.href,
+      total_place_count: places.length,
+      food_place_count: places.filter(place => place.category === 'Food').length,
+      official_place_count: places.filter(place => place.isOfficial).length,
+      student_reviewed_place_count: places.filter(place => place.isStudentReviewed).length
     });
 
     const utmParams = getUtmParams();
