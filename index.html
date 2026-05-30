@@ -3196,6 +3196,109 @@
       `;
     }
 
+    function renderSummerFestivalsPost() {
+      const isExpanded = state.expandedCommunityPost === 'summer-festivals-korea';
+      return `
+        <article class="card recommendation-post" data-community-post-toggle="summer-festivals-korea">
+          <div class="badges">
+            <span class="badge good">Tips</span>
+            <span class="badge student">Events</span>
+          </div>
+          <h3>Summer Festivals in Korea: Waterbomb, PSY Soaked Show, and More 💦</h3>
+          <p>Summer in Korea can be hot and humid, but it is also one of the most exciting seasons for music festivals, water events, and unforgettable exchange-student memories.</p>
+          ${isExpanded ? `
+            <div class="cafe-grid">
+              <section class="guide-section">
+                <h4>🎧 What is Waterbomb?</h4>
+                <p>Waterbomb is one of Korea's most famous summer music festivals. It combines live performances, K-pop and hip-hop artists, DJs, water shows, and water fights.</p>
+                <p>Many people go with friends, wear summer festival outfits, and prepare to get completely soaked. If you like energetic music festivals and do not mind getting wet, Waterbomb can be one of the most memorable summer experiences in Korea.</p>
+              </section>
+              <section class="guide-section">
+                <h4>💙 What is PSY Soaked Show / 흠뻑쇼?</h4>
+                <p>PSY Soaked Show, called "흠뻑쇼" in Korean, is a famous summer concert by PSY.</p>
+                <p>The concert is known for powerful performances, sing-along moments, and huge amounts of water sprayed during the show. Many people wear blue outfits because the event is strongly associated with blue summer energy.</p>
+                <p>It feels more like a huge summer party than a normal concert.</p>
+              </section>
+              <section class="guide-section">
+                <h4>🎆 Other summer festivals in Korea</h4>
+                <p>Korea also has many other summer festivals, including music festivals, night markets, beach festivals, fireworks festivals, and local cultural festivals.</p>
+                <ul>
+                  <li>Visit Korea</li>
+                  <li>Visit Seoul</li>
+                  <li>University Instagram accounts</li>
+                  <li>Official festival websites</li>
+                  <li>Ticketing platforms such as Interpark / NOL Ticket, Melon Ticket, Yes24 Ticket, or Ticketlink</li>
+                </ul>
+              </section>
+              <section class="guide-section">
+                <h4>🎒 What to bring</h4>
+                <ul>
+                  <li>Waterproof phone pouch</li>
+                  <li>Comfortable shoes or sandals</li>
+                  <li>Extra clothes</li>
+                  <li>Small towel</li>
+                  <li>Sunscreen</li>
+                  <li>Hat or cap</li>
+                  <li>Portable fan</li>
+                  <li>Water bottle</li>
+                  <li>ID or passport</li>
+                  <li>Ticket QR code or reservation confirmation</li>
+                </ul>
+              </section>
+              <section class="guide-section">
+                <h4>⚠️ Important tips</h4>
+                <ul>
+                  <li>You will probably get very wet.</li>
+                  <li>Do not bring expensive bags or items that cannot get wet.</li>
+                  <li>Check age restrictions before buying tickets.</li>
+                  <li>Some events may require a Korean phone number or Korean payment method.</li>
+                  <li>Tickets can sell out quickly.</li>
+                  <li>Check the official website or official social media before going.</li>
+                  <li>Bring ID, especially if the event has an age restriction.</li>
+                  <li>Be careful with crowds and stay hydrated.</li>
+                  <li>If you are going with friends, choose a meeting point in advance.</li>
+                </ul>
+              </section>
+              <section class="guide-section">
+                <h4>🗣️ Useful Korean words</h4>
+                <div class="cafe-keywords">
+                  <span class="badge">워터밤: Waterbomb</span>
+                  <span class="badge">흠뻑쇼: PSY Soaked Show</span>
+                  <span class="badge">축제: Festival</span>
+                  <span class="badge">공연: Performance</span>
+                  <span class="badge">티켓 예매: Ticket reservation</span>
+                  <span class="badge">라인업: Lineup</span>
+                  <span class="badge">입장: Entry</span>
+                  <span class="badge">물품보관소: Locker</span>
+                  <span class="badge">우비: Raincoat</span>
+                  <span class="badge">방수팩: Waterproof pouch</span>
+                  <span class="badge">신분증: ID card</span>
+                  <span class="badge">매진: Sold out</span>
+                </div>
+              </section>
+              <section class="guide-section">
+                <h4>✨ Final tips</h4>
+                <p>Summer festivals in Korea are exciting, loud, crowded, and full of energy. If you enjoy music and festival culture, Waterbomb or PSY Soaked Show can be unforgettable experiences during your exchange semester.</p>
+                <p>Just remember to check official information, prepare for water, and stay safe in the crowd.</p>
+              </section>
+            </div>
+            <p class="cafe-note"><b>Note:</b> Festival dates, ticket rules, age restrictions, and entry policies can change every year. Please check the official festival website, official social media, and ticketing platform before buying tickets or visiting.</p>
+          ` : `
+            <div class="badges">
+              <span class="badge">Waterbomb</span>
+              <span class="badge">흠뻑쇼</span>
+              <span class="badge">ticket tips</span>
+              <span class="badge">what to bring</span>
+            </div>
+          `}
+          <div class="post-expand-row">
+            <span>${isExpanded ? 'Tap to collapse' : 'Tap to open summer festival guide'}</span>
+            <span>${isExpanded ? '⌃' : '⌄'}</span>
+          </div>
+        </article>
+      `;
+    }
+
     function renderCommunity() {
       const boards = [
         {
@@ -3287,7 +3390,7 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
-        ${activeBoard.id === 'info' ? `${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
+        ${activeBoard.id === 'info' ? `${renderSummerFestivalsPost()}${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
           const recommendCount = tip.recommends || 0;
