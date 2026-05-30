@@ -1911,6 +1911,7 @@
 
   <script>
     const GA_MEASUREMENT_ID = 'G-LMDDY5BD0W';
+    const GA_DEBUG_MODE = true;
     const SUPABASE_URL = 'https://ylbkmipzslrstvwgkgda.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_pnpG3qqqPORUO9gRRkxQNw_R3Ih3s3R';
 
@@ -3773,6 +3774,31 @@
       return 'browse';
     }
 
+    function analyticsIntent(eventName) {
+      if (eventName === 'qr_landing') return 'acquisition';
+      if (eventName.includes('marker') || eventName.includes('place')) return 'place_interest';
+      if (eventName.includes('review_cta') || eventName.includes('review_submit')) return 'review_intent';
+      if (eventName.includes('community_tip_submit') || eventName.includes('community_post_comment_submit')) return 'community_contribution';
+      if (eventName.includes('recommend')) return 'social_proof';
+      if (eventName.includes('copy')) return 'offline_action';
+      if (eventName.includes('filter') || eventName.includes('language')) return 'preference_signal';
+      return 'general_activity';
+    }
+
+    function isConversionCandidate(eventName) {
+      return [
+        'review_cta_click',
+        'review_submit',
+        'community_tip_submit',
+        'community_post_comment_submit',
+        'community_tip_comment_submit',
+        'community_post_recommend_click',
+        'community_tip_recommend_click',
+        'address_copy_click',
+        'cafe_address_copy_click'
+      ].includes(eventName) ? 'yes' : 'no';
+    }
+
     function readableEventLabel(eventName) {
       return eventName
         .split('_')
@@ -3822,11 +3848,20 @@
         analytics_object: analyticsObject(eventName),
         funnel_step: analyticsFunnelStep(eventName),
         engagement_type: engagementType(eventName),
+        user_intent: analyticsIntent(eventName),
+        conversion_candidate: isConversionCandidate(eventName),
         activity_label: readableEventLabel(eventName),
         ...analyticsContext(),
         ...params,
         ...getUtmParams()
       };
+      eventParams.event_category = eventParams.analytics_area;
+      eventParams.event_label = eventParams.activity_label;
+      eventParams.content_group = eventParams.current_tab;
+      eventParams.screen_name = eventParams.current_tab;
+      eventParams.item_category = eventParams.selected_place_category || eventParams.category_filter || '';
+      eventParams.report_dimension = `${eventParams.funnel_step} | ${eventParams.analytics_area} | ${eventParams.analytics_object}`;
+      eventParams.debug_mode = GA_DEBUG_MODE ? 'yes' : 'no';
       eventParams.context_summary = `${eventParams.analytics_area}/${eventParams.analytics_action}/${eventParams.analytics_object}`;
       const consoleSummary = {
         event: eventName,
@@ -3836,6 +3871,8 @@
         action: eventParams.analytics_action,
         object: eventParams.analytics_object,
         engagement_type: eventParams.engagement_type,
+        user_intent: eventParams.user_intent,
+        conversion_candidate: eventParams.conversion_candidate,
         current_tab: eventParams.current_tab,
         selected_place: eventParams.selected_place_name || '',
         community_board: eventParams.community_board || '',

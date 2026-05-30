@@ -298,7 +298,11 @@ All events also include common context so GA4 Realtime and Explorations are easi
 - `analytics_object`: review, map_marker, place, filter, language, community_post, community_tip, community_board, location, screen, address, or prototype.
 - `funnel_step`: simple prototype journey step such as `01_landing`, `03_discovery`, `04_place_interest`, or `05_engagement`.
 - `engagement_type`: browse, preference, create, comment, recommend, copy, or delete.
+- `user_intent`: easier human-readable intent such as `place_interest`, `review_intent`, `community_contribution`, or `preference_signal`.
+- `conversion_candidate`: yes/no flag for important actions worth reviewing as possible conversion events.
 - `context_summary`: short combined label like `map/click/map_marker`.
+- `event_category`, `event_label`, `content_group`, `screen_name`, and `item_category`: GA4-friendly report fields derived from the same event context.
+- `report_dimension`: compact combined field for quick Explore tables.
 - `activity_label`: readable event label.
 - `current_tab`, `ui_language`, `country_filter`, `category_filter`, `review_language_filter`, `community_board`.
 - `selected_place_id`, `selected_place_name`, and `selected_place_category` when a place is selected.
@@ -313,11 +317,20 @@ Recommended GA4 custom dimensions to register for easier reports:
 - `analytics_object`
 - `funnel_step`
 - `engagement_type`
+- `user_intent`
+- `conversion_candidate`
 - `community_board`
 - `selected_place_category`
 - `active_filters`
+- `report_dimension`
 
 In GA4 Realtime or Explore, start by grouping events by `analytics_area`, then filter by `funnel_step` or `engagement_type` to quickly see what users are doing.
+
+For DebugView testing, the prototype sends `debug_mode: yes` with each event. You can turn this off in `index.html` by changing:
+
+```js
+const GA_DEBUG_MODE = false;
+```
 
 - `prototype_view`: fires when the page loads with page title and current URL.
 - `qr_landing`: fires when the URL has UTM parameters.
