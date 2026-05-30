@@ -2032,6 +2032,7 @@
     const state = {
       tab: 'map',
       country: 'All',
+      countryFilters: ['All'],
       language: 'English',
       category: 'All',
       featureFilters: [],
@@ -3405,7 +3406,7 @@
         current_tab: state.tab,
         ui_language: state.uiLanguage,
         review_language_filter: state.language,
-        country_filter: state.country,
+        country_filter: countryFilterLabel(),
         category_filter: state.category,
         community_board: state.communityBoard,
         selected_place_id: place ? place.id : '',
@@ -3442,7 +3443,7 @@
     function filteredPlaces() {
       return places.filter(place => {
         const categoryOk = matchesMapCategory(place, state.category);
-        const countryOk = matchesReviewCountry(place, state.country);
+        const countryOk = matchesReviewCountry(place, selectedCountryFilters());
         const featuresOk = state.featureFilters.every(featureId => matchesFeatureFilter(place, featureId));
         return categoryOk && countryOk && featuresOk;
       });
@@ -3464,10 +3465,30 @@
       return place.category === category;
     }
 
-    function matchesReviewCountry(place, country) {
-      if (country === 'All') return true;
+    function selectedCountryFilters() {
+      const filters = Array.isArray(state.countryFilters) && state.countryFilters.length ? state.countryFilters : [state.country || 'All'];
+      return filters.includes('All') ? ['All'] : filters;
+    }
+
+    function countryFilterLabel() {
+      return selectedCountryFilters().join(', ');
+    }
+
+    function primaryCountryFilter() {
+      return selectedCountryFilters().find(country => country !== 'All') || 'All';
+    }
+
+    function matchesReviewCountry(place, countryFilters) {
+      const filters = Array.isArray(countryFilters) ? countryFilters : [countryFilters];
+      if (!filters.length || filters.includes('All')) return true;
+      return reviewsForPlace(place).some(review => reviewMatchesCountry(review, filters));
+    }
+
+    function reviewMatchesCountry(review, countryFilters) {
+      const filters = Array.isArray(countryFilters) ? countryFilters : [countryFilters];
+      if (!filters.length || filters.includes('All')) return true;
       const mainCountries = ['Korea', 'China', 'Vietnam', 'USA', 'Spain', 'Japan'];
-      return reviewsForPlace(place).some(review => {
+      return filters.some(country => {
         if (country === 'Others') return !mainCountries.includes(review.country);
         return review.country === country;
       });
@@ -3568,12 +3589,13 @@
     }
 
     function chipRow(items, active, key, className = '') {
+      const activeValues = Array.isArray(active) ? active : [active];
       return `
         <div class="chip-row" data-chip-row="${key}">
           ${items.map(item => {
             const value = typeof item === 'string' ? item : item.id;
             const label = translatedChipLabel(item, key);
-            return `<button class="chip ${className} ${value === active ? 'active' : ''}" data-value="${value}">${label}</button>`;
+            return `<button class="chip ${className} ${activeValues.includes(value) ? 'active' : ''}" data-value="${value}">${label}</button>`;
           }).join('')}
         </div>
       `;
@@ -3653,7 +3675,7 @@
           </div>
           <div class="filter-section">
             <h3>${t('countryTitle')}</h3>
-            ${chipRow(countries, state.country, 'country')}
+            ${chipRow(countries, selectedCountryFilters(), 'country')}
           </div>
         </section>
       `;
@@ -4680,7 +4702,7 @@
                 <div class="field">
                   <label>${t('country')}</label>
                   <select id="reviewCountry">
-                    ${countries.filter(country => country !== 'All').map(country => `<option value="${country}" ${country === state.country ? 'selected' : ''}>${country}</option>`).join('')}
+                    ${countries.filter(country => country !== 'All').map(country => `<option value="${country}" ${country === primaryCountryFilter() ? 'selected' : ''}>${country}</option>`).join('')}
                   </select>
                 </div>
                 <div class="field">
@@ -4858,7 +4880,7 @@
         place_review_count: place.reviewCount,
         place_badges: place.badges.join(', '),
         place_tags: place.tags.join(', '),
-        country_filter: state.country,
+        country_filter: countryFilterLabel(),
         language_filter: state.language
       });
       if (state.tab === 'map' && state.map) {
@@ -4869,7 +4891,7 @@
       trackEvent('review_panel_open', {
         place_id: place.id,
         place_name: place.name,
-        visible_review_count: reviewsForPlace(place).filter(review => state.country === 'All' || review.country === state.country).length
+        visible_review_count: reviewsForPlace(place).filter(review => reviewMatchesCountry(review, selectedCountryFilters())).length
       });
     }
 
@@ -5029,11 +5051,22 @@
 
       document.querySelectorAll('[data-chip-row="country"] .chip').forEach(button => {
         button.onclick = () => {
-          const previousCountry = state.country;
-          state.country = button.dataset.value;
+          const previousCountries = countryFilterLabel();
+          const value = button.dataset.value;
+          if (value === 'All') {
+            state.countryFilters = ['All'];
+          } else {
+            const current = selectedCountryFilters().filter(country => country !== 'All');
+            state.countryFilters = current.includes(value)
+              ? current.filter(country => country !== value)
+              : [...current, value];
+            if (!state.countryFilters.length) state.countryFilters = ['All'];
+          }
+          state.country = primaryCountryFilter();
           trackEvent('country_filter_click', {
-            previous_country: previousCountry,
-            country: state.country,
+            previous_country: previousCountries,
+            country: countryFilterLabel(),
+            selected_country_count: selectedCountryFilters().includes('All') ? 0 : selectedCountryFilters().length,
             visible_place_count: filteredPlaces().length
           });
           renderAll();
@@ -5490,7 +5523,7 @@
             place_id: place.id,
             place_name: place.name,
             place_category: place.category,
-            country_filter: state.country,
+            country_filter: countryFilterLabel(),
             language_filter: state.language
           });
           state.reviewModalOpen = false;
@@ -5575,7 +5608,7 @@
           const newReview = {
             id: `submitted-${place.id}-${Date.now()}`,
             name: 'You',
-            country: state.country === 'All' ? 'USA' : state.country,
+            country: primaryCountryFilter() === 'All' ? 'USA' : primaryCountryFilter(),
             school: 'Seoul National University',
             language: state.language,
             rating: state.selectedRating,
