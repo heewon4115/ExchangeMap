@@ -432,6 +432,21 @@
       border-top: 1px solid var(--line);
     }
 
+    .comment-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 10px;
+    }
+
+    .source-comment {
+      padding: 9px 10px;
+      border-radius: 12px;
+      background: rgba(123, 97, 255, 0.07);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -3243,6 +3258,274 @@
       }
     ];
 
+    const schoolLifePosts = [
+      {
+        id: 'school-life-001',
+        board: 'info',
+        category: 'Course Registration',
+        country: 'Germany',
+        title: 'Is it normal for English-taught classes to switch to Korean sometimes?',
+        content: 'I registered for a class listed as English-taught, but the professor explained part of the lecture in Korean during the first week. I can follow the slides, but I am worried about exams and group projects.',
+        comments: [
+          'Ask the professor directly during the first week and confirm the language used for lectures, exams, and group assignments. If the course language differs substantially, contact your department office or SNU OGA.',
+          'Yea... that is quite normal, which is quite sad.',
+          'Check with your professors before taking the class.'
+        ],
+        recommends: 16
+      },
+      {
+        id: 'school-life-002',
+        board: 'info',
+        category: 'Course Registration',
+        country: 'Vietnam',
+        title: 'How fast do popular classes fill up during registration?',
+        content: 'Some classes disappeared almost immediately after registration opened. Is there a waiting-list system, or should I keep checking during the add/drop period?',
+        comments: [
+          'Popular classes can fill quickly. Check mySNU, the official add/drop schedule, and OGA information. Instructor approval rules can differ by course.',
+          'People usually register as soon as it opens.',
+          'People use Navyism for the timer. RTCK can also help on Windows.'
+        ],
+        recommends: 22
+      },
+      {
+        id: 'school-life-003',
+        board: 'info',
+        category: 'Campus Life',
+        country: 'Japan',
+        title: 'Where do students usually eat lunch between classes?',
+        content: 'I have two classes near the main gate and only about 50 minutes for lunch. Are there affordable student cafeterias nearby?',
+        comments: [
+          'SNU has multiple cafeteria options, but the campus is large. Check the building number of your next class before choosing where to eat.',
+          'I usually go to Popoin. It is quite nice to eat alone.',
+          'I usually just go up to the student lounge near the main gate.'
+        ],
+        recommends: 19
+      },
+      {
+        id: 'school-life-004',
+        board: 'social',
+        category: 'Clubs',
+        country: 'USA',
+        title: 'Which clubs are welcoming to exchange students?',
+        content: 'I want to meet local students and I am interested in photography, hiking, and language exchange. Are there clubs that are easy to join with basic Korean?',
+        comments: [
+          'Start with OGA notices, club recruitment posts, and SNU Buddy. For general clubs, message them first with your Korean level and interests.',
+          'If you are into photography, search for the SNU photography club Instagram and send a DM.',
+          'Sports clubs and Korean-learning clubs can also be good.'
+        ],
+        recommends: 25
+      },
+      {
+        id: 'school-life-005',
+        board: 'info',
+        category: 'Dormitory',
+        country: 'China',
+        title: 'What should I bring to the dorm on move-in day?',
+        content: 'Do I need bedding, laundry detergent, hangers, or cleaning supplies? I also heard some dorms have visitor and quiet-hour rules.',
+        comments: [
+          'Prepare bedding, toiletries, hangers, laundry supplies, and cleaning items unless your dorm notice says they are provided. Read the current residence hall instructions carefully.',
+          'You need detergent and hangers.',
+          'Remember to buy a Wi-Fi router device if your room does not have Wi-Fi.'
+        ],
+        recommends: 31
+      },
+      {
+        id: 'school-life-006',
+        board: 'info',
+        category: 'Dormitory',
+        country: 'France',
+        title: 'Are dorm washing machines usually paid?',
+        content: 'I noticed that the washing machines in my dorm require small payments. Is this common in Korean university dorms?',
+        comments: [
+          'Laundry arrangements differ by dorm building. Check the notice in your residence hall or ask the RA office after move-in.',
+          'In some places washing machines are not paid, but you still need to buy your own detergent.'
+        ],
+        recommends: 10
+      },
+      {
+        id: 'school-life-007',
+        board: 'info',
+        category: 'International Office',
+        country: 'Canada',
+        title: 'I missed an important email from the university',
+        content: 'I missed a dorm-related deadline because I did not check my university email often enough. Where should I check important notices?',
+        comments: [
+          'Check SNU email, mySNU, OGA notices, and dormitory notices regularly. Do not rely only on group chats for official deadlines.',
+          'Important messages may also come through text message or KakaoTalk.'
+        ],
+        recommends: 18
+      },
+      {
+        id: 'school-life-008',
+        board: 'info',
+        category: 'Campus Facilities',
+        country: 'Thailand',
+        title: 'Where can I print documents on campus?',
+        content: 'I need to print a form for my residence card appointment. Are there printers inside the library or student center?',
+        comments: [
+          'Apply for your S-Card early. Printer locations and payment methods vary by building, so ask at the library desk or college computer lab before urgent printing.',
+          'There are printers near the dorm, library, student center, and Building 301.',
+          'You can often pay with a regular credit card.'
+        ],
+        recommends: 21
+      },
+      {
+        id: 'school-life-009',
+        board: 'info',
+        category: 'Library',
+        country: 'Spain',
+        title: 'Can exchange students use the library late at night?',
+        content: 'I am looking for a quiet place to study after dinner. Does the library stay open late during exam season?',
+        comments: [
+          'Exchange students can use SNU libraries, but entry generally requires an S-Card or mobile library access. Check current library hours and quiet-zone rules.',
+          'The library is mostly open until 11, and some study spaces may be open longer.'
+        ],
+        recommends: 17
+      },
+      {
+        id: 'school-life-010',
+        board: 'info',
+        category: 'Student ID',
+        country: 'Indonesia',
+        title: 'What can I do with my student ID card?',
+        content: 'I received my student ID card, but I am not sure what it is used for beyond entering the library.',
+        comments: [
+          'At SNU, the student ID is called the S-Card. It can be used for campus ID, restricted facilities, and depending on setup, financial, transportation, and printing functions.',
+          'You can also get student discounts in some cafes near SNU Station.'
+        ],
+        recommends: 14
+      },
+      {
+        id: 'school-life-011',
+        board: 'info',
+        category: 'Group Projects',
+        country: 'Germany',
+        title: 'How should I join a group project when everyone uses KakaoTalk?',
+        content: 'My classmates created a KakaoTalk group chat, but I am not very familiar with the app. Is it normal to ask for English summaries?',
+        comments: [
+          'Tell teammates early that you are still learning Korean and ask whether key decisions can be summarized in English. Also volunteer for a clear task so your contribution is visible.',
+          'People may expect you to translate some parts yourself.'
+        ],
+        recommends: 24
+      },
+      {
+        id: 'school-life-012',
+        board: 'info',
+        category: 'Campus Navigation',
+        country: 'Vietnam',
+        title: 'Why does it take so long to walk between buildings?',
+        content: 'I underestimated how large campus is. Is there a campus shuttle or route-planning app that students use?',
+        comments: [
+          'Gwanak Campus is large and hilly. Leave extra time during the first week. SNU provides free shuttle buses, public bus options, and mobile app shuttle information.',
+          'For Building 301, start moving at least 30 minutes before class.'
+        ],
+        recommends: 29
+      },
+      {
+        id: 'school-life-013',
+        board: 'social',
+        category: 'Buddy Program',
+        country: 'Italy',
+        title: 'Is the buddy program worth joining?',
+        content: 'I would like help with ordering food, finding classrooms, and understanding school events. Did anyone have a good buddy experience?',
+        comments: [
+          'SNU Buddy helps exchange students adjust to life in Korea and make friends at SNU. Apply during the official registration period because matching can be limited.',
+          'YES. My buddies were so nice.'
+        ],
+        recommends: 35
+      },
+      {
+        id: 'school-life-014',
+        board: 'social',
+        category: 'Language Exchange',
+        country: 'Japan',
+        title: 'Looking for a casual Korean-English language exchange group',
+        content: 'I want to practice Korean once or twice a week, but I am not ready for a formal class. Are there casual student groups?',
+        comments: [
+          'Check OGA notices, SNU Buddy activities, student-club recruitment posts, and campus community boards. Include your availability, location, and language level when posting.',
+          'There are also tutors for international students, sometimes free.'
+        ],
+        recommends: 23
+      },
+      {
+        id: 'school-life-015',
+        board: 'info',
+        category: 'Exams',
+        country: 'USA',
+        title: 'What are midterms like in Korean universities?',
+        content: 'Do professors usually give written exams, presentations, or take-home assignments? How strict are attendance and grading policies?',
+        comments: [
+          'The format depends heavily on the course and professor. Check the syllabus and ask early if exam format, attendance rules, or grading breakdown are unclear.',
+          'It depends on the professor.'
+        ],
+        recommends: 18
+      },
+      {
+        id: 'school-life-016',
+        board: 'info',
+        category: 'Cafeteria',
+        country: 'Malaysia',
+        title: 'Are there halal or vegetarian options in the student cafeteria?',
+        content: 'Are cafeteria menus posted online in advance? Are ingredients or dietary labels clearly displayed?',
+        comments: [
+          'The SNU mobile app provides cafeteria menu information, but labels may not be complete for strict halal, allergy, or vegetarian needs. Confirm with cafeteria staff and keep off-campus alternatives.',
+          'Use the SNU app or 식샤-style cafeteria menu apps.'
+        ],
+        recommends: 26
+      },
+      {
+        id: 'school-life-017',
+        board: 'info',
+        category: 'Part-time Work',
+        country: 'Mongolia',
+        title: 'Can exchange students work part-time during the semester?',
+        content: 'I am not sure whether exchange students are allowed to work part-time or what permission is required.',
+        comments: [
+          'Do not start working before confirming your visa conditions. Contact SNU international-student support or OGA before accepting paid work.',
+          'Ask the OGA office.'
+        ],
+        recommends: 13
+      },
+      {
+        id: 'school-life-018',
+        board: 'info',
+        category: 'Mental Health',
+        country: 'France',
+        title: 'Does the university offer counseling in English?',
+        content: 'Adjusting to a new country has been stressful. Is there a counseling service where I can speak in English?',
+        comments: [
+          'SNU Center for Campus Life and Culture provides counseling services, and English-language pages include individual counseling information for international students.',
+          'Yes, there is an option to select the language.'
+        ],
+        recommends: 20
+      },
+      {
+        id: 'school-life-019',
+        board: 'social',
+        category: 'Social Life',
+        country: 'China',
+        title: 'How do exchange students make Korean friends outside class?',
+        content: 'I have met many international students, but I would also like to meet local students. Would joining a club or volunteer activity help?',
+        comments: [
+          'Recurring activities work better than one-time events. Try SNU Buddy, clubs, volunteering, sports groups, or language exchange meetings.',
+          'I made Korean friends in class and clubs. I recommend clubs.'
+        ],
+        recommends: 32
+      },
+      {
+        id: 'school-life-020',
+        board: 'info',
+        category: 'Arrival Checklist',
+        country: 'Vietnam',
+        title: 'What should I do during my first week in Korea?',
+        content: 'I just arrived and feel overwhelmed: SIM card, transportation card, residence card appointment, bank account, dorm registration, and course registration.',
+        comments: [
+          'Read OGA and dorm notices, complete move-in steps, set up SNU account and email, install the SNU app, confirm course registration, apply for S-Card, check residence-card steps, get a transportation card, and apply for SNU Buddy if you want a local connection.'
+        ],
+        recommends: 41
+      }
+    ];
+
     function renderCafeRecommendationPost() {
       const isExpanded = state.expandedCommunityPost === 'cafe-recommendations-snu';
       return `
@@ -3584,6 +3867,7 @@
       ];
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
       const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
+      const schoolLifeBoardPosts = schoolLifePosts.filter(post => post.board === activeBoard.id);
       const communitySaveNote = {
         loading: ct('syncLoading'),
         online: ct('syncOnline'),
@@ -3648,6 +3932,32 @@
               </div>
             </div>
           `;
+        }).join('')}
+        ${schoolLifeBoardPosts.map(post => {
+          const postId = post.id;
+          const isExpanded = state.expandedCommunityPost === postId;
+          return `
+          <div class="card board-post-card" data-community-post-toggle="${postId}">
+            <div class="badges"><span class="badge good">${post.category}</span><span class="badge student">${post.country}</span></div>
+            <strong>${post.title}</strong>
+            <p class="meta" style="margin-top:8px;">${post.country} · English · 💬 ${post.comments.length}</p>
+            ${isExpanded ? `
+              <div class="expanded-body">
+                <p class="meta">${post.content}</p>
+                <div class="comment-list">
+                  ${post.comments.map(comment => `<div class="source-comment">${comment}</div>`).join('')}
+                </div>
+              </div>
+            ` : ''}
+            <div class="tip-actions">
+              ${communityPostRecommendButton(postId, post.recommends)}
+            </div>
+            <div class="post-expand-row">
+              <span>${isExpanded ? ct('collapse') : ct('openPost')}</span>
+              <span>${isExpanded ? '⌃' : '⌄'}</span>
+            </div>
+          </div>
+        `;
         }).join('')}
         ${activeBoard.posts.map(([title, body, author, replies], index) => {
           const postId = `${activeBoard.id}-static-${index}`;
