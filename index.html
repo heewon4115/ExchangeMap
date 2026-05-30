@@ -771,23 +771,6 @@
       cursor: pointer;
     }
 
-    .card-locate-button {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 2;
-      width: 40px;
-      height: 40px;
-      border: 1px solid rgba(255, 255, 255, 0.9);
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.96);
-      color: var(--blue);
-      box-shadow: 0 10px 22px rgba(31, 41, 55, 0.15);
-      backdrop-filter: blur(14px);
-      font-size: 18px;
-      font-weight: 900;
-    }
-
     .tap-hint {
       display: block;
       margin-top: 9px;
@@ -3287,12 +3270,15 @@
               ${chipRow(languages, state.language, 'language', 'community')}
             </div>
           </div>
-          ${place ? '' : '<button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>'}
+          <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
           <div id="mapBottomSheet">${mapBottomSheetHtml(place)}</div>
         </div>
       `;
       initMap();
-      setTimeout(() => state.map && state.map.invalidateSize(), 100);
+      setTimeout(() => {
+        if (state.map) state.map.invalidateSize();
+        positionLocateButton();
+      }, 100);
     }
 
     function mapBottomSheetHtml(place) {
@@ -3300,7 +3286,6 @@
       return `
         <div class="map-bottom-sheet">
           <div class="map-overlay" data-open-detail="${place.id}">
-            <button class="card-locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
             <h3>${place.icon} ${place.name}</h3>
             <p class="meta">★ ${place.rating} · ${place.reviewCount} ${t('reviewCount')} · ${place.distance}</p>
             ${badges(place)}
@@ -4440,9 +4425,26 @@
         <span>⌕ ${state.searchOptionsOpen ? t('hideFilters') : t('showFilters')}</span>
         <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
       `;
+      positionLocateButton();
       updateMarkerHighlights();
       renderModal();
       bindEvents();
+    }
+
+    function positionLocateButton() {
+      const locateButton = document.querySelector('.locate-button');
+      const sheet = document.querySelector('.map-bottom-sheet');
+      if (!locateButton) return;
+
+      const baseBottom = window.matchMedia('(max-width: 520px)').matches ? 98 : 108;
+      if (!sheet) {
+        locateButton.style.bottom = `${baseBottom}px`;
+        return;
+      }
+
+      const sheetHeight = Math.ceil(sheet.getBoundingClientRect().height);
+      const sheetBottom = window.matchMedia('(max-width: 520px)').matches ? 10 : 18;
+      locateButton.style.bottom = `${sheetHeight + sheetBottom + 14}px`;
     }
 
     function selectPlace(place, source) {
@@ -5237,6 +5239,7 @@
     }
 
     renderAll();
+    window.addEventListener('resize', positionLocateButton);
 
     trackEvent('prototype_view', {
       page_title: document.title,
