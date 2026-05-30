@@ -330,6 +330,7 @@
       margin-bottom: 12px;
       border: 1px solid rgba(176, 128, 78, 0.18);
       background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 238, 0.92));
+      cursor: pointer;
     }
 
     .recommendation-post h3 {
@@ -378,6 +379,17 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.45;
+    }
+
+    .post-expand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 10px;
+      color: #7b4e1f;
+      font-size: 13px;
+      font-weight: 800;
     }
 
     .section-title {
@@ -1579,6 +1591,7 @@
       searchOptionsOpen: false,
       uiLanguage: 'en',
       communityBoard: 'info',
+      expandedCommunityPost: '',
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -3024,30 +3037,44 @@
     ];
 
     function renderCafeRecommendationPost() {
+      const isExpanded = state.expandedCommunityPost === 'cafe-recommendations-snu';
       return `
-        <article class="card recommendation-post">
+        <article class="card recommendation-post" data-community-post-toggle="cafe-recommendations-snu">
           <div class="badges">
             <span class="badge good">Recommendations</span>
             <span class="badge student">Cafes</span>
           </div>
           <h3>Cafe Recommendations near Seoul National University Station ☕</h3>
           <p>Looking for a nice cafe near Seoul National University Station? Here are some recommended cafes around Seoul National University Station, Sharosu-gil, and Nakseongdae.</p>
-          <p>This list includes cafes that are good for studying, working on a laptop, enjoying desserts, or spending time with friends.</p>
-          <p>Before visiting, please check the latest opening hours and location information on Naver Map or Kakao Map.</p>
-          <div class="cafe-grid">
-            ${cafeRecommendations.map(cafe => `
-              <section class="cafe-card">
-                <strong>☕ ${cafe.name}</strong>
-                <p class="meta"><b>Area:</b> ${cafe.area}</p>
-                <p class="meta"><b>Best for:</b> ${cafe.bestFor}</p>
-                <div class="cafe-keywords">
-                  ${cafe.keywords.map(keyword => `<span class="badge">${keyword}</span>`).join('')}
-                </div>
-                <p class="meta">${cafe.description}</p>
-              </section>
-            `).join('')}
+          ${isExpanded ? `
+            <p>This list includes cafes that are good for studying, working on a laptop, enjoying desserts, or spending time with friends.</p>
+            <p>Before visiting, please check the latest opening hours and location information on Naver Map or Kakao Map.</p>
+            <div class="cafe-grid">
+              ${cafeRecommendations.map(cafe => `
+                <section class="cafe-card">
+                  <strong>☕ ${cafe.name}</strong>
+                  <p class="meta"><b>Area:</b> ${cafe.area}</p>
+                  <p class="meta"><b>Best for:</b> ${cafe.bestFor}</p>
+                  <div class="cafe-keywords">
+                    ${cafe.keywords.map(keyword => `<span class="badge">${keyword}</span>`).join('')}
+                  </div>
+                  <p class="meta">${cafe.description}</p>
+                </section>
+              `).join('')}
+            </div>
+            <p class="cafe-note"><b>Note:</b> This recommendation list is based on publicly available information and manual curation. Please check the latest details on Naver Map or Kakao Map before visiting.</p>
+          ` : `
+            <div class="badges">
+              <span class="badge">10 cafes</span>
+              <span class="badge">study</span>
+              <span class="badge">dessert</span>
+              <span class="badge">laptop-friendly</span>
+            </div>
+          `}
+          <div class="post-expand-row">
+            <span>${isExpanded ? 'Tap to collapse' : 'Tap to open full cafe list'}</span>
+            <span>${isExpanded ? '⌃' : '⌄'}</span>
           </div>
-          <p class="cafe-note"><b>Note:</b> This recommendation list is based on publicly available information and manual curation. Please check the latest details on Naver Map or Kakao Map before visiting.</p>
         </article>
       `;
     }
@@ -3577,9 +3604,23 @@
         button.onclick = () => {
           const previousBoard = state.communityBoard;
           state.communityBoard = button.dataset.communityBoard;
+          state.expandedCommunityPost = '';
           trackEvent('community_board_click', {
             previous_board: previousBoard,
             board: state.communityBoard
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-community-post-toggle]').forEach(post => {
+        post.onclick = () => {
+          const postId = post.dataset.communityPostToggle;
+          const willOpen = state.expandedCommunityPost !== postId;
+          state.expandedCommunityPost = willOpen ? postId : '';
+          trackEvent('community_post_toggle', {
+            post_id: postId,
+            expanded: willOpen ? 'yes' : 'no'
           });
           renderAll();
         };
