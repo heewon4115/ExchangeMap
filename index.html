@@ -2150,6 +2150,29 @@
         studentNotes: 'student notes',
         savedList: 'Saved list for quick access.',
         addNewRecord: 'Add new record',
+        filterButton: 'Filter',
+        filtersTitle: 'Filters',
+        featuresTitle: 'Features',
+        countryTitle: 'Country',
+        closeFilters: 'Close filters',
+        mapCategoryRestaurants: 'Restaurants',
+        mapCategoryCafes: 'Cafes',
+        mapCategoryHospitals: 'Hospitals',
+        mapCategoryGroceryStores: 'Grocery Stores',
+        featureEnglishAvailable: 'English available',
+        featureForeignerFriendly: 'Foreigner friendly',
+        featureVeganOption: 'Vegan option',
+        featureHalalFriendly: 'Halal-friendly',
+        featureAcceptsForeignCard: 'Accepts foreign card',
+        featureOpenLate: 'Open late (24h)',
+        featureStudentDiscount: 'Student discount',
+        countryKorea: 'Korea',
+        countryChina: 'China',
+        countryVietnam: 'Vietnam',
+        countryUSA: 'USA',
+        countrySpain: 'Spain',
+        countryJapan: 'Japan',
+        countryOthers: 'Others',
         country: 'Country',
         reviewText: 'Review text',
         submitReview: 'Submit review',
@@ -2275,6 +2298,29 @@
         savedList: '快速访问的收藏列表。',
         addNewRecord: '添加新记录',
         country: '国家',
+        filterButton: '筛选',
+        filtersTitle: '筛选',
+        featuresTitle: '功能',
+        countryTitle: '国家',
+        closeFilters: '关闭筛选',
+        mapCategoryRestaurants: '餐厅',
+        mapCategoryCafes: '咖啡馆',
+        mapCategoryHospitals: '医院',
+        mapCategoryGroceryStores: '便利店/超市',
+        featureEnglishAvailable: '可使用英语',
+        featureForeignerFriendly: '对外国人友好',
+        featureVeganOption: '素食选项',
+        featureHalalFriendly: '清真友好',
+        featureAcceptsForeignCard: '接受海外银行卡',
+        featureOpenLate: '营业到很晚/24小时',
+        featureStudentDiscount: '学生优惠',
+        countryKorea: '韩国',
+        countryChina: '中国',
+        countryVietnam: '越南',
+        countryUSA: '美国',
+        countrySpain: '西班牙',
+        countryJapan: '日本',
+        countryOthers: '其他',
         reviewText: '评价内容',
         submitReview: '提交评价',
         done: '完成',
@@ -2399,6 +2445,29 @@
         savedList: '빠르게 보기 위한 저장 목록.',
         addNewRecord: '새 기록 추가',
         country: '나라',
+        filterButton: '필터',
+        filtersTitle: '필터',
+        featuresTitle: '기능',
+        countryTitle: '나라',
+        closeFilters: '필터 닫기',
+        mapCategoryRestaurants: '음식점',
+        mapCategoryCafes: '카페',
+        mapCategoryHospitals: '병원',
+        mapCategoryGroceryStores: '편의점/마트',
+        featureEnglishAvailable: '영어 가능',
+        featureForeignerFriendly: '외국인 친화적',
+        featureVeganOption: '비건 옵션',
+        featureHalalFriendly: '할랄 친화적',
+        featureAcceptsForeignCard: '해외 카드 가능',
+        featureOpenLate: '늦게까지 영업/24시간',
+        featureStudentDiscount: '학생 할인',
+        countryKorea: '한국',
+        countryChina: '중국',
+        countryVietnam: '베트남',
+        countryUSA: '미국',
+        countrySpain: '스페인',
+        countryJapan: '일본',
+        countryOthers: '기타',
         reviewText: '리뷰 내용',
         submitReview: '리뷰 제출',
         done: '완료',
@@ -2600,21 +2669,21 @@
     ];
 
     const mapCategories = [
-      { id: 'All', label: 'All', icon: '' },
-      { id: 'Restaurants', label: 'Restaurants', icon: '🍴' },
-      { id: 'Cafes', label: 'Cafes', icon: '☕' },
-      { id: 'Hospital', label: 'Hospitals', icon: '🏥' },
-      { id: 'Grocery', label: 'Grocery Stores', icon: '🛒' }
+      { id: 'All', labelKey: 'categoryAll', icon: '' },
+      { id: 'Restaurants', labelKey: 'mapCategoryRestaurants', icon: '🍴' },
+      { id: 'Cafes', labelKey: 'mapCategoryCafes', icon: '☕' },
+      { id: 'Hospital', labelKey: 'mapCategoryHospitals', icon: '🏥' },
+      { id: 'Grocery', labelKey: 'mapCategoryGroceryStores', icon: '🛒' }
     ];
 
     const mapFeatureFilters = [
-      { id: 'english', label: 'English available', keywords: ['english available', 'english-speaking staff', 'english menu', 'english reception'] },
-      { id: 'foreigner', label: 'Foreigner friendly', keywords: ['foreigner friendly'] },
-      { id: 'vegan', label: 'Vegan option', keywords: ['vegan option'] },
-      { id: 'halal', label: 'Halal-friendly', keywords: ['halal-friendly'] },
-      { id: 'foreign-card', label: 'Accepts foreign card', keywords: ['accepts foreign card', 'foreign card'] },
-      { id: 'open-late', label: 'Open late (24h)', keywords: ['open late', '24h'] },
-      { id: 'student-discount', label: 'Student discount', keywords: ['student discount'] }
+      { id: 'english', labelKey: 'featureEnglishAvailable', keywords: ['english available', 'english-speaking staff', 'english menu', 'english reception'] },
+      { id: 'foreigner', labelKey: 'featureForeignerFriendly', keywords: ['foreigner friendly'] },
+      { id: 'vegan', labelKey: 'featureVeganOption', keywords: ['vegan option'] },
+      { id: 'halal', labelKey: 'featureHalalFriendly', keywords: ['halal-friendly'] },
+      { id: 'foreign-card', labelKey: 'featureAcceptsForeignCard', keywords: ['accepts foreign card', 'foreign card'] },
+      { id: 'open-late', labelKey: 'featureOpenLate', keywords: ['open late', '24h'] },
+      { id: 'student-discount', labelKey: 'featureStudentDiscount', keywords: ['student discount'] }
     ];
 
     const categoryCopyKeys = {
@@ -3404,9 +3473,23 @@
       return t(categoryCopyKeys[category] || category);
     }
 
+    function translatedCountry(country) {
+      const countryCopyKeys = {
+        All: 'filterAll',
+        Korea: 'countryKorea',
+        China: 'countryChina',
+        Vietnam: 'countryVietnam',
+        USA: 'countryUSA',
+        Spain: 'countrySpain',
+        Japan: 'countryJapan',
+        Others: 'countryOthers'
+      };
+      return t(countryCopyKeys[country] || country);
+    }
+
     function translatedChipLabel(item, key) {
       if (typeof item === 'string') {
-        if (key === 'country' && item === 'All') return t('filterAll');
+        if (key === 'country') return translatedCountry(item);
         return item;
       }
       if (key === 'category') return `${item.icon} ${translatedCategory(item.id)}`;
@@ -3510,7 +3593,7 @@
         <div class="map-category-row" data-chip-row="category">
           ${mapCategories.map(category => `
             <button class="map-category-button ${state.category === category.id ? 'active' : ''}" data-value="${category.id}" type="button">
-              ${category.icon ? `${category.icon} ` : ''}${category.label}
+              ${category.icon ? `${category.icon} ` : ''}${t(category.labelKey)}
             </button>
           `).join('')}
         </div>
@@ -3522,22 +3605,22 @@
       return `
         <section class="map-filter-sheet" aria-label="Map filters">
           <div class="filter-sheet-head">
-            <h2>Filters</h2>
-            <button class="icon-button" data-search-toggle="true" type="button" aria-label="Close filters">x</button>
+            <h2>${t('filtersTitle')}</h2>
+            <button class="icon-button" data-search-toggle="true" type="button" aria-label="${t('closeFilters')}">x</button>
           </div>
           <div class="filter-section">
-            <h3>Features</h3>
+            <h3>${t('featuresTitle')}</h3>
             <div class="feature-grid">
               ${mapFeatureFilters.map(feature => `
                 <button class="feature-check ${state.featureFilters.includes(feature.id) ? 'active' : ''}" data-feature-filter="${feature.id}" type="button">
                   <span class="feature-box">${state.featureFilters.includes(feature.id) ? '✓' : ''}</span>
-                  <span>${feature.label}</span>
+                  <span>${t(feature.labelKey)}</span>
                 </button>
               `).join('')}
             </div>
           </div>
           <div class="filter-section">
-            <h3>Country</h3>
+            <h3>${t('countryTitle')}</h3>
             ${chipRow(countries, state.country, 'country')}
           </div>
         </section>
@@ -3553,7 +3636,7 @@
             <div class="map-top-panel">
               <div class="map-search-row">
                 ${searchBar(t('mapSearch'))}
-                <button class="filter-button" data-search-toggle="true" type="button">☷ Filter</button>
+                <button class="filter-button" data-search-toggle="true" type="button">☷ ${t('filterButton')}</button>
               </div>
               ${mapCategoryButtons()}
               ${mapFilterSheet()}
