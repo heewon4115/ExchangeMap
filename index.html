@@ -264,6 +264,67 @@
       color: #5139d6;
     }
 
+    .tip-composer {
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(123, 97, 255, 0.18);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.82);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.07);
+    }
+
+    .tip-composer h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .tip-input,
+    .tip-select,
+    .tip-textarea,
+    .comment-input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--card);
+      color: var(--ink);
+      padding: 10px 11px;
+      font-size: 13px;
+    }
+
+    .tip-textarea {
+      min-height: 84px;
+      resize: vertical;
+    }
+
+    .tip-card {
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .tip-actions,
+    .comment-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-top: 9px;
+    }
+
+    .tip-comments {
+      display: grid;
+      gap: 6px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    .tip-comment {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -1266,6 +1327,54 @@
       });
     }
 
+    const COMMUNITY_TIPS_STORAGE_KEY = 'exchange_map_community_tips';
+    const COMMUNITY_RECOMMENDS_STORAGE_KEY = 'exchange_map_community_recommended_tips';
+
+    function loadStoredJson(key, fallback) {
+      try {
+        const value = localStorage.getItem(key);
+        return value ? JSON.parse(value) : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    }
+
+    function defaultCommunityTips() {
+      return [
+        {
+          id: 'tip-default-vegan',
+          board: 'info',
+          title: 'Save vegan places before your first week',
+          body: '비건 옵션은 지도에서 Vegan option 태그를 먼저 확인하면 빨라요. Poke all day and Vegan Mama are good starting points.',
+          author: 'Exchange Map',
+          createdAt: 'Sample',
+          recommends: 7,
+          comments: [
+            { id: 'tip-default-vegan-comment-1', author: 'Maya', text: 'This would have helped me during orientation week.', createdAt: 'Sample' }
+          ]
+        },
+        {
+          id: 'tip-default-halal',
+          board: 'qa',
+          title: 'Halal lunch near SNU Station?',
+          body: 'King Kebab and Snack Pack Melbourne are saved as halal-friendly options. Please add more if you know them.',
+          author: 'Exchange Map',
+          createdAt: 'Sample',
+          recommends: 5,
+          comments: []
+        }
+      ];
+    }
+
+    function saveCommunityTips() {
+      try {
+        localStorage.setItem(COMMUNITY_TIPS_STORAGE_KEY, JSON.stringify(state.communityTips));
+        localStorage.setItem(COMMUNITY_RECOMMENDS_STORAGE_KEY, JSON.stringify(state.recommendedCommunityTips));
+      } catch (error) {
+        console.warn('Community tips could not be saved locally.', error);
+      }
+    }
+
     const state = {
       tab: 'map',
       country: 'All',
@@ -1281,6 +1390,8 @@
       submittedReviews: {},
       reviewModalOpen: false,
       reviewSubmitted: false,
+      communityTips: loadStoredJson(COMMUNITY_TIPS_STORAGE_KEY, defaultCommunityTips()),
+      recommendedCommunityTips: loadStoredJson(COMMUNITY_RECOMMENDS_STORAGE_KEY, []),
       analyticsEventCount: 0,
       mapView: { center: [37.4702, 126.9524], zoom: 14 },
       userLocation: null,
@@ -2363,6 +2474,15 @@
       return [...(state.submittedReviews[place.id] || []), ...place.reviews];
     }
 
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
     function translatedCategory(category) {
       return t(categoryCopyKeys[category] || category);
     }
@@ -2683,6 +2803,7 @@
         }
       ];
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
+      const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
 
       document.getElementById('screen-community').innerHTML = `
         ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
@@ -2697,6 +2818,17 @@
         <div class="section-title"><h2>${t('hotPlaces')}</h2><span>${t('thisWeek')}</span></div>
         ${places.slice(0, 4).map(placeCard).join('')}
         <div class="section-title"><h2>${t('community')}</h2><span>${t('studentPosts')}</span></div>
+        <div class="tip-composer">
+          <h3>Share your tips for other students!</h3>
+          <select class="tip-select" id="tipBoard">
+            ${boards.map(board => `<option value="${board.id}" ${board.id === activeBoard.id ? 'selected' : ''}>${board.label}</option>`).join('')}
+          </select>
+          <input class="tip-input" id="tipAuthor" placeholder="Name / country / school" />
+          <input class="tip-input" id="tipTitle" placeholder="Tip title" />
+          <textarea class="tip-textarea" id="tipBody" placeholder="Write a practical tip, question, or note for other students."></textarea>
+          <button class="primary" id="shareTipButton" type="button">Share tip</button>
+          <p class="meta">Prototype note: tips, comments, and recommendations are saved in this browser.</p>
+        </div>
         <div class="board-chip-row">
           ${boards.map(board => `
             <button class="board-chip ${board.id === activeBoard.id ? 'active' : ''}" data-community-board="${board.id}" type="button">
@@ -2706,6 +2838,28 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
+        ${localTips.map(tip => {
+          const recommended = state.recommendedCommunityTips.includes(tip.id);
+          const recommendCount = (tip.recommends || 0) + (recommended ? 1 : 0);
+          return `
+            <div class="card tip-card">
+              <strong>${escapeHtml(tip.title)}</strong>
+              <p class="meta" style="margin-top:6px;">${escapeHtml(tip.body)}</p>
+              <p class="meta" style="margin-top:8px;">${escapeHtml(tip.author)} · ${escapeHtml(tip.createdAt || 'Just now')}</p>
+              <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">student tip</span></div>
+              <div class="tip-actions">
+                <button class="recommend-button ${recommended ? 'active' : ''}" data-tip-recommend="${tip.id}" type="button">👍 ${recommendCount}</button>
+              </div>
+              <div class="tip-comments">
+                ${(tip.comments || []).map(comment => `<div class="tip-comment"><strong>${escapeHtml(comment.author)}:</strong> ${escapeHtml(comment.text)}</div>`).join('')}
+                <div class="comment-row">
+                  <input class="comment-input" data-tip-comment-input="${tip.id}" placeholder="Add a comment" />
+                  <button class="secondary" data-tip-comment-submit="${tip.id}" type="button">Comment</button>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
         ${activeBoard.posts.map(([title, body, author, replies]) => `
           <div class="card" style="padding:12px;margin-bottom:10px;">
             <strong>${title}</strong>
@@ -3119,6 +3273,93 @@
           trackEvent('community_board_click', {
             previous_board: previousBoard,
             board: state.communityBoard
+          });
+          renderAll();
+        };
+      });
+
+      const shareTipButton = document.getElementById('shareTipButton');
+      if (shareTipButton) {
+        shareTipButton.onclick = () => {
+          const board = document.getElementById('tipBoard').value;
+          const author = document.getElementById('tipAuthor').value.trim() || 'Anonymous student';
+          const title = document.getElementById('tipTitle').value.trim();
+          const body = document.getElementById('tipBody').value.trim();
+
+          if (!title || !body) {
+            alert('Please add both a title and a tip.');
+            return;
+          }
+
+          const newTip = {
+            id: `tip-${Date.now()}`,
+            board,
+            title,
+            body,
+            author,
+            createdAt: 'Just now',
+            recommends: 0,
+            comments: []
+          };
+
+          state.communityBoard = board;
+          state.communityTips = [newTip, ...state.communityTips];
+          saveCommunityTips();
+          trackEvent('community_tip_submit', {
+            board,
+            tip_id: newTip.id,
+            tip_title: title,
+            tip_body_length: body.length
+          });
+          renderAll();
+        };
+      }
+
+      document.querySelectorAll('[data-tip-recommend]').forEach(button => {
+        button.onclick = () => {
+          const tipId = button.dataset.tipRecommend;
+          const tip = state.communityTips.find(item => item.id === tipId);
+          if (!tip) return;
+
+          if (state.recommendedCommunityTips.includes(tipId)) {
+            state.recommendedCommunityTips = state.recommendedCommunityTips.filter(item => item !== tipId);
+          } else {
+            state.recommendedCommunityTips.push(tipId);
+          }
+
+          saveCommunityTips();
+          trackEvent('community_tip_recommend_click', {
+            tip_id: tip.id,
+            board: tip.board,
+            recommended: state.recommendedCommunityTips.includes(tipId) ? 'yes' : 'no'
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-tip-comment-submit]').forEach(button => {
+        button.onclick = () => {
+          const tipId = button.dataset.tipCommentSubmit;
+          const input = document.querySelector(`[data-tip-comment-input="${tipId}"]`);
+          const text = input ? input.value.trim() : '';
+          const tip = state.communityTips.find(item => item.id === tipId);
+          if (!tip || !text) return;
+
+          tip.comments = [
+            ...(tip.comments || []),
+            {
+              id: `comment-${Date.now()}`,
+              author: 'You',
+              text,
+              createdAt: 'Just now'
+            }
+          ];
+
+          saveCommunityTips();
+          trackEvent('community_tip_comment_submit', {
+            tip_id: tip.id,
+            board: tip.board,
+            comment_length: text.length
           });
           renderAll();
         };

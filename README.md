@@ -95,6 +95,9 @@ All events also include common context so GA4 Realtime and Explorations are easi
 - `review_submit`: fires when the prototype review modal is submitted.
 - `review_modal_close`: fires when the review modal is closed.
 - `community_board_click`: fires when users switch between information, social, travel, and Q&A boards.
+- `community_tip_submit`: fires when users share a tip in the Community tab.
+- `community_tip_recommend_click`: fires when users recommend a community tip.
+- `community_tip_comment_submit`: fires when users comment on a community tip.
 - `address_copy_click`: fires when users copy a place address.
 - `current_location_prompt` and `current_location_click`: fire for location permission/result testing.
 - `add_record_click`: fires when users go to add a new record.
@@ -128,7 +131,7 @@ To add a real review, add an item inside that place's `reviews` array:
 
 Use `school` for the Korean university where the student is studying now, not their original home university.
 
-This prototype saves recommendation clicks only while the page is open. For real permanent reviews and recommendation counts, you will later need a small database such as Firebase or Supabase.
+This prototype saves submitted reviews, community tips, community comments, and recommendation clicks in the current browser using `localStorage`. They stay after refresh on the same device/browser, but they are not shared with other users. For real permanent public posts and counts, you will later need a small database such as Firebase or Supabase.
 
 ## Example QR URL
 
