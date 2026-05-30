@@ -2223,18 +2223,30 @@
     }
 
     async function createCommunityTipInSupabase(tip) {
-      const rows = await supabaseRequest('/rest/v1/community_tips', {
-        method: 'POST',
-        headers: { Prefer: 'return=representation' },
-        body: JSON.stringify({
-          board: tip.board,
-          author: tip.author,
-          title: tip.title,
-          body: tip.body,
-          recommends: tip.recommends || 0,
-          delete_code_hash: tip.deleteCodeHash || ''
-        })
-      });
+      const payload = {
+        board: tip.board,
+        author: tip.author,
+        title: tip.title,
+        body: tip.body,
+        recommends: tip.recommends || 0,
+        delete_code_hash: tip.deleteCodeHash || ''
+      };
+      let rows;
+      try {
+        rows = await supabaseRequest('/rest/v1/community_tips', {
+          method: 'POST',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify(payload)
+        });
+      } catch (error) {
+        if (!String(error.message || error).includes('delete_code_hash')) throw error;
+        const { delete_code_hash: _unused, ...fallbackPayload } = payload;
+        rows = await supabaseRequest('/rest/v1/community_tips', {
+          method: 'POST',
+          headers: { Prefer: 'return=representation' },
+          body: JSON.stringify(fallbackPayload)
+        });
+      }
       return normalizeCommunityTip(rows[0], []);
     }
 
