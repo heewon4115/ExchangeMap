@@ -1181,6 +1181,21 @@
       color: #5139d6;
     }
 
+    .comment-count-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #f9fafb;
+      color: var(--muted);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
     .primary {
       width: 100%;
       border: 0;
@@ -1973,6 +1988,14 @@
       const recommendId = `post:${postId}`;
       const recommended = state.recommendedCommunityTips.includes(recommendId);
       return `<button class="recommend-button ${recommended ? 'active' : ''}" data-community-post-recommend="${postId}" data-community-post-recommend-base="${baseCount}" type="button">👍 ${communityPostRecommendCount(postId, baseCount)}</button>`;
+    }
+
+    function communityPostCommentCount(postId, baseComments = []) {
+      return (baseComments || []).length + (state.communityPostComments[postId] || []).length;
+    }
+
+    function communityCommentCountPill(count) {
+      return `<span class="comment-count-pill" aria-label="Comments">&#128172; ${count}</span>`;
     }
 
     function hasSupabaseConfig() {
@@ -4380,6 +4403,7 @@
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('cafe-recommendations-snu', 24)}
+            ${communityCommentCountPill(communityPostCommentCount('cafe-recommendations-snu'))}
           </div>
           <div class="post-expand-row">
             <span>${isExpanded ? ct('collapse') : ct('cafeOpen')}</span>
@@ -4464,6 +4488,7 @@
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('korean-campus-culture', 18)}
+            ${communityCommentCountPill(communityPostCommentCount('korean-campus-culture'))}
           </div>
           <div class="post-expand-row">
             <span>${isExpanded ? ct('collapse') : ct('campusOpen')}</span>
@@ -4562,6 +4587,7 @@
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('summer-festivals-korea', 21)}
+            ${communityCommentCountPill(communityPostCommentCount('summer-festivals-korea'))}
           </div>
           <div class="post-expand-row">
             <span>${isExpanded ? ct('collapse') : ct('summerOpen')}</span>
@@ -4720,6 +4746,7 @@
               <p class="meta" style="margin-top:8px;">${escapeHtml(tip.author)} · ${escapeHtml(tip.createdAt || 'Just now')}</p>
               <div class="tip-actions">
                 <button class="recommend-button ${recommended ? 'active' : ''}" data-tip-recommend="${tip.id}" type="button">👍 ${recommendCount}</button>
+                ${communityCommentCountPill((tip.comments || []).length)}
                 <button class="secondary" data-tip-delete="${tip.id}" type="button">${ct('deleteButton')}</button>
               </div>
               <div class="tip-comments">
@@ -4736,10 +4763,11 @@
         ${schoolLifeBoardPosts.map(post => {
           const postId = post.id;
           const isExpanded = state.expandedCommunityPost === postId;
+          const commentCount = communityPostCommentCount(postId, post.comments);
           return `
           <div class="card board-post-card" data-community-post-toggle="${postId}">
             <strong>${post.title}</strong>
-            <p class="meta" style="margin-top:8px;">${post.country} · English · 💬 ${post.comments.length}</p>
+            <p class="meta" style="margin-top:8px;">${post.country} · English · &#128172; ${commentCount}</p>
             ${isExpanded ? `
               <div class="expanded-body">
                 <p class="meta">${post.content}</p>
@@ -4748,6 +4776,7 @@
             ` : ''}
             <div class="tip-actions">
               ${communityPostRecommendButton(postId, post.recommends)}
+              ${communityCommentCountPill(commentCount)}
             </div>
             <div class="post-expand-row">
               <span>${isExpanded ? ct('collapse') : ct('openPost')}</span>
@@ -4759,10 +4788,11 @@
         ${activeBoard.posts.map(([title, body, author, replies], index) => {
           const postId = `${activeBoard.id}-static-${index}`;
           const isExpanded = state.expandedCommunityPost === postId;
+          const commentCount = communityPostCommentCount(postId);
           return `
           <div class="card board-post-card" data-community-post-toggle="${postId}">
             <strong>${title}</strong>
-            <p class="meta" style="margin-top:8px;">${author} · 💬 ${replies}</p>
+            <p class="meta" style="margin-top:8px;">${author} · &#128172; ${commentCount}</p>
             ${isExpanded ? `
               <div class="expanded-body">
                 <p class="meta">${body}</p>
@@ -4772,6 +4802,7 @@
             ` : ''}
             <div class="tip-actions">
               ${communityPostRecommendButton(postId, replies)}
+              ${communityCommentCountPill(commentCount)}
             </div>
             <div class="post-expand-row">
               <span>${isExpanded ? ct('collapse') : ct('openPost')}</span>
