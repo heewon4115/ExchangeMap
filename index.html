@@ -635,14 +635,124 @@
       overflow: auto;
     }
 
-    .map-top-panel.collapsed {
-      gap: 10px;
-      padding: 10px;
+    .map-search-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
     }
 
-    .map-top-panel.collapsed .topbar,
-    .map-top-panel.collapsed .map-filter-area {
-      display: none;
+    .filter-button {
+      min-height: 44px;
+      border: 1px solid rgba(23, 105, 224, 0.16);
+      border-radius: 16px;
+      background: var(--card);
+      color: var(--blue);
+      padding: 0 13px;
+      font-size: 13px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.08);
+      white-space: nowrap;
+    }
+
+    .map-category-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 1px;
+      scrollbar-width: none;
+    }
+
+    .map-category-row::-webkit-scrollbar { display: none; }
+
+    .map-category-button {
+      flex: 0 0 auto;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.94);
+      color: var(--ink);
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.06);
+      white-space: nowrap;
+    }
+
+    .map-category-button.active {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: white;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, 0.22);
+    }
+
+    .map-filter-sheet {
+      display: grid;
+      gap: 14px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(229, 231, 235, 0.9);
+    }
+
+    .filter-sheet-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .filter-sheet-head h2,
+    .filter-section h3 {
+      margin: 0;
+    }
+
+    .filter-section {
+      display: grid;
+      gap: 8px;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 7px;
+    }
+
+    .feature-check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card);
+      padding: 8px 9px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      text-align: left;
+    }
+
+    .feature-check.active {
+      border-color: rgba(23, 105, 224, 0.32);
+      background: var(--blue-soft);
+      color: #0f4fb4;
+    }
+
+    .feature-box {
+      width: 17px;
+      height: 17px;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      display: grid;
+      place-items: center;
+      background: white;
+      color: white;
+      font-size: 11px;
+      flex: 0 0 auto;
+    }
+
+    .feature-check.active .feature-box {
+      border-color: var(--blue);
+      background: var(--blue);
     }
 
     .search-toggle {
@@ -1883,6 +1993,7 @@
       country: 'All',
       language: 'English',
       category: 'All',
+      featureFilters: [],
       selectedPlaceId: '',
       searchOptionsOpen: false,
       uiLanguage: 'en',
@@ -1911,7 +2022,7 @@
       markers: []
     };
 
-    const countries = ['All', 'Korea', 'China', 'Vietnam', 'USA', 'Spain'];
+    const countries = ['All', 'Korea', 'China', 'Vietnam', 'USA', 'Spain', 'Japan', 'Others'];
     const languages = ['English', 'Korean', 'Chinese', 'Vietnamese', 'Spanish'];
     const uiLanguages = [
       { id: 'en', label: 'ENG', htmlLang: 'en' },
@@ -2400,6 +2511,24 @@
       { id: 'Laundry', label: 'Laundry', icon: '🧺' },
       { id: 'Study', label: 'Study Cafe', icon: '📚' },
       { id: 'Emergency', label: 'Emergency', icon: '🚨' }
+    ];
+
+    const mapCategories = [
+      { id: 'All', label: 'All', icon: '' },
+      { id: 'Restaurants', label: 'Restaurants', icon: '🍴' },
+      { id: 'Cafes', label: 'Cafes', icon: '☕' },
+      { id: 'Hospital', label: 'Hospitals', icon: '🏥' },
+      { id: 'Grocery', label: 'Grocery Stores', icon: '🛒' }
+    ];
+
+    const mapFeatureFilters = [
+      { id: 'english', label: 'English available', keywords: ['english available', 'english-speaking staff', 'english menu', 'english reception'] },
+      { id: 'foreigner', label: 'Foreigner friendly', keywords: ['foreigner friendly'] },
+      { id: 'vegan', label: 'Vegan option', keywords: ['vegan option'] },
+      { id: 'halal', label: 'Halal-friendly', keywords: ['halal-friendly'] },
+      { id: 'foreign-card', label: 'Accepts foreign card', keywords: ['accepts foreign card', 'foreign card'] },
+      { id: 'open-late', label: 'Open late (24h)', keywords: ['open late', '24h'] },
+      { id: 'student-discount', label: 'Student discount', keywords: ['student discount'] }
     ];
 
     const categoryCopyKeys = {
@@ -3133,10 +3262,43 @@
 
     function filteredPlaces() {
       return places.filter(place => {
-        const categoryOk = state.category === 'All' || place.category === state.category;
-        const countryOk = state.country === 'All' || reviewsForPlace(place).some(review => review.country === state.country);
-        return categoryOk && countryOk;
+        const categoryOk = matchesMapCategory(place, state.category);
+        const countryOk = matchesReviewCountry(place, state.country);
+        const featuresOk = state.featureFilters.every(featureId => matchesFeatureFilter(place, featureId));
+        return categoryOk && countryOk && featuresOk;
       });
+    }
+
+    function placeSearchText(place) {
+      return `${place.name} ${(place.badges || []).join(' ')} ${(place.tags || []).join(' ')} ${(place.studentTagStats || []).map(([tag]) => tag).join(' ')}`.toLowerCase();
+    }
+
+    function isCafePlace(place) {
+      const text = placeSearchText(place);
+      return text.includes('cafe') || text.includes('coffee') || text.includes('dessert') || text.includes('cake') || text.includes('bakery');
+    }
+
+    function matchesMapCategory(place, category) {
+      if (category === 'All') return true;
+      if (category === 'Restaurants') return place.category === 'Food' && !isCafePlace(place);
+      if (category === 'Cafes') return isCafePlace(place);
+      return place.category === category;
+    }
+
+    function matchesReviewCountry(place, country) {
+      if (country === 'All') return true;
+      const mainCountries = ['Korea', 'China', 'Vietnam', 'USA', 'Spain', 'Japan'];
+      return reviewsForPlace(place).some(review => {
+        if (country === 'Others') return !mainCountries.includes(review.country);
+        return review.country === country;
+      });
+    }
+
+    function matchesFeatureFilter(place, featureId) {
+      const feature = mapFeatureFilters.find(item => item.id === featureId);
+      if (!feature) return true;
+      const text = placeSearchText(place);
+      return feature.keywords.some(keyword => text.includes(keyword.toLowerCase()));
     }
 
     function reviewsForPlace(place) {
@@ -3257,31 +3419,58 @@
       `;
     }
 
+    function mapCategoryButtons() {
+      return `
+        <div class="map-category-row" data-chip-row="category">
+          ${mapCategories.map(category => `
+            <button class="map-category-button ${state.category === category.id ? 'active' : ''}" data-value="${category.id}" type="button">
+              ${category.icon ? `${category.icon} ` : ''}${category.label}
+            </button>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function mapFilterSheet() {
+      if (!state.searchOptionsOpen) return '';
+      return `
+        <section class="map-filter-sheet" aria-label="Map filters">
+          <div class="filter-sheet-head">
+            <h2>Filters</h2>
+            <button class="icon-button" data-search-toggle="true" type="button" aria-label="Close filters">x</button>
+          </div>
+          <div class="filter-section">
+            <h3>Features</h3>
+            <div class="feature-grid">
+              ${mapFeatureFilters.map(feature => `
+                <button class="feature-check ${state.featureFilters.includes(feature.id) ? 'active' : ''}" data-feature-filter="${feature.id}" type="button">
+                  <span class="feature-box">${state.featureFilters.includes(feature.id) ? '✓' : ''}</span>
+                  <span>${feature.label}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+          <div class="filter-section">
+            <h3>Country</h3>
+            ${chipRow(countries, state.country, 'country')}
+          </div>
+        </section>
+      `;
+    }
+
     function renderMapScreen() {
       const place = hasSelectedPlace() ? selectedPlace() : null;
       document.getElementById('screen-map').innerHTML = `
         <div class="map-fullscreen">
           <div id="map"></div>
-          <div class="map-top-panel ${state.searchOptionsOpen ? '' : 'collapsed'}">
-            <button class="search-toggle" data-search-toggle="true" type="button">
-              <span>⌕ ${state.searchOptionsOpen ? t('hideFilters') : t('showFilters')}</span>
-              <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
-            </button>
-            <button class="primary map-add-button" data-add-record="true" type="button">＋ ${t('addNewRecord')}</button>
-            <div class="topbar">
-              <div>
-                <p class="eyebrow">${t('brand')}</p>
-                <h1>${t('mapTitle')}</h1>
-                <p class="subtitle">${t('mapSubtitle')}</p>
-              </div>
-              <button class="avatar" type="button" aria-label="Profile">EM</button>
-            </div>
-            <div class="map-filter-area">
+          <div class="map-top-panel">
+            <div class="map-search-row">
               ${searchBar(t('mapSearch'))}
-              ${chipRow(categories, state.category, 'category')}
-              ${chipRow(countries, state.country, 'country')}
-              ${chipRow(languages, state.language, 'language', 'community')}
+              <button class="filter-button" data-search-toggle="true" type="button">☷ Filter</button>
             </div>
+            <button class="primary map-add-button" data-add-record="true" type="button">＋ ${t('addNewRecord')}</button>
+            ${mapCategoryButtons()}
+            ${mapFilterSheet()}
           </div>
           <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
           <div id="mapBottomSheet">${mapBottomSheetHtml(place)}</div>
@@ -4424,20 +4613,13 @@
     function updateMapSelection() {
       const place = hasSelectedPlace() ? selectedPlace() : null;
       const sheet = document.getElementById('mapBottomSheet');
-      const topPanel = document.querySelector('.map-top-panel');
-      const searchToggle = document.querySelector('[data-search-toggle]');
 
-      if (!sheet || !topPanel || !searchToggle) {
+      if (!sheet) {
         renderAll();
         return;
       }
 
       sheet.innerHTML = mapBottomSheetHtml(place);
-      topPanel.classList.toggle('collapsed', !state.searchOptionsOpen);
-      searchToggle.innerHTML = `
-        <span>⌕ ${state.searchOptionsOpen ? t('hideFilters') : t('showFilters')}</span>
-        <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
-      `;
       positionLocateButton();
       updateMarkerHighlights();
       renderModal();
@@ -4619,11 +4801,10 @@
         };
       });
 
-      document.querySelectorAll('[data-chip-row="category"] .chip').forEach(button => {
+      document.querySelectorAll('[data-chip-row="category"] .chip, [data-chip-row="category"] .map-category-button').forEach(button => {
         button.onclick = () => {
           const previousCategory = state.category;
           state.category = button.dataset.value;
-          state.searchOptionsOpen = true;
           trackEvent('category_filter_click', {
             previous_category: previousCategory,
             category: state.category,
@@ -4637,10 +4818,26 @@
         button.onclick = () => {
           const previousCountry = state.country;
           state.country = button.dataset.value;
-          state.searchOptionsOpen = true;
           trackEvent('country_filter_click', {
             previous_country: previousCountry,
             country: state.country,
+            visible_place_count: filteredPlaces().length
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-feature-filter]').forEach(button => {
+        button.onclick = () => {
+          const featureId = button.dataset.featureFilter;
+          const enabled = !state.featureFilters.includes(featureId);
+          state.featureFilters = enabled
+            ? [...state.featureFilters, featureId]
+            : state.featureFilters.filter(item => item !== featureId);
+          trackEvent('map_feature_filter_click', {
+            feature_filter: featureId,
+            enabled: enabled ? 'yes' : 'no',
+            active_feature_filters: state.featureFilters.join(', '),
             visible_place_count: filteredPlaces().length
           });
           renderAll();
