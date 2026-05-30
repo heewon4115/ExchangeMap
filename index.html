@@ -4114,7 +4114,7 @@
         const marker = L.marker([place.latitude, place.longitude], {
           icon: L.divIcon({
             className: `emoji-marker ${markerType(place.category)} ${place.id === state.selectedPlaceId ? 'selected' : ''}`,
-            html: `<span>${place.icon}</span>`,
+            html: `<span>${markerIcon(place)}</span>`,
             iconSize: [38, 38],
             iconAnchor: [19, 38],
             popupAnchor: [0, -38]
@@ -4152,6 +4152,28 @@
       if (category === 'Study' || category === 'Transport') return 'community';
       if (category === 'Official') return 'community';
       return 'life';
+    }
+
+    function markerIcon(place) {
+      const text = `${place.name} ${(place.badges || []).join(' ')} ${(place.tags || []).join(' ')}`.toLowerCase();
+
+      if (text.includes('cafe') || text.includes('coffee') || text.includes('dessert') || text.includes('cake')) return '☕';
+
+      const iconsByCategory = {
+        Official: 'ℹ️',
+        Hospital: '🏥',
+        Pharmacy: '💊',
+        Food: '🍚',
+        Embassy: '🏛️',
+        Bank: '🏧',
+        Grocery: '🛒',
+        Laundry: '🧺',
+        Study: '📚',
+        Transport: '🚌',
+        Emergency: '🚨'
+      };
+
+      return iconsByCategory[place.category] || '📍';
     }
 
     function updateUserLocationMarker() {
