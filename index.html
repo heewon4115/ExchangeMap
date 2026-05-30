@@ -1956,6 +1956,154 @@
       return (copy[state.uiLanguage] && copy[state.uiLanguage][key]) || copy.en[key] || key;
     }
 
+    const communityCopy = {
+      en: {
+        boards: {
+          info: { label: 'Information Board', title: 'Information Board', hint: 'visa, housing, campus' },
+          social: { label: 'Social Board', title: 'Social Board', hint: 'friends, meals, meetups' },
+          travel: { label: 'Travel Board', title: 'Travel Board', hint: 'trips, plans, routes' },
+          qa: { label: 'Q&A Board', title: 'Q&A Board', hint: 'questions, answers, help' }
+        },
+        composerTitle: 'Share your tips for other students!',
+        authorPlaceholder: 'Name / country / school',
+        titlePlaceholder: 'Tip title',
+        bodyPlaceholder: 'Write a practical tip, question, or note for other students.',
+        deletePasswordPlaceholder: 'Deletion password',
+        shareButton: 'Share tip',
+        deleteReminder: 'Remember your deletion password. It is required to delete your post later.',
+        syncLoading: 'Loading shared community tips...',
+        syncOnline: 'Tips, comments, and recommendations are shared with everyone through Supabase.',
+        syncConnecting: 'Connecting community tips to Supabase...',
+        syncLocal: 'Tips are saved in this browser until Supabase tables are ready.',
+        studentTip: 'student tip',
+        deleteButton: 'Delete',
+        commentPlaceholder: 'Add a comment',
+        commentButton: 'Comment',
+        missingTitleBody: 'Please add both a title and a tip.',
+        missingDeletePassword: 'Please add a deletion password so you can delete this post later.',
+        noDeletePassword: 'This sample or older post does not have a deletion password.',
+        deletePrompt: 'Enter the deletion password for this post.',
+        deletePasswordWrong: 'Deletion password does not match.',
+        deleteSupabaseError: 'Could not delete from Supabase yet. Please check the delete SQL function in README.',
+        collapse: 'Tap to collapse',
+        cafeOpen: 'Tap to open full cafe list',
+        campusOpen: 'Tap to open campus culture guide',
+        summerOpen: 'Tap to open summer festival guide',
+        cafeTitle: 'Cafe Recommendations near Seoul National University Station',
+        cafeIntro: 'Looking for a nice cafe near Seoul National University Station? Here are some recommended cafes around Seoul National University Station, Sharosu-gil, and Nakseongdae.',
+        cafeBody: 'This list includes cafes that are good for studying, working on a laptop, enjoying desserts, or spending time with friends.',
+        cafeCheck: 'Before visiting, please check the latest opening hours and location information on Naver Map or Kakao Map.',
+        cafeNote: 'This recommendation list is based on publicly available information and manual curation. Please check the latest details on Naver Map or Kakao Map before visiting.',
+        area: 'Area',
+        bestFor: 'Best for',
+        campusTitle: 'Korean University Culture: One-Day Pubs and Campus Festivals',
+        campusIntro: 'Korean university life is not only about classes and exams. This friendly guide explains Ilil Hof, campus festivals, and how exchange students can enjoy them safely.',
+        summerTitle: 'Summer Festivals in Korea: Waterbomb, PSY Soaked Show, and More',
+        summerIntro: 'Summer in Korea can be hot and humid, but it is also one of the most exciting seasons for music festivals, water events, and unforgettable exchange-student memories.',
+        note: 'Note'
+      },
+      zh: {
+        boards: {
+          info: { label: '信息板', title: '信息板', hint: '签证、住宿、校园' },
+          social: { label: '交友板', title: '交友板', hint: '朋友、聚餐、聚会' },
+          travel: { label: '旅行板', title: '旅行板', hint: '旅行、计划、路线' },
+          qa: { label: '问答板', title: '问答板', hint: '问题、回答、帮助' }
+        },
+        composerTitle: '给其他学生分享你的实用信息！',
+        authorPlaceholder: '姓名 / 国家 / 学校',
+        titlePlaceholder: '帖子标题',
+        bodyPlaceholder: '写下给其他学生的实用提示、问题或笔记。',
+        deletePasswordPlaceholder: '删除密码',
+        shareButton: '发布提示',
+        deleteReminder: '请记住删除密码。以后删除帖子时需要它。',
+        syncLoading: '正在加载共享社区提示...',
+        syncOnline: '提示、评论和推荐会通过 Supabase 与所有人共享。',
+        syncConnecting: '正在连接 Supabase 社区提示...',
+        syncLocal: '在 Supabase 表准备好之前，提示会先保存在此浏览器中。',
+        studentTip: '学生提示',
+        deleteButton: '删除',
+        commentPlaceholder: '添加评论',
+        commentButton: '评论',
+        missingTitleBody: '请填写标题和内容。',
+        missingDeletePassword: '请设置删除密码，之后才能删除这篇帖子。',
+        noDeletePassword: '这个示例或旧帖子没有删除密码。',
+        deletePrompt: '请输入这篇帖子的删除密码。',
+        deletePasswordWrong: '删除密码不正确。',
+        deleteSupabaseError: '暂时无法从 Supabase 删除。请确认 README 中的删除 SQL 函数。',
+        collapse: '点击收起',
+        cafeOpen: '点击查看完整咖啡馆列表',
+        campusOpen: '点击查看校园文化指南',
+        summerOpen: '点击查看夏季活动指南',
+        cafeTitle: '首尔大入口站附近咖啡馆推荐',
+        cafeIntro: '想找首尔大入口站附近不错的咖啡馆吗？这里整理了首尔大入口站、Sharosu-gil 和落星垈周边的推荐咖啡馆。',
+        cafeBody: '这份列表适合想学习、用电脑、吃甜点或和朋友聊天的学生。',
+        cafeCheck: '到访前，请在 Naver Map 或 Kakao Map 确认最新营业时间和位置。',
+        cafeNote: '此推荐列表基于公开信息和人工整理。到访前请在 Naver Map 或 Kakao Map 查看最新信息。',
+        area: '地区',
+        bestFor: '适合',
+        campusTitle: '韩国大学文化：一日酒馆和校园庆典',
+        campusIntro: '韩国大学生活不只有课程和考试。本指南介绍一日酒馆、校园庆典，以及交换学生如何安全舒适地参与。',
+        summerTitle: '韩国夏季活动：Waterbomb、PSY 흠뻑쇼 等',
+        summerIntro: '韩国夏天炎热潮湿，但也是音乐节、水上活动和难忘交换生活回忆最多的季节之一。',
+        note: '提示'
+      },
+      ko: {
+        boards: {
+          info: { label: '정보 게시판', title: '정보 게시판', hint: '비자, 주거, 캠퍼스' },
+          social: { label: '친목 게시판', title: '친목 게시판', hint: '친구, 식사, 모임' },
+          travel: { label: '여행 게시판', title: '여행 게시판', hint: '여행, 일정, 동선' },
+          qa: { label: 'Q&A 게시판', title: 'Q&A 게시판', hint: '질문, 답변, 도움' }
+        },
+        composerTitle: '다른 학생들을 위한 팁을 공유해 주세요!',
+        authorPlaceholder: '이름 / 나라 / 학교',
+        titlePlaceholder: '글 제목',
+        bodyPlaceholder: '다른 학생에게 도움이 될 팁, 질문, 메모를 적어 주세요.',
+        deletePasswordPlaceholder: '삭제 비밀번호',
+        shareButton: '팁 올리기',
+        deleteReminder: '삭제 비밀번호를 기억해 주세요. 나중에 글을 삭제할 때 필요합니다.',
+        syncLoading: '공유 커뮤니티 팁을 불러오는 중...',
+        syncOnline: '팁, 댓글, 추천 수가 Supabase를 통해 모두에게 공유됩니다.',
+        syncConnecting: '커뮤니티 팁을 Supabase에 연결하는 중...',
+        syncLocal: 'Supabase 테이블이 준비될 때까지 이 브라우저에 저장됩니다.',
+        studentTip: '학생 팁',
+        deleteButton: '삭제',
+        commentPlaceholder: '댓글 추가',
+        commentButton: '댓글',
+        missingTitleBody: '제목과 내용을 모두 입력해 주세요.',
+        missingDeletePassword: '나중에 글을 삭제할 수 있도록 삭제 비밀번호를 입력해 주세요.',
+        noDeletePassword: '이 샘플 글 또는 이전 글에는 삭제 비밀번호가 없습니다.',
+        deletePrompt: '이 글의 삭제 비밀번호를 입력해 주세요.',
+        deletePasswordWrong: '삭제 비밀번호가 일치하지 않습니다.',
+        deleteSupabaseError: '아직 Supabase에서 삭제할 수 없습니다. README의 삭제 SQL 함수를 확인해 주세요.',
+        collapse: '눌러서 접기',
+        cafeOpen: '눌러서 전체 카페 리스트 보기',
+        campusOpen: '눌러서 캠퍼스 문화 가이드 보기',
+        summerOpen: '눌러서 여름 축제 가이드 보기',
+        cafeTitle: '서울대입구역 근처 카페 추천',
+        cafeIntro: '서울대입구역 근처 괜찮은 카페를 찾고 있나요? 서울대입구역, 샤로수길, 낙성대 주변 추천 카페를 정리했습니다.',
+        cafeBody: '공부, 노트북 작업, 디저트, 친구들과의 시간을 보내기 좋은 카페들을 포함했습니다.',
+        cafeCheck: '방문 전 네이버지도나 카카오맵에서 최신 영업시간과 위치를 확인해 주세요.',
+        cafeNote: '이 추천 리스트는 공개 정보와 수동 큐레이션을 바탕으로 작성되었습니다. 방문 전 네이버지도나 카카오맵에서 최신 정보를 확인해 주세요.',
+        area: '지역',
+        bestFor: '추천 용도',
+        campusTitle: '한국 대학 문화: 일일호프와 대학 축제',
+        campusIntro: '한국 대학 생활은 수업과 시험만 있는 것이 아닙니다. 일일호프와 대학 축제를 소개하고 교환학생이 안전하고 편하게 즐기는 방법을 안내합니다.',
+        summerTitle: '한국 여름 축제: 워터밤, 싸이 흠뻑쇼 그리고 더 많은 행사',
+        summerIntro: '한국의 여름은 덥고 습하지만, 음악 축제와 물놀이 행사, 잊지 못할 교환학생 추억을 만들기 좋은 계절이기도 합니다.',
+        note: '참고'
+      }
+    };
+
+    function ct(key) {
+      const lang = communityCopy[state.uiLanguage] || communityCopy.en;
+      return lang[key] || communityCopy.en[key] || key;
+    }
+
+    function boardCopy(boardId) {
+      const lang = communityCopy[state.uiLanguage] || communityCopy.en;
+      return (lang.boards && lang.boards[boardId]) || communityCopy.en.boards[boardId];
+    }
+
     const categories = [
       { id: 'All', label: 'All', icon: '🌍' },
       { id: 'Official', label: 'Official Support', icon: '🏫' },
@@ -3072,17 +3220,17 @@
             <span class="badge good">Recommendations</span>
             <span class="badge student">Cafes</span>
           </div>
-          <h3>Cafe Recommendations near Seoul National University Station ☕</h3>
-          <p>Looking for a nice cafe near Seoul National University Station? Here are some recommended cafes around Seoul National University Station, Sharosu-gil, and Nakseongdae.</p>
+          <h3>${ct('cafeTitle')} ☕</h3>
+          <p>${ct('cafeIntro')}</p>
           ${isExpanded ? `
-            <p>This list includes cafes that are good for studying, working on a laptop, enjoying desserts, or spending time with friends.</p>
-            <p>Before visiting, please check the latest opening hours and location information on Naver Map or Kakao Map.</p>
+            <p>${ct('cafeBody')}</p>
+            <p>${ct('cafeCheck')}</p>
             <div class="cafe-grid">
               ${cafeRecommendations.map(cafe => `
                 <section class="cafe-card">
                   <strong>☕ ${cafe.name}</strong>
-                  <p class="meta"><b>Area:</b> ${cafe.area}</p>
-                  <p class="meta"><b>Best for:</b> ${cafe.bestFor}</p>
+                  <p class="meta"><b>${ct('area')}:</b> ${cafe.area}</p>
+                  <p class="meta"><b>${ct('bestFor')}:</b> ${cafe.bestFor}</p>
                   <div class="cafe-keywords">
                     ${cafe.keywords.map(keyword => `<span class="badge">${keyword}</span>`).join('')}
                   </div>
@@ -3090,7 +3238,7 @@
                 </section>
               `).join('')}
             </div>
-            <p class="cafe-note"><b>Note:</b> This recommendation list is based on publicly available information and manual curation. Please check the latest details on Naver Map or Kakao Map before visiting.</p>
+            <p class="cafe-note"><b>${ct('note')}:</b> ${ct('cafeNote')}</p>
           ` : `
             <div class="badges">
               <span class="badge">10 cafes</span>
@@ -3100,7 +3248,7 @@
             </div>
           `}
           <div class="post-expand-row">
-            <span>${isExpanded ? 'Tap to collapse' : 'Tap to open full cafe list'}</span>
+            <span>${isExpanded ? ct('collapse') : ct('cafeOpen')}</span>
             <span>${isExpanded ? '⌃' : '⌄'}</span>
           </div>
         </article>
@@ -3115,8 +3263,8 @@
             <span class="badge good">Tips</span>
             <span class="badge student">Campus Life</span>
           </div>
-          <h3>Korean University Culture: One-Day Pubs and Campus Festivals 🎪</h3>
-          <p>Korean university life is not only about classes and exams. This friendly guide explains Ilil Hof, campus festivals, and how exchange students can enjoy them safely.</p>
+          <h3>${ct('campusTitle')} 🎪</h3>
+          <p>${ct('campusIntro')}</p>
           ${isExpanded ? `
             <div class="cafe-grid">
               <section class="guide-section">
@@ -3189,7 +3337,7 @@
             </div>
           `}
           <div class="post-expand-row">
-            <span>${isExpanded ? 'Tap to collapse' : 'Tap to open campus culture guide'}</span>
+            <span>${isExpanded ? ct('collapse') : ct('campusOpen')}</span>
             <span>${isExpanded ? '⌃' : '⌄'}</span>
           </div>
         </article>
@@ -3204,8 +3352,8 @@
             <span class="badge good">Tips</span>
             <span class="badge student">Events</span>
           </div>
-          <h3>Summer Festivals in Korea: Waterbomb, PSY Soaked Show, and More 💦</h3>
-          <p>Summer in Korea can be hot and humid, but it is also one of the most exciting seasons for music festivals, water events, and unforgettable exchange-student memories.</p>
+          <h3>${ct('summerTitle')} 💦</h3>
+          <p>${ct('summerIntro')}</p>
           ${isExpanded ? `
             <div class="cafe-grid">
               <section class="guide-section">
@@ -3292,7 +3440,7 @@
             </div>
           `}
           <div class="post-expand-row">
-            <span>${isExpanded ? 'Tap to collapse' : 'Tap to open summer festival guide'}</span>
+            <span>${isExpanded ? ct('collapse') : ct('summerOpen')}</span>
             <span>${isExpanded ? '⌃' : '⌄'}</span>
           </div>
         </article>
@@ -3300,60 +3448,107 @@
     }
 
     function renderCommunity() {
-      const boards = [
-        {
-          id: 'info',
-          label: '정보 게시판',
-          title: 'Information Board',
-          hint: 'visa, housing, campus',
-          posts: [
+      const staticPosts = {
+        en: {
+          info: [
             ['How to book the immigration office visit?', 'What documents should exchange students prepare first?', 'Maya · USA · SNU exchange', 11],
             ['Where do students buy bedding near campus?', 'Looking for cheap bedding and hangers after moving in.', 'Chen · China · SNU exchange', 7],
             ['Best way from Incheon Airport to SNU?', 'Airport bus, subway, or taxi with luggage?', 'Linh · Vietnam · SNU exchange', 9]
-          ]
-        },
-        {
-          id: 'social',
-          label: '친목 게시판',
-          title: 'Social Board',
-          hint: 'friends, meals, meetups',
-          posts: [
+          ],
+          social: [
             ['Anyone wants dinner near SNU Station?', 'Thinking vegan or halal-friendly food this Friday.', 'Carlos · Spain · SNU exchange', 14],
             ['Language exchange coffee group', 'Korean / English / Chinese casual meetup near campus.', 'Subin · Korea · SNU', 18],
             ['Looking for gym buddy', 'Beginner-friendly workouts around Gwanak-gu.', 'Aisha · USA · SNU exchange', 6]
-          ]
-        },
-        {
-          id: 'travel',
-          label: '여행 게시판',
-          title: 'Travel Board',
-          hint: 'trips, plans, routes',
-          posts: [
+          ],
+          travel: [
             ['Busan weekend trip plan?', 'Trying to make a 2-day route with other exchange students.', 'Lucia · Spain · SNU exchange', 12],
             ['Jeju in June: who is interested?', 'Looking for people to split car rental and hostel.', 'Bao · Vietnam · SNU exchange', 10],
             ['Day trip near Seoul recommendations', 'Any easy trip without missing Monday class?', 'Daniel · USA · SNU exchange', 8]
-          ]
-        },
-        {
-          id: 'qa',
-          label: 'Q&A 게시판',
-          title: 'Q&A Board',
-          hint: 'questions, answers, help',
-          posts: [
+          ],
+          qa: [
             ['English-speaking dentist near campus?', 'Does anyone know a clinic where the dentist can explain treatment in English?', 'Maya · USA · SNU exchange', 8],
             ['Where can I find halal-friendly lunch?', 'Looking for reliable lunch places near SNU Station or campus.', 'Aisha · USA · SNU exchange', 12],
             ['Pharmacy open after 10 PM?', 'Need a late-night pharmacy that students actually use.', 'Linh · Vietnam · SNU exchange', 5],
             ['Clinic that accepts international student insurance?', 'Please share places where foreign insurance was not confusing.', 'Carlos · Spain · SNU exchange', 9]
           ]
+        },
+        zh: {
+          info: [
+            ['如何预约出入境办公室？', '交换学生应该先准备哪些文件？', 'Maya · USA · SNU exchange', 11],
+            ['校园附近哪里可以买被褥？', '搬进宿舍后想找便宜的被褥和衣架。', 'Chen · China · SNU exchange', 7],
+            ['从仁川机场到首尔大最方便的方法？', '带行李时，机场巴士、地铁还是出租车更好？', 'Linh · Vietnam · SNU exchange', 9]
+          ],
+          social: [
+            ['有人想在首尔大入口站附近吃晚饭吗？', '这周五想吃素食或清真友好的餐厅。', 'Carlos · Spain · SNU exchange', 14],
+            ['语言交换咖啡小组', '韩语 / 英语 / 中文轻松交流聚会。', 'Subin · Korea · SNU', 18],
+            ['找健身伙伴', '冠岳区附近适合新手的运动。', 'Aisha · USA · SNU exchange', 6]
+          ],
+          travel: [
+            ['周末釜山旅行计划？', '想和其他交换学生一起做两天路线。', 'Lucia · Spain · SNU exchange', 12],
+            ['六月去济州，有人感兴趣吗？', '想找人一起分摊租车和住宿。', 'Bao · Vietnam · SNU exchange', 10],
+            ['首尔附近一日游推荐', '有没有不影响周一上课的轻松旅行？', 'Daniel · USA · SNU exchange', 8]
+          ],
+          qa: [
+            ['校园附近会说英语的牙医？', '有人知道能用英语说明治疗的牙科吗？', 'Maya · USA · SNU exchange', 8],
+            ['哪里能找到清真友好的午餐？', '想找首尔大入口站或校园附近可靠的午餐地点。', 'Aisha · USA · SNU exchange', 12],
+            ['晚上 10 点后营业的药店？', '需要学生实际会去的深夜药店。', 'Linh · Vietnam · SNU exchange', 5],
+            ['接受国际学生保险的诊所？', '请分享外国保险不太复杂的地方。', 'Carlos · Spain · SNU exchange', 9]
+          ]
+        },
+        ko: {
+          info: [
+            ['출입국 사무소 예약은 어떻게 하나요?', '교환학생이 먼저 준비해야 하는 서류가 궁금해요.', 'Maya · USA · SNU exchange', 11],
+            ['학교 근처에서 침구는 어디서 사나요?', '입주 후 저렴한 이불과 옷걸이를 찾고 있어요.', 'Chen · China · SNU exchange', 7],
+            ['인천공항에서 서울대까지 가는 가장 좋은 방법?', '짐이 있을 때 공항버스, 지하철, 택시 중 뭐가 좋나요?', 'Linh · Vietnam · SNU exchange', 9]
+          ],
+          social: [
+            ['서울대입구역 근처에서 저녁 먹을 사람?', '이번 금요일에 비건이나 할랄 친화적인 곳 생각 중이에요.', 'Carlos · Spain · SNU exchange', 14],
+            ['언어 교환 커피 모임', '한국어 / 영어 / 중국어 가볍게 대화하는 모임입니다.', 'Subin · Korea · SNU', 18],
+            ['헬스장 같이 갈 친구 구해요', '관악구 주변 초보자도 편한 운동 찾고 있어요.', 'Aisha · USA · SNU exchange', 6]
+          ],
+          travel: [
+            ['부산 주말 여행 계획?', '다른 교환학생들과 2일 코스를 짜보고 싶어요.', 'Lucia · Spain · SNU exchange', 12],
+            ['6월 제주도 관심 있는 사람?', '렌터카와 숙소 비용을 나눌 사람을 찾고 있어요.', 'Bao · Vietnam · SNU exchange', 10],
+            ['서울 근교 당일치기 추천', '월요일 수업에 무리 없는 쉬운 여행지가 있을까요?', 'Daniel · USA · SNU exchange', 8]
+          ],
+          qa: [
+            ['학교 근처 영어 가능한 치과?', '치료 설명을 영어로 해주는 치과를 아는 사람 있나요?', 'Maya · USA · SNU exchange', 8],
+            ['할랄 친화적인 점심은 어디서 찾나요?', '서울대입구역이나 캠퍼스 근처 믿을 만한 점심 장소를 찾고 있어요.', 'Aisha · USA · SNU exchange', 12],
+            ['밤 10시 이후 여는 약국?', '학생들이 실제로 이용하는 늦게 여는 약국이 필요해요.', 'Linh · Vietnam · SNU exchange', 5],
+            ['국제학생 보험 받는 병원?', '외국 보험 처리가 어렵지 않았던 곳을 공유해 주세요.', 'Carlos · Spain · SNU exchange', 9]
+          ]
+        }
+      };
+      const localizedPosts = staticPosts[state.uiLanguage] || staticPosts.en;
+      const boards = [
+        {
+          id: 'info',
+          ...boardCopy('info'),
+          posts: localizedPosts.info
+        },
+        {
+          id: 'social',
+          ...boardCopy('social'),
+          posts: localizedPosts.social
+        },
+        {
+          id: 'travel',
+          ...boardCopy('travel'),
+          posts: localizedPosts.travel
+        },
+        {
+          id: 'qa',
+          ...boardCopy('qa'),
+          posts: localizedPosts.qa
         }
       ];
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
       const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
       const communitySaveNote = {
-        loading: 'Loading shared community tips...',
-        online: 'Tips, comments, and recommendations are shared with everyone through Supabase.',
-        connecting: 'Connecting community tips to Supabase...',
-        local: 'Tips are saved in this browser until Supabase tables are ready.'
+        loading: ct('syncLoading'),
+        online: ct('syncOnline'),
+        connecting: ct('syncConnecting'),
+        local: ct('syncLocal')
       }[state.communitySyncStatus] || 'Tips are saved in this browser.';
 
       document.getElementById('screen-community').innerHTML = `
@@ -3370,16 +3565,16 @@
         ${places.slice(0, 4).map(placeCard).join('')}
         <div class="section-title"><h2>${t('community')}</h2><span>${t('studentPosts')}</span></div>
         <div class="tip-composer">
-          <h3>Share your tips for other students!</h3>
+          <h3>${ct('composerTitle')}</h3>
           <select class="tip-select" id="tipBoard">
             ${boards.map(board => `<option value="${board.id}" ${board.id === activeBoard.id ? 'selected' : ''}>${board.label}</option>`).join('')}
           </select>
-          <input class="tip-input" id="tipAuthor" placeholder="Name / country / school" />
-          <input class="tip-input" id="tipTitle" placeholder="Tip title" />
-          <textarea class="tip-textarea" id="tipBody" placeholder="Write a practical tip, question, or note for other students."></textarea>
-          <input class="tip-input" id="tipDeleteCode" type="password" placeholder="Deletion password" autocomplete="new-password" />
-          <button class="primary" id="shareTipButton" type="button">Share tip</button>
-          <p class="meta">${communitySaveNote} Remember your deletion password. It is required to delete your post later.</p>
+          <input class="tip-input" id="tipAuthor" placeholder="${ct('authorPlaceholder')}" />
+          <input class="tip-input" id="tipTitle" placeholder="${ct('titlePlaceholder')}" />
+          <textarea class="tip-textarea" id="tipBody" placeholder="${ct('bodyPlaceholder')}"></textarea>
+          <input class="tip-input" id="tipDeleteCode" type="password" placeholder="${ct('deletePasswordPlaceholder')}" autocomplete="new-password" />
+          <button class="primary" id="shareTipButton" type="button">${ct('shareButton')}</button>
+          <p class="meta">${communitySaveNote} ${ct('deleteReminder')}</p>
         </div>
         <div class="board-chip-row">
           ${boards.map(board => `
@@ -3399,16 +3594,16 @@
               <strong>${escapeHtml(tip.title)}</strong>
               <p class="meta" style="margin-top:6px;">${escapeHtml(tip.body)}</p>
               <p class="meta" style="margin-top:8px;">${escapeHtml(tip.author)} · ${escapeHtml(tip.createdAt || 'Just now')}</p>
-              <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">student tip</span></div>
+              <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">${ct('studentTip')}</span></div>
               <div class="tip-actions">
                 <button class="recommend-button ${recommended ? 'active' : ''}" data-tip-recommend="${tip.id}" type="button">👍 ${recommendCount}</button>
-                <button class="secondary" data-tip-delete="${tip.id}" type="button">Delete</button>
+                <button class="secondary" data-tip-delete="${tip.id}" type="button">${ct('deleteButton')}</button>
               </div>
               <div class="tip-comments">
                 ${(tip.comments || []).map(comment => `<div class="tip-comment"><strong>${escapeHtml(comment.author)}:</strong> ${escapeHtml(comment.text)}</div>`).join('')}
                 <div class="comment-row">
-                  <input class="comment-input" data-tip-comment-input="${tip.id}" placeholder="Add a comment" />
-                  <button class="secondary" data-tip-comment-submit="${tip.id}" type="button">Comment</button>
+                  <input class="comment-input" data-tip-comment-input="${tip.id}" placeholder="${ct('commentPlaceholder')}" />
+                  <button class="secondary" data-tip-comment-submit="${tip.id}" type="button">${ct('commentButton')}</button>
                 </div>
               </div>
             </div>
@@ -3856,11 +4051,11 @@
           const deleteCode = document.getElementById('tipDeleteCode').value.trim();
 
           if (!title || !body) {
-            alert('Please add both a title and a tip.');
+            alert(ct('missingTitleBody'));
             return;
           }
           if (!deleteCode) {
-            alert('Please add a deletion password so you can delete this post later.');
+            alert(ct('missingDeletePassword'));
             return;
           }
 
@@ -3949,11 +4144,11 @@
           if (!tip) return;
 
           if (!tip.deleteCodeHash) {
-            alert('This sample or older post does not have a deletion password.');
+            alert(ct('noDeletePassword'));
             return;
           }
 
-          const deleteCode = prompt('Enter the deletion password for this post.');
+          const deleteCode = prompt(ct('deletePrompt'));
           if (deleteCode === null) return;
           const deleteCodeHash = await hashDeleteCode(deleteCode);
 
@@ -3961,7 +4156,7 @@
             try {
               const deleted = await deleteCommunityTipInSupabase(tip.id, deleteCodeHash);
               if (!deleted) {
-                alert('Deletion password does not match.');
+                alert(ct('deletePasswordWrong'));
                 trackEvent('community_tip_delete_click', {
                   tip_id: tip.id,
                   board: tip.board,
@@ -3983,13 +4178,13 @@
               renderAll();
             } catch (error) {
               console.warn('Community tip delete failed in Supabase.', error);
-              alert('Could not delete from Supabase yet. Please check the delete SQL function in README.');
+              alert(ct('deleteSupabaseError'));
             }
             return;
           }
 
           if (tip.deleteCodeHash !== deleteCodeHash) {
-            alert('Deletion password does not match.');
+            alert(ct('deletePasswordWrong'));
             trackEvent('community_tip_delete_click', {
               tip_id: tip.id,
               board: tip.board,
