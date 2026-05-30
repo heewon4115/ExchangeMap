@@ -1310,6 +1310,8 @@
 
   <script>
     const GA_MEASUREMENT_ID = 'G-LMDDY5BD0W';
+    const SUPABASE_URL = 'https://ylbkmipzslrstvwgkgda.supabase.co';
+    const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_pnpG3qqqPORUO9gRRkxQNw_R3Ih3s3R';
 
     const hasRealGaId = /^G-[A-Z0-9]+$/i.test(GA_MEASUREMENT_ID) && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX';
     window.dataLayer = window.dataLayer || [];
@@ -1375,6 +1377,121 @@
       }
     }
 
+    function hasSupabaseConfig() {
+      return SUPABASE_URL.startsWith('https://') && SUPABASE_URL.includes('.supabase.co') && SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');
+    }
+
+    function isSupabaseId(id) {
+      return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id || '');
+    }
+
+    function formatTipDate(value) {
+      if (!value || value === 'Sample' || value === 'Just now') return value || 'Just now';
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return value;
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    async function supabaseRequest(path, options = {}) {
+      if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+      const headers = {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+      const response = await fetch(`${SUPABASE_URL}${path}`, { ...options, headers });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Supabase request failed: ${response.status}`);
+      }
+      const text = await response.text();
+      return text ? JSON.parse(text) : null;
+    }
+
+    function normalizeCommunityTip(row, comments = []) {
+      return {
+        id: row.id,
+        board: row.board || 'info',
+        title: row.title || 'Untitled tip',
+        body: row.body || '',
+        author: row.author || 'Anonymous student',
+        createdAt: formatTipDate(row.created_at),
+        recommends: Number(row.recommends || 0),
+        comments
+      };
+    }
+
+    function normalizeCommunityComment(row) {
+      return {
+        id: row.id,
+        author: row.author || 'Anonymous student',
+        text: row.body || '',
+        createdAt: formatTipDate(row.created_at)
+      };
+    }
+
+    async function loadCommunityTipsFromSupabase() {
+      if (!hasSupabaseConfig()) return;
+      state.communitySyncStatus = 'loading';
+      renderAll();
+      try {
+        const [tips, comments] = await Promise.all([
+          supabaseRequest('/rest/v1/community_tips?select=*&order=created_at.desc'),
+          supabaseRequest('/rest/v1/community_comments?select=*&order=created_at.asc')
+        ]);
+        const commentsByTip = (comments || []).reduce((groups, row) => {
+          const comment = normalizeCommunityComment(row);
+          groups[row.tip_id] = [...(groups[row.tip_id] || []), comment];
+          return groups;
+        }, {});
+        state.communityTips = (tips || []).map(row => normalizeCommunityTip(row, commentsByTip[row.id] || []));
+        state.communitySyncStatus = 'online';
+        saveCommunityTips();
+        renderAll();
+      } catch (error) {
+        state.communitySyncStatus = 'local';
+        console.warn('Supabase community sync failed. Falling back to browser storage.', error);
+        renderAll();
+      }
+    }
+
+    async function createCommunityTipInSupabase(tip) {
+      const rows = await supabaseRequest('/rest/v1/community_tips', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({
+          board: tip.board,
+          author: tip.author,
+          title: tip.title,
+          body: tip.body,
+          recommends: tip.recommends || 0
+        })
+      });
+      return normalizeCommunityTip(rows[0], []);
+    }
+
+    async function updateCommunityTipRecommendationInSupabase(tipId, recommends) {
+      await supabaseRequest(`/rest/v1/community_tips?id=eq.${encodeURIComponent(tipId)}`, {
+        method: 'PATCH',
+        headers: { Prefer: 'return=minimal' },
+        body: JSON.stringify({ recommends })
+      });
+    }
+
+    async function createCommunityCommentInSupabase(tipId, comment) {
+      const rows = await supabaseRequest('/rest/v1/community_comments', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({
+          tip_id: tipId,
+          author: comment.author,
+          body: comment.text
+        })
+      });
+      return normalizeCommunityComment(rows[0]);
+    }
+
     const state = {
       tab: 'map',
       country: 'All',
@@ -1392,6 +1509,7 @@
       reviewSubmitted: false,
       communityTips: loadStoredJson(COMMUNITY_TIPS_STORAGE_KEY, defaultCommunityTips()),
       recommendedCommunityTips: loadStoredJson(COMMUNITY_RECOMMENDS_STORAGE_KEY, []),
+      communitySyncStatus: hasSupabaseConfig() ? 'connecting' : 'local',
       analyticsEventCount: 0,
       mapView: { center: [37.4702, 126.9524], zoom: 14 },
       userLocation: null,
@@ -2804,6 +2922,12 @@
       ];
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
       const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
+      const communitySaveNote = {
+        loading: 'Loading shared community tips...',
+        online: 'Tips, comments, and recommendations are shared with everyone through Supabase.',
+        connecting: 'Connecting community tips to Supabase...',
+        local: 'Tips are saved in this browser until Supabase tables are ready.'
+      }[state.communitySyncStatus] || 'Tips are saved in this browser.';
 
       document.getElementById('screen-community').innerHTML = `
         ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
@@ -2827,7 +2951,7 @@
           <input class="tip-input" id="tipTitle" placeholder="Tip title" />
           <textarea class="tip-textarea" id="tipBody" placeholder="Write a practical tip, question, or note for other students."></textarea>
           <button class="primary" id="shareTipButton" type="button">Share tip</button>
-          <p class="meta">Prototype note: tips, comments, and recommendations are saved in this browser.</p>
+          <p class="meta">${communitySaveNote}</p>
         </div>
         <div class="board-chip-row">
           ${boards.map(board => `
@@ -2840,7 +2964,7 @@
         <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
-          const recommendCount = (tip.recommends || 0) + (recommended ? 1 : 0);
+          const recommendCount = tip.recommends || 0;
           return `
             <div class="card tip-card">
               <strong>${escapeHtml(tip.title)}</strong>
@@ -3280,7 +3404,7 @@
 
       const shareTipButton = document.getElementById('shareTipButton');
       if (shareTipButton) {
-        shareTipButton.onclick = () => {
+        shareTipButton.onclick = async () => {
           const board = document.getElementById('tipBoard').value;
           const author = document.getElementById('tipAuthor').value.trim() || 'Anonymous student';
           const title = document.getElementById('tipTitle').value.trim();
@@ -3309,59 +3433,104 @@
             board,
             tip_id: newTip.id,
             tip_title: title,
-            tip_body_length: body.length
+            tip_body_length: body.length,
+            storage_target: state.communitySyncStatus === 'online' ? 'supabase' : 'local'
           });
           renderAll();
+
+          if (hasSupabaseConfig()) {
+            try {
+              const savedTip = await createCommunityTipInSupabase(newTip);
+              state.communityTips = state.communityTips.map(tip => tip.id === newTip.id ? savedTip : tip);
+              state.communitySyncStatus = 'online';
+              saveCommunityTips();
+              renderAll();
+            } catch (error) {
+              state.communitySyncStatus = 'local';
+              console.warn('Community tip was saved locally because Supabase insert failed.', error);
+              renderAll();
+            }
+          }
         };
       }
 
       document.querySelectorAll('[data-tip-recommend]').forEach(button => {
-        button.onclick = () => {
+        button.onclick = async () => {
           const tipId = button.dataset.tipRecommend;
           const tip = state.communityTips.find(item => item.id === tipId);
           if (!tip) return;
 
+          const wasRecommended = state.recommendedCommunityTips.includes(tipId);
           if (state.recommendedCommunityTips.includes(tipId)) {
             state.recommendedCommunityTips = state.recommendedCommunityTips.filter(item => item !== tipId);
           } else {
             state.recommendedCommunityTips.push(tipId);
           }
+          tip.recommends = Math.max(0, Number(tip.recommends || 0) + (wasRecommended ? -1 : 1));
 
           saveCommunityTips();
           trackEvent('community_tip_recommend_click', {
             tip_id: tip.id,
             board: tip.board,
-            recommended: state.recommendedCommunityTips.includes(tipId) ? 'yes' : 'no'
+            recommended: state.recommendedCommunityTips.includes(tipId) ? 'yes' : 'no',
+            storage_target: state.communitySyncStatus === 'online' && isSupabaseId(tip.id) ? 'supabase' : 'local'
           });
           renderAll();
+
+          if (hasSupabaseConfig() && isSupabaseId(tip.id)) {
+            try {
+              await updateCommunityTipRecommendationInSupabase(tip.id, tip.recommends);
+              state.communitySyncStatus = 'online';
+            } catch (error) {
+              state.communitySyncStatus = 'local';
+              console.warn('Community recommendation was saved locally because Supabase update failed.', error);
+            }
+          }
         };
       });
 
       document.querySelectorAll('[data-tip-comment-submit]').forEach(button => {
-        button.onclick = () => {
+        button.onclick = async () => {
           const tipId = button.dataset.tipCommentSubmit;
           const input = document.querySelector(`[data-tip-comment-input="${tipId}"]`);
           const text = input ? input.value.trim() : '';
           const tip = state.communityTips.find(item => item.id === tipId);
           if (!tip || !text) return;
 
+          const newComment = {
+            id: `comment-${Date.now()}`,
+            author: 'You',
+            text,
+            createdAt: 'Just now'
+          };
+
           tip.comments = [
             ...(tip.comments || []),
-            {
-              id: `comment-${Date.now()}`,
-              author: 'You',
-              text,
-              createdAt: 'Just now'
-            }
+            newComment
           ];
 
           saveCommunityTips();
           trackEvent('community_tip_comment_submit', {
             tip_id: tip.id,
             board: tip.board,
-            comment_length: text.length
+            comment_length: text.length,
+            storage_target: state.communitySyncStatus === 'online' && isSupabaseId(tip.id) ? 'supabase' : 'local'
           });
           renderAll();
+
+          if (hasSupabaseConfig() && isSupabaseId(tip.id)) {
+            try {
+              const savedComment = await createCommunityCommentInSupabase(tip.id, newComment);
+              tip.comments = (tip.comments || []).map(comment => comment.id === newComment.id ? savedComment : comment);
+              state.communitySyncStatus = 'online';
+              saveCommunityTips();
+              renderAll();
+            } catch (error) {
+              state.communitySyncStatus = 'local';
+              console.warn('Community comment was saved locally because Supabase insert failed.', error);
+              renderAll();
+            }
+          }
         };
       });
 
@@ -3574,6 +3743,7 @@
       trackEvent('qr_landing', utmParams);
     }
 
+    loadCommunityTipsFromSupabase();
     requestCurrentLocationOnLoad();
   </script>
 </body>

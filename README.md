@@ -24,6 +24,65 @@ If you leave the placeholder value, the page still works. Events are printed to 
 
 Google Analytics status is not shown anywhere in the UI. It is only in the code and browser console so normal users do not see analytics/testing details.
 
+## Connect Supabase community posts
+
+Community tips, comments, and recommendation counts can be shared publicly through Supabase. Open `index.html` and check these constants near the top of the JavaScript:
+
+```js
+const SUPABASE_URL = 'https://your-project-ref.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_...';
+```
+
+The publishable key is safe to use in the browser when Row Level Security policies are enabled. Do not put a Supabase `service_role` key in this static site.
+
+Run this SQL in Supabase SQL Editor before testing shared community posts:
+
+```sql
+create table community_tips (
+  id uuid primary key default gen_random_uuid(),
+  board text not null default 'info',
+  author text not null default 'Anonymous student',
+  title text not null,
+  body text not null,
+  recommends integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
+create table community_comments (
+  id uuid primary key default gen_random_uuid(),
+  tip_id uuid references community_tips(id) on delete cascade,
+  author text not null default 'Anonymous student',
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table community_tips enable row level security;
+alter table community_comments enable row level security;
+
+create policy "Anyone can read tips"
+on community_tips for select
+using (true);
+
+create policy "Anyone can create tips"
+on community_tips for insert
+with check (true);
+
+create policy "Anyone can recommend tips"
+on community_tips for update
+using (true)
+with check (true);
+
+create policy "Anyone can read comments"
+on community_comments for select
+using (true);
+
+create policy "Anyone can create comments"
+on community_comments for insert
+with check (true);
+```
+
+If Supabase is not ready or the tables are missing, the app falls back to browser `localStorage`.
+
 ## Deploy without Vercel
 
 Use Netlify Drop:
@@ -131,7 +190,7 @@ To add a real review, add an item inside that place's `reviews` array:
 
 Use `school` for the Korean university where the student is studying now, not their original home university.
 
-This prototype saves submitted reviews, community tips, community comments, and recommendation clicks in the current browser using `localStorage`. They stay after refresh on the same device/browser, but they are not shared with other users. For real permanent public posts and counts, you will later need a small database such as Firebase or Supabase.
+This prototype saves submitted place reviews in the current browser using `localStorage`. Community tips, community comments, and community recommendation counts are saved to Supabase when the database tables are available, with `localStorage` as a fallback.
 
 ## Example QR URL
 
