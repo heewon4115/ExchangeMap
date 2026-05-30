@@ -130,6 +130,7 @@
     }
 
     .avatar {
+      display: none;
       width: 42px;
       height: 42px;
       border: 0;
@@ -137,6 +138,39 @@
       background: var(--brown-soft);
       color: var(--brown);
       font-weight: 900;
+    }
+
+    .language-switcher {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 950;
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.86);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 10px 24px rgba(31, 41, 55, 0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .language-switcher button {
+      min-width: 38px;
+      height: 30px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .language-switcher button.active {
+      background: var(--ink);
+      color: white;
+      box-shadow: 0 6px 14px rgba(31, 41, 55, 0.16);
     }
 
     .search {
@@ -1157,6 +1191,7 @@
 <body>
   <div class="page">
     <div class="phone">
+      <div class="language-switcher" id="uiLanguageSwitcher" aria-label="Site language"></div>
       <main class="app" id="appRoot">
         <section class="screen active" id="screen-map"></section>
         <section class="screen" id="screen-detail"></section>
@@ -1167,13 +1202,7 @@
       </main>
       <div id="modalRoot"></div>
 
-      <nav class="bottom-nav" aria-label="Main navigation">
-        <button class="nav-button" data-tab="home"><span>⌂</span><span>Home</span></button>
-        <button class="nav-button active" data-tab="map"><span>⌖</span><span>Map</span></button>
-        <button class="nav-button" data-tab="add"><span>＋</span><span>Add</span></button>
-        <button class="nav-button" data-tab="community"><span>◈</span><span>Community</span></button>
-        <button class="nav-button" data-tab="log"><span>◇</span><span>My Log</span></button>
-      </nav>
+      <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation"></nav>
     </div>
   </div>
 
@@ -1209,6 +1238,7 @@
       category: 'All',
       selectedPlaceId: '',
       searchOptionsOpen: false,
+      uiLanguage: 'en',
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -1226,6 +1256,321 @@
 
     const countries = ['All', 'Korea', 'China', 'Vietnam', 'USA', 'Spain'];
     const languages = ['English', 'Korean', 'Chinese', 'Vietnamese', 'Spanish'];
+    const uiLanguages = [
+      { id: 'en', label: 'ENG', htmlLang: 'en' },
+      { id: 'zh', label: 'CH', htmlLang: 'zh' },
+      { id: 'ko', label: 'KOR', htmlLang: 'ko' }
+    ];
+    const copy = {
+      en: {
+        brand: 'Exchange Map',
+        navHome: 'Home',
+        navMap: 'Map',
+        navAdd: 'Add',
+        navCommunity: 'Community',
+        navLog: 'My Log',
+        homeTitle: 'Hi, welcome to Seoul',
+        homeSubtitle: 'Find useful places reviewed by international students.',
+        homeSearch: 'Search hospitals, halal food, embassies...',
+        recentReviewed: 'Recently reviewed by students',
+        nearSnu: 'near SNU',
+        officialInfo: 'Official info',
+        seeded: 'seeded',
+        savedByStudents: 'Saved by students',
+        warmLog: 'warm log',
+        livingNotes: 'Student living notes',
+        livingNotesBody: 'Personal saved places become useful community tips when students choose to share them.',
+        savedPlaces: 'saved places',
+        studentTips: 'student tips',
+        updatedTags: 'updated tags',
+        showFilters: 'Search or filter places',
+        hideFilters: 'Hide search filters',
+        mapTitle: 'Practical living map',
+        mapSubtitle: 'SNU and Seoul Natl Univ. Station',
+        mapSearch: 'Where do you need to go?',
+        reviewCount: 'student reviews',
+        tapDetail: 'Tap this card to view details and reviews',
+        leaveReview: 'Leave a review',
+        placeDetail: 'Place detail',
+        detailSubtitle: 'Place information, photos, and student reviews.',
+        backToMap: 'Back to map',
+        officialInformation: 'Official Information',
+        address: 'Address',
+        hours: 'Hours',
+        phone: 'Phone',
+        website: 'Website',
+        copy: 'Copy',
+        copied: 'Copied',
+        studentSummary: 'Student Summary',
+        recentReviews: 'Recent student reviews',
+        recommend: 'Recommend',
+        recommended: 'Recommended',
+        exchangeAt: 'exchange at',
+        addTitle: 'Add a student tip',
+        addSubtitle: 'Save a practical note for yourself or share it with other students.',
+        place: 'Place',
+        addPhotos: 'Add photos',
+        addPhotoPlaceholder: 'Add photo placeholder',
+        rating: 'Rating',
+        oneLineReview: 'One-line review',
+        reviewPlaceholder: 'What should another student know?',
+        optionalMemo: 'Optional memo',
+        memoPlaceholder: 'Private note, details, or reminder',
+        practicalTags: 'Practical tags',
+        privacy: 'Privacy',
+        private: 'Private',
+        anonymousPublic: 'Anonymous public',
+        sameSchoolOnly: 'Same school only',
+        saveRecord: 'Save Record',
+        shareTip: 'Share as student tip',
+        communityTitle: 'Student community info',
+        communitySubtitle: 'Official info plus real student experience.',
+        communityKnowledge: 'Community knowledge',
+        signalBoard: 'Campus signal board',
+        placeSaves: 'place saves',
+        recentUpdates: 'recent updates',
+        hotPlaces: 'Hot places students checked',
+        thisWeek: 'this week',
+        community: 'Community',
+        studentPosts: 'student posts',
+        communityPost: 'community post',
+        needsTip: 'needs local tip',
+        logTitle: 'My Log',
+        logSubtitle: 'Your saved memories and useful places.',
+        personalNote: 'Personal note: useful for the first month near SNU.',
+        myCategories: 'My Categories',
+        studentNotes: 'student notes',
+        savedList: 'Saved list for quick access.',
+        addNewRecord: 'Add new record',
+        country: 'Country',
+        reviewText: 'Review text',
+        submitReview: 'Submit review',
+        done: 'Done',
+        thankYou: 'Thanks! This is a prototype. Your feedback helps us improve Exchange Map.',
+        locationUnavailable: 'Current location is not available in this browser.',
+        fileLocationWarning: 'Location may be blocked when opened as a local file. Please test this on the Vercel HTTPS URL.',
+        locationPermissionWarning: 'Location permission was not available. You can still move the map manually.',
+        categoryAll: 'All',
+        categoryOfficial: 'Official Support',
+        categoryHospital: 'Hospitals',
+        categoryPharmacy: 'Pharmacies',
+        categoryFood: 'Food',
+        categoryEmbassy: 'Embassies',
+        categoryBank: 'Bank / ATM',
+        categoryGrocery: 'Grocery',
+        categoryLaundry: 'Laundry',
+        categoryStudy: 'Study Cafe',
+        categoryEmergency: 'Emergency',
+        filterAll: 'All'
+      },
+      zh: {
+        brand: 'Exchange Map',
+        navHome: '首页',
+        navMap: '地图',
+        navAdd: '添加',
+        navCommunity: '社区',
+        navLog: '我的记录',
+        homeTitle: '欢迎来到首尔',
+        homeSubtitle: '查看国际学生评价过的实用地点。',
+        homeSearch: '搜索医院、清真餐厅、大使馆...',
+        recentReviewed: '学生最近评价',
+        nearSnu: '首尔大学附近',
+        officialInfo: '官方信息',
+        seeded: '已预置',
+        savedByStudents: '学生收藏',
+        warmLog: '生活记录',
+        livingNotes: '学生生活笔记',
+        livingNotesBody: '学生愿意分享时，个人收藏地点会变成有用的社区提示。',
+        savedPlaces: '收藏地点',
+        studentTips: '学生提示',
+        updatedTags: '更新标签',
+        showFilters: '搜索或筛选地点',
+        hideFilters: '隐藏搜索筛选',
+        mapTitle: '实用生活地图',
+        mapSubtitle: '首尔大学与首尔大入口站',
+        mapSearch: '你想去哪里？',
+        reviewCount: '条学生评价',
+        tapDetail: '点击卡片查看详情和评价',
+        leaveReview: '留下评价',
+        placeDetail: '地点详情',
+        detailSubtitle: '地点信息、照片和学生评价。',
+        backToMap: '返回地图',
+        officialInformation: '官方信息',
+        address: '地址',
+        hours: '营业时间',
+        phone: '电话',
+        website: '网站',
+        copy: '复制',
+        copied: '已复制',
+        studentSummary: '学生总结',
+        recentReviews: '最新学生评价',
+        recommend: '推荐',
+        recommended: '已推荐',
+        exchangeAt: '交换于',
+        addTitle: '添加学生提示',
+        addSubtitle: '保存实用笔记，或分享给其他学生。',
+        place: '地点',
+        addPhotos: '添加照片',
+        addPhotoPlaceholder: '添加照片占位',
+        rating: '评分',
+        oneLineReview: '一句话评价',
+        reviewPlaceholder: '其他学生应该知道什么？',
+        optionalMemo: '可选备忘',
+        memoPlaceholder: '私人笔记、细节或提醒',
+        practicalTags: '实用标签',
+        privacy: '隐私',
+        private: '私人',
+        anonymousPublic: '匿名公开',
+        sameSchoolOnly: '仅同校',
+        saveRecord: '保存记录',
+        shareTip: '分享为学生提示',
+        communityTitle: '学生社区信息',
+        communitySubtitle: '官方信息加真实学生经验。',
+        communityKnowledge: '社区知识',
+        signalBoard: '校园信息板',
+        placeSaves: '地点收藏',
+        recentUpdates: '最近更新',
+        hotPlaces: '学生常查看地点',
+        thisWeek: '本周',
+        community: '社区',
+        studentPosts: '学生帖子',
+        communityPost: '社区帖子',
+        needsTip: '需要本地建议',
+        logTitle: '我的记录',
+        logSubtitle: '你收藏的回忆和实用地点。',
+        personalNote: '个人笔记：适合刚到首尔大学附近的第一个月。',
+        myCategories: '我的分类',
+        studentNotes: '学生笔记',
+        savedList: '快速访问的收藏列表。',
+        addNewRecord: '添加新记录',
+        country: '国家',
+        reviewText: '评价内容',
+        submitReview: '提交评价',
+        done: '完成',
+        thankYou: '谢谢！这是原型，你的反馈会帮助我们改进 Exchange Map。',
+        locationUnavailable: '此浏览器无法使用当前位置。',
+        fileLocationWarning: '本地文件打开时可能会阻止定位。请在 Vercel HTTPS 链接测试。',
+        locationPermissionWarning: '无法获得定位权限。你仍然可以手动移动地图。',
+        categoryAll: '全部',
+        categoryOfficial: '官方支持',
+        categoryHospital: '医院',
+        categoryPharmacy: '药房',
+        categoryFood: '餐饮',
+        categoryEmbassy: '大使馆',
+        categoryBank: '银行 / ATM',
+        categoryGrocery: '生活用品',
+        categoryLaundry: '洗衣',
+        categoryStudy: '学习咖啡馆',
+        categoryEmergency: '紧急',
+        filterAll: '全部'
+      },
+      ko: {
+        brand: 'Exchange Map',
+        navHome: '홈',
+        navMap: '지도',
+        navAdd: '추가',
+        navCommunity: '커뮤니티',
+        navLog: '내 기록',
+        homeTitle: '서울에 온 걸 환영해요',
+        homeSubtitle: '국제 학생들이 리뷰한 유용한 장소를 찾아보세요.',
+        homeSearch: '병원, 할랄 음식, 대사관 검색...',
+        recentReviewed: '최근 학생 리뷰',
+        nearSnu: '서울대 근처',
+        officialInfo: '공식 정보',
+        seeded: '기본 등록',
+        savedByStudents: '학생들이 저장한 곳',
+        warmLog: '생활 기록',
+        livingNotes: '학생 생활 노트',
+        livingNotesBody: '학생들이 공유를 선택하면 개인 저장 장소가 유용한 커뮤니티 팁이 됩니다.',
+        savedPlaces: '저장한 장소',
+        studentTips: '학생 팁',
+        updatedTags: '업데이트 태그',
+        showFilters: '장소 검색 또는 필터',
+        hideFilters: '검색 필터 숨기기',
+        mapTitle: '실생활 지도',
+        mapSubtitle: '서울대와 서울대입구역',
+        mapSearch: '어디가 필요해요?',
+        reviewCount: '학생 리뷰',
+        tapDetail: '카드를 눌러 상세 정보와 리뷰 보기',
+        leaveReview: '리뷰 남기기',
+        placeDetail: '장소 상세',
+        detailSubtitle: '장소 정보, 사진, 학생 리뷰.',
+        backToMap: '지도로 돌아가기',
+        officialInformation: '공식 정보',
+        address: '주소',
+        hours: '운영 시간',
+        phone: '전화',
+        website: '웹사이트',
+        copy: '복사',
+        copied: '복사됨',
+        studentSummary: '학생 요약',
+        recentReviews: '최근 학생 리뷰',
+        recommend: '추천',
+        recommended: '추천됨',
+        exchangeAt: '교환 학교',
+        addTitle: '학생 팁 추가',
+        addSubtitle: '실용적인 메모를 저장하거나 다른 학생들과 공유하세요.',
+        place: '장소',
+        addPhotos: '사진 추가',
+        addPhotoPlaceholder: '사진 자리 표시자 추가',
+        rating: '별점',
+        oneLineReview: '한 줄 리뷰',
+        reviewPlaceholder: '다른 학생이 무엇을 알면 좋을까요?',
+        optionalMemo: '선택 메모',
+        memoPlaceholder: '개인 메모, 세부사항, 리마인더',
+        practicalTags: '실용 태그',
+        privacy: '공개 범위',
+        private: '비공개',
+        anonymousPublic: '익명 공개',
+        sameSchoolOnly: '같은 학교만',
+        saveRecord: '기록 저장',
+        shareTip: '학생 팁으로 공유',
+        communityTitle: '학생 커뮤니티 정보',
+        communitySubtitle: '공식 정보와 실제 학생 경험을 함께 봅니다.',
+        communityKnowledge: '커뮤니티 지식',
+        signalBoard: '캠퍼스 신호판',
+        placeSaves: '장소 저장',
+        recentUpdates: '최근 업데이트',
+        hotPlaces: '학생들이 많이 본 장소',
+        thisWeek: '이번 주',
+        community: '커뮤니티',
+        studentPosts: '학생 글',
+        communityPost: '커뮤니티 글',
+        needsTip: '현지 팁 필요',
+        logTitle: '내 기록',
+        logSubtitle: '저장한 추억과 유용한 장소.',
+        personalNote: '개인 메모: 서울대 근처 첫 달에 유용함.',
+        myCategories: '내 카테고리',
+        studentNotes: '학생 노트',
+        savedList: '빠르게 보기 위한 저장 목록.',
+        addNewRecord: '새 기록 추가',
+        country: '나라',
+        reviewText: '리뷰 내용',
+        submitReview: '리뷰 제출',
+        done: '완료',
+        thankYou: '고마워요! 이 앱은 프로토타입이며, 피드백은 Exchange Map 개선에 도움이 됩니다.',
+        locationUnavailable: '이 브라우저에서는 현재 위치를 사용할 수 없습니다.',
+        fileLocationWarning: '로컬 파일에서는 위치 기능이 막힐 수 있어요. Vercel HTTPS 주소에서 테스트해 주세요.',
+        locationPermissionWarning: '위치 권한을 사용할 수 없습니다. 지도는 직접 움직일 수 있어요.',
+        categoryAll: '전체',
+        categoryOfficial: '공식 지원',
+        categoryHospital: '병원',
+        categoryPharmacy: '약국',
+        categoryFood: '음식',
+        categoryEmbassy: '대사관',
+        categoryBank: '은행 / ATM',
+        categoryGrocery: '생활용품',
+        categoryLaundry: '세탁',
+        categoryStudy: '스터디 카페',
+        categoryEmergency: '응급',
+        filterAll: '전체'
+      }
+    };
+
+    function t(key) {
+      return (copy[state.uiLanguage] && copy[state.uiLanguage][key]) || copy.en[key] || key;
+    }
+
     const categories = [
       { id: 'All', label: 'All', icon: '🌍' },
       { id: 'Official', label: 'Official Support', icon: '🏫' },
@@ -1239,6 +1584,20 @@
       { id: 'Study', label: 'Study Cafe', icon: '📚' },
       { id: 'Emergency', label: 'Emergency', icon: '🚨' }
     ];
+
+    const categoryCopyKeys = {
+      All: 'categoryAll',
+      Official: 'categoryOfficial',
+      Hospital: 'categoryHospital',
+      Pharmacy: 'categoryPharmacy',
+      Food: 'categoryFood',
+      Embassy: 'categoryEmbassy',
+      Bank: 'categoryBank',
+      Grocery: 'categoryGrocery',
+      Laundry: 'categoryLaundry',
+      Study: 'categoryStudy',
+      Emergency: 'categoryEmergency'
+    };
 
     const places = [
       {
@@ -1821,6 +2180,43 @@
       return [...(state.submittedReviews[place.id] || []), ...place.reviews];
     }
 
+    function translatedCategory(category) {
+      return t(categoryCopyKeys[category] || category);
+    }
+
+    function translatedChipLabel(item, key) {
+      if (typeof item === 'string') {
+        if (key === 'country' && item === 'All') return t('filterAll');
+        return item;
+      }
+      if (key === 'category') return `${item.icon} ${translatedCategory(item.id)}`;
+      return `${item.icon} ${item.label}`;
+    }
+
+    function reviewMeta(place) {
+      return `${translatedCategory(place.category)} · ★ ${place.rating} · ${place.reviewCount} ${t('reviewCount')} · ${place.distance}`;
+    }
+
+    function renderLanguageSwitcher() {
+      document.documentElement.lang = uiLanguages.find(language => language.id === state.uiLanguage).htmlLang;
+      document.getElementById('uiLanguageSwitcher').innerHTML = uiLanguages.map(language => `
+        <button class="${language.id === state.uiLanguage ? 'active' : ''}" data-ui-language="${language.id}" type="button">${language.label}</button>
+      `).join('');
+    }
+
+    function renderNav() {
+      const navItems = [
+        ['home', '⌂', 'navHome'],
+        ['map', '⌖', 'navMap'],
+        ['add', '＋', 'navAdd'],
+        ['community', '◈', 'navCommunity'],
+        ['log', '◇', 'navLog']
+      ];
+      document.getElementById('bottomNav').innerHTML = navItems.map(([tab, icon, labelKey]) => `
+        <button class="nav-button ${state.tab === tab ? 'active' : ''}" data-tab="${tab}" type="button"><span>${icon}</span><span>${t(labelKey)}</span></button>
+      `).join('');
+    }
+
     function header(title, subtitle, eyebrow = 'Exchange Map') {
       return `
         <div class="topbar">
@@ -1843,7 +2239,7 @@
         <div class="chip-row" data-chip-row="${key}">
           ${items.map(item => {
             const value = typeof item === 'string' ? item : item.id;
-            const label = typeof item === 'string' ? item : `${item.icon} ${item.label}`;
+            const label = translatedChipLabel(item, key);
             return `<button class="chip ${className} ${value === active ? 'active' : ''}" data-value="${value}">${label}</button>`;
           }).join('')}
         </div>
@@ -1884,7 +2280,7 @@
           <div class="thumb">${place.icon}</div>
           <div>
             <h3>${place.name}</h3>
-            <p class="meta">${place.category} · ★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+            <p class="meta">${reviewMeta(place)}</p>
             ${badges(place)}
           </div>
         </button>
@@ -1893,23 +2289,23 @@
 
     function renderHome() {
       document.getElementById('screen-home').innerHTML = `
-        ${header('Hi, welcome to Seoul', 'Find useful places reviewed by international students.')}
-        ${searchBar('Search hospitals, halal food, embassies...')}
+        ${header(t('homeTitle'), t('homeSubtitle'))}
+        ${searchBar(t('homeSearch'))}
         <div class="quick-grid">
-          ${categories.slice(1).map(category => `<button class="quick" data-category="${category.id}"><span>${category.icon}</span><span>${category.label}</span></button>`).join('')}
+          ${categories.slice(1).map(category => `<button class="quick" data-category="${category.id}"><span>${category.icon}</span><span>${translatedCategory(category.id)}</span></button>`).join('')}
         </div>
-        <div class="section-title"><h2>Recently reviewed by students</h2><span>near SNU</span></div>
+        <div class="section-title"><h2>${t('recentReviewed')}</h2><span>${t('nearSnu')}</span></div>
         ${places.filter(place => place.isStudentReviewed).slice(0, 3).map(placeCard).join('')}
-        <div class="section-title"><h2>Official info</h2><span>seeded</span></div>
+        <div class="section-title"><h2>${t('officialInfo')}</h2><span>${t('seeded')}</span></div>
         ${places.filter(place => place.isOfficial).map(placeCard).join('')}
-        <div class="section-title"><h2>Saved by students</h2><span>warm log</span></div>
+        <div class="section-title"><h2>${t('savedByStudents')}</h2><span>${t('warmLog')}</span></div>
         <div class="hero-card card">
-          <h2 style="margin:0 0 6px;font-size:18px;">Student living notes</h2>
-          <p class="meta">Personal saved places become useful community tips when students choose to share them.</p>
+          <h2 style="margin:0 0 6px;font-size:18px;">${t('livingNotes')}</h2>
+          <p class="meta">${t('livingNotesBody')}</p>
           <div class="hero-stats">
-            <div class="stat"><strong>124</strong><span>saved places</span></div>
-            <div class="stat"><strong>58</strong><span>student tips</span></div>
-            <div class="stat"><strong>21</strong><span>updated tags</span></div>
+            <div class="stat"><strong>124</strong><span>${t('savedPlaces')}</span></div>
+            <div class="stat"><strong>58</strong><span>${t('studentTips')}</span></div>
+            <div class="stat"><strong>21</strong><span>${t('updatedTags')}</span></div>
           </div>
         </div>
       `;
@@ -1922,19 +2318,19 @@
           <div id="map"></div>
           <div class="map-top-panel ${state.searchOptionsOpen ? '' : 'collapsed'}">
             <button class="search-toggle" data-search-toggle="true" type="button">
-              <span>⌕ ${state.searchOptionsOpen ? 'Hide search filters' : 'Search or filter places'}</span>
+              <span>⌕ ${state.searchOptionsOpen ? t('hideFilters') : t('showFilters')}</span>
               <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
             </button>
             <div class="topbar">
               <div>
-                <p class="eyebrow">Exchange Map</p>
-                <h1>Practical living map</h1>
-                <p class="subtitle">SNU and Seoul Natl Univ. Station</p>
+                <p class="eyebrow">${t('brand')}</p>
+                <h1>${t('mapTitle')}</h1>
+                <p class="subtitle">${t('mapSubtitle')}</p>
               </div>
               <button class="avatar" type="button" aria-label="Profile">EM</button>
             </div>
             <div class="map-filter-area">
-              ${searchBar('Where do you need to go?')}
+              ${searchBar(t('mapSearch'))}
               ${chipRow(categories, state.category, 'category')}
               ${chipRow(countries, state.country, 'country')}
               ${chipRow(languages, state.language, 'language', 'community')}
@@ -1954,10 +2350,10 @@
         <div class="map-bottom-sheet">
           <div class="map-overlay" data-open-detail="${place.id}">
             <h3>${place.icon} ${place.name}</h3>
-            <p class="meta">★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+            <p class="meta">★ ${place.rating} · ${place.reviewCount} ${t('reviewCount')} · ${place.distance}</p>
             ${badges(place)}
-            <span class="tap-hint">Tap this card to view details and reviews</span>
-            <button class="primary" id="reviewCta">Leave a review</button>
+            <span class="tap-hint">${t('tapDetail')}</span>
+            <button class="primary" id="reviewCta">${t('leaveReview')}</button>
           </div>
         </div>
       `;
@@ -1968,36 +2364,36 @@
         <article class="detail card">
           <div class="detail-image">${place.icon}</div>
           <h2>${place.name}</h2>
-          <p class="meta">${place.category} · ★ ${place.rating} · ${place.reviewCount} student reviews · ${place.distance}</p>
+          <p class="meta">${reviewMeta(place)}</p>
           ${badges(place)}
           <div class="info-block">
-            <h3>Official Information</h3>
+            <h3>${t('officialInformation')}</h3>
             <div class="copy-row">
-              <p class="meta"><strong>Address:</strong> ${place.address}</p>
-              <button class="copy-button" data-copy-address="${place.id}" type="button">Copy</button>
+              <p class="meta"><strong>${t('address')}:</strong> ${place.address}</p>
+              <button class="copy-button" data-copy-address="${place.id}" type="button">${t('copy')}</button>
             </div>
-            <p class="meta"><strong>Hours:</strong> ${place.openingHours}</p>
-            <p class="meta"><strong>Phone:</strong> ${place.phone}</p>
-            <p class="meta"><strong>Website:</strong> ${place.website}</p>
+            <p class="meta"><strong>${t('hours')}:</strong> ${place.openingHours}</p>
+            <p class="meta"><strong>${t('phone')}:</strong> ${place.phone}</p>
+            <p class="meta"><strong>${t('website')}:</strong> ${place.website}</p>
           </div>
           <div class="info-block">
-            <h3>Student Summary</h3>
+            <h3>${t('studentSummary')}</h3>
             ${place.studentTagStats.map(([tag, count]) => `<div class="tag-stat"><span>${tag}</span><span class="tag-count">👍 ${count}</span></div>`).join('')}
           </div>
           <div class="info-block">
-            <h3>Recent student reviews</h3>
+            <h3>${t('recentReviews')}</h3>
             ${reviewsForPlace(place).map(review => `
               <div class="review">
-                <strong>${review.name} · ${review.country} · exchange at ${review.school}</strong>
+                <strong>${review.name} · ${review.country} · ${t('exchangeAt')} ${review.school}</strong>
                 <p class="meta">${ratingStars(review.rating)} · ${review.rating.toFixed(1)} · ${review.date} · ${review.language}</p>
                 <p>${review.text}</p>
                 <button class="recommend-button ${state.recommendedReviews.includes(review.id) ? 'active' : ''}" data-review-id="${review.id}" data-place-id="${place.id}" type="button">
-                  ${state.recommendedReviews.includes(review.id) ? 'Recommended' : 'Recommend'} · ${(review.recommends || 0) + (state.recommendedReviews.includes(review.id) ? 1 : 0)}
+                  ${state.recommendedReviews.includes(review.id) ? t('recommended') : t('recommend')} · ${(review.recommends || 0) + (state.recommendedReviews.includes(review.id) ? 1 : 0)}
                 </button>
               </div>
             `).join('')}
           </div>
-          <button class="primary" id="reviewCta">Leave a review</button>
+          <button class="primary" id="reviewCta">${t('leaveReview')}</button>
         </article>
       `;
     }
@@ -2006,8 +2402,8 @@
       const place = selectedPlace();
       document.getElementById('screen-detail').innerHTML = `
         <div class="detail-screen">
-          <button class="secondary back-top-left" data-back-to-map="true" type="button">← Back to map</button>
-          ${header(place.name, 'Place information, photos, and student reviews.', 'Place detail')}
+          <button class="secondary back-top-left" data-back-to-map="true" type="button">← ${t('backToMap')}</button>
+          ${header(place.name, t('detailSubtitle'), t('placeDetail'))}
           ${detailHtml(place)}
         </div>
       `;
@@ -2022,53 +2418,53 @@
       const ratingOptions = [];
       for (let rating = 0.5; rating <= 5; rating += 0.5) ratingOptions.push(rating);
       document.getElementById('screen-add').innerHTML = `
-        ${header('Add a student tip', 'Save a practical note for yourself or share it with other students.', 'Warm student log')}
+        ${header(t('addTitle'), t('addSubtitle'), t('warmLog'))}
         <div class="form">
-          <div class="field"><label>Place</label><input value="${selectedPlace().name}" /></div>
-          <div class="field"><label>Add photos</label><button class="secondary" type="button">＋ Add photo placeholder</button></div>
+          <div class="field"><label>${t('place')}</label><input value="${selectedPlace().name}" /></div>
+          <div class="field"><label>${t('addPhotos')}</label><button class="secondary" type="button">＋ ${t('addPhotoPlaceholder')}</button></div>
           <div class="field">
-            <label>Rating</label>
+            <label>${t('rating')}</label>
             <div class="stars">${ratingStars(state.selectedRating)} <span class="meta">${state.selectedRating.toFixed(1)}</span></div>
             <div class="rating-options">
               ${ratingOptions.map(rating => `<button class="rating-pill ${rating === state.selectedRating ? 'active' : ''}" data-rating="${rating}" type="button">${rating.toFixed(1)}</button>`).join('')}
             </div>
           </div>
-          <div class="field"><label>One-line review</label><input placeholder="What should another student know?" /></div>
-          <div class="field"><label>Optional memo</label><textarea rows="3" placeholder="Private note, details, or reminder"></textarea></div>
+          <div class="field"><label>${t('oneLineReview')}</label><input placeholder="${t('reviewPlaceholder')}" /></div>
+          <div class="field"><label>${t('optionalMemo')}</label><textarea rows="3" placeholder="${t('memoPlaceholder')}"></textarea></div>
           <div class="field">
-            <label>Practical tags</label>
+            <label>${t('practicalTags')}</label>
             <div class="chip-row" data-chip-row="tags">
               ${tags.map(tag => `<button class="chip ${state.selectedTags.includes(tag) ? 'active' : ''}" data-value="${tag}">${tag}</button>`).join('')}
             </div>
           </div>
           <div class="field">
-            <label>Privacy</label>
+            <label>${t('privacy')}</label>
             <div class="chip-row">
-              <button class="chip active">Private</button>
-              <button class="chip">Anonymous public</button>
-              <button class="chip">Same school only</button>
+              <button class="chip active">${t('private')}</button>
+              <button class="chip">${t('anonymousPublic')}</button>
+              <button class="chip">${t('sameSchoolOnly')}</button>
             </div>
           </div>
-          <button class="primary" type="button">Save Record</button>
-          <button class="secondary" type="button">Share as student tip</button>
+          <button class="primary" type="button">${t('saveRecord')}</button>
+          <button class="secondary" type="button">${t('shareTip')}</button>
         </div>
       `;
     }
 
     function renderCommunity() {
       document.getElementById('screen-community').innerHTML = `
-        ${header('Student community info', 'Official info plus real student experience.', 'Community knowledge')}
+        ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
         <div class="hero-card card">
-          <h2 style="margin:0 0 8px;font-size:18px;">Campus signal board</h2>
+          <h2 style="margin:0 0 8px;font-size:18px;">${t('signalBoard')}</h2>
           <div class="hero-stats">
-            <div class="stat"><strong>1,248</strong><span>place saves</span></div>
-            <div class="stat"><strong>563</strong><span>student tips</span></div>
-            <div class="stat"><strong>87</strong><span>recent updates</span></div>
+            <div class="stat"><strong>1,248</strong><span>${t('placeSaves')}</span></div>
+            <div class="stat"><strong>563</strong><span>${t('studentTips')}</span></div>
+            <div class="stat"><strong>87</strong><span>${t('recentUpdates')}</span></div>
           </div>
         </div>
-        <div class="section-title"><h2>Hot places students checked</h2><span>this week</span></div>
+        <div class="section-title"><h2>${t('hotPlaces')}</h2><span>${t('thisWeek')}</span></div>
         ${places.slice(0, 4).map(placeCard).join('')}
-        <div class="section-title"><h2>Community</h2><span>student posts</span></div>
+        <div class="section-title"><h2>${t('community')}</h2><span>${t('studentPosts')}</span></div>
         ${[
           {
             title: 'English-speaking dentist near campus?',
@@ -2099,7 +2495,7 @@
             <strong>${post.title}</strong>
             <p class="meta" style="margin-top:6px;">${post.body}</p>
             <p class="meta" style="margin-top:8px;">${post.author} · 💬 ${post.replies}</p>
-            <div class="badges"><span class="badge student">community post</span><span class="badge good">needs local tip</span></div>
+            <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">${t('needsTip')}</span></div>
           </div>
         `).join('')}
       `;
@@ -2107,24 +2503,24 @@
 
     function renderLog() {
       document.getElementById('screen-log').innerHTML = `
-        ${header('My Log', 'Your saved memories and useful places.', 'Warm student log')}
+        ${header(t('logTitle'), t('logSubtitle'), t('warmLog'))}
         ${chipRow(['All', 'Food', 'Health', 'Life', 'Embassy', 'Saved'], 'All', 'log')}
         ${places.slice(0, 4).map(place => `
           <article class="place-card">
             <div class="thumb">${place.icon}</div>
             <div>
               <h3>${place.name}</h3>
-              <p class="meta">May 2026 · ★ ${place.rating} · ${place.category}</p>
+              <p class="meta">May 2026 · ★ ${place.rating} · ${translatedCategory(place.category)}</p>
               ${badges(place)}
-              <p class="meta" style="margin-top:8px;">Personal note: useful for the first month near SNU.</p>
+              <p class="meta" style="margin-top:8px;">${t('personalNote')}</p>
             </div>
           </article>
         `).join('')}
-        <div class="section-title"><h2>My Categories</h2><span>student notes</span></div>
+        <div class="section-title"><h2>${t('myCategories')}</h2><span>${t('studentNotes')}</span></div>
         ${['English-speaking hospitals', 'Vegan places', 'Places I reviewed', 'Needs sorting'].map(item => `
-          <div class="card" style="padding:13px;margin-bottom:8px;"><strong>${item}</strong><p class="meta">Saved list for quick access.</p></div>
+          <div class="card" style="padding:13px;margin-bottom:8px;"><strong>${item}</strong><p class="meta">${t('savedList')}</p></div>
         `).join('')}
-        <button class="primary" data-add-record="true">＋ Add new record</button>
+        <button class="primary" data-add-record="true">＋ ${t('addNewRecord')}</button>
       `;
     }
 
@@ -2139,36 +2535,36 @@
 
       modalRoot.innerHTML = `
         <div class="modal-backdrop">
-          <section class="modal" role="dialog" aria-modal="true" aria-label="Leave a review">
+          <section class="modal" role="dialog" aria-modal="true" aria-label="${t('leaveReview')}">
             <div class="modal-head">
               <div>
-                <h2>Leave a review</h2>
+                <h2>${t('leaveReview')}</h2>
                 <p class="meta">${place.icon} ${place.name}</p>
               </div>
               <button class="icon-button" id="closeReviewModal" type="button" aria-label="Close">x</button>
             </div>
             ${state.reviewSubmitted ? `
-              <div class="thank-you">Thanks! This is a prototype. Your feedback helps us improve Exchange Map.</div>
-              <button class="primary" id="doneReviewModal" type="button">Done</button>
+              <div class="thank-you">${t('thankYou')}</div>
+              <button class="primary" id="doneReviewModal" type="button">${t('done')}</button>
             ` : `
               <div class="form">
                 <div class="field">
-                  <label>Country</label>
+                  <label>${t('country')}</label>
                   <select id="reviewCountry">
                     ${countries.filter(country => country !== 'All').map(country => `<option value="${country}" ${country === state.country ? 'selected' : ''}>${country}</option>`).join('')}
                   </select>
                 </div>
                 <div class="field">
-                  <label>Rating</label>
+                  <label>${t('rating')}</label>
                   <select id="reviewRating">
                     ${[1, 2, 3, 4, 5].map(rating => `<option value="${rating}" ${rating === Math.round(state.selectedRating) ? 'selected' : ''}>${rating}</option>`).join('')}
                   </select>
                 </div>
                 <div class="field">
-                  <label>Review text</label>
-                  <textarea id="reviewText" rows="4" placeholder="What should another student know?"></textarea>
+                  <label>${t('reviewText')}</label>
+                  <textarea id="reviewText" rows="4" placeholder="${t('reviewPlaceholder')}"></textarea>
                 </div>
-                <button class="primary" id="submitReview" type="button">Submit review</button>
+                <button class="primary" id="submitReview" type="button">${t('submitReview')}</button>
               </div>
             `}
           </section>
@@ -2275,7 +2671,7 @@
       sheet.innerHTML = mapBottomSheetHtml(place);
       topPanel.classList.toggle('collapsed', !state.searchOptionsOpen);
       searchToggle.innerHTML = `
-        <span>⌕ ${state.searchOptionsOpen ? 'Hide search filters' : 'Search or filter places'}</span>
+        <span>⌕ ${state.searchOptionsOpen ? t('hideFilters') : t('showFilters')}</span>
         <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
       `;
       updateMarkerHighlights();
@@ -2351,6 +2747,14 @@
     }
 
     function bindEvents() {
+      document.querySelectorAll('[data-ui-language]').forEach(button => {
+        button.onclick = () => {
+          state.uiLanguage = button.dataset.uiLanguage;
+          trackEvent('ui_language_select', { ui_language: state.uiLanguage });
+          renderAll();
+        };
+      });
+
       document.querySelectorAll('[data-tab]').forEach(button => {
         button.onclick = () => {
           state.tab = button.dataset.tab;
@@ -2370,7 +2774,7 @@
         button.onclick = event => {
           event.stopPropagation();
           if (!navigator.geolocation) {
-            alert('Current location is not available in this browser.');
+            alert(t('locationUnavailable'));
             return;
           }
 
@@ -2399,8 +2803,8 @@
               });
               alert(
                 window.location.protocol === 'file:'
-                  ? 'Location may be blocked when opened as a local file. Please test this on the Vercel HTTPS URL.'
-                  : 'Location permission was not available. You can still move the map manually.'
+                  ? t('fileLocationWarning')
+                  : t('locationPermissionWarning')
               );
             },
             { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 }
@@ -2488,13 +2892,13 @@
 
           try {
             await navigator.clipboard.writeText(place.address);
-            button.textContent = 'Copied';
+            button.textContent = t('copied');
             trackEvent('address_copy_click', {
               place_id: place.id,
               place_name: place.name
             });
             setTimeout(() => {
-              button.textContent = 'Copy';
+              button.textContent = t('copy');
             }, 1200);
           } catch (error) {
             trackEvent('address_copy_click', {
@@ -2607,6 +3011,8 @@
     }
 
     function renderAll() {
+      renderLanguageSwitcher();
+      renderNav();
       renderHome();
       renderMapScreen();
       renderDetailScreen();
