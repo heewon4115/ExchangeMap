@@ -3254,6 +3254,7 @@
               <span>⌕ ${state.searchOptionsOpen ? t('hideFilters') : t('showFilters')}</span>
               <span>${state.searchOptionsOpen ? '↑' : '↓'}</span>
             </button>
+            <button class="primary map-add-button" data-add-record="true" type="button">＋ ${t('addNewRecord')}</button>
             <div class="topbar">
               <div>
                 <p class="eyebrow">${t('brand')}</p>
@@ -3264,7 +3265,6 @@
             </div>
             <div class="map-filter-area">
               ${searchBar(t('mapSearch'))}
-              <button class="primary map-add-button" data-add-record="true" type="button">＋ ${t('addNewRecord')}</button>
               ${chipRow(categories, state.category, 'category')}
               ${chipRow(countries, state.country, 'country')}
               ${chipRow(languages, state.language, 'language', 'community')}
