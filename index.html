@@ -366,6 +366,44 @@
       font-size: 15px;
     }
 
+    .address-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+
+    .address-label {
+      font-weight: 700;
+    }
+
+    .address-text {
+      color: #4b5563;
+    }
+
+    .copy-address-button {
+      border: none;
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+
+    .copy-address-button:hover {
+      background: #e0e7ff;
+    }
+
+    .copy-success-message {
+      margin-top: 6px;
+      font-size: 0.85rem;
+      color: #059669;
+    }
+
     .guide-section {
       display: grid;
       gap: 7px;
@@ -1657,6 +1695,7 @@
       uiLanguage: 'en',
       communityBoard: 'info',
       expandedCommunityPost: '',
+      copiedCafeAddress: '',
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -3179,49 +3218,40 @@
     const cafeRecommendations = [
       {
         name: 'Goro Coffee Roasters',
-        area: 'Seoul National University Station',
+        area: 'Seoul National University Station / Nakseongdae',
+        address: '1F, 33, Nambusunhwan-ro 231-gil, Gwanak-gu, Seoul',
         bestFor: 'Coffee and dessert',
         keywords: ['filter coffee', 'dessert', 'cozy', 'quiet'],
         description: 'A cozy local cafe where you can enjoy quality coffee and desserts. Recommended for students who love filter coffee and a calm atmosphere.'
       },
       {
         name: 'Wevave Bake Shop',
-        area: 'Seoul National University Station',
+        area: 'Seoul National University Station / Nakseongdae',
+        address: '2F, 16, Nambusunhwan-ro 233-gil, Gwanak-gu, Seoul',
         bestFor: 'Dessert and chatting',
         keywords: ['bakery', 'flat white', 'warm atmosphere', 'dessert'],
         description: 'A warm bakery cafe that is great for enjoying coffee and desserts with friends.'
       },
       {
-        name: 'Yuko',
-        area: 'Seoul National University Station',
-        bestFor: 'Solo coffee time',
-        keywords: ['minimal', 'flat white', 'clean interior', 'calm'],
-        description: 'A clean and minimal cafe with good coffee. Recommended when you want to enjoy a quiet cup of coffee alone.'
-      },
-      {
         name: 'Slow Motion Coffee Bar',
         area: 'Seoul National University Station',
+        address: '860-6, Bongcheon-dong, Gwanak-gu, Seoul',
         bestFor: 'Solo cafe visit',
         keywords: ['latte', 'mood', 'quiet', 'coffee bar'],
         description: 'A stylish coffee bar with a calm mood. Good for visiting alone and relaxing with a latte.'
       },
       {
         name: 'Tram Seoul',
-        area: 'Seoul National University Station',
+        area: 'Seoul National University Station / Sharosu-gil',
+        address: '1F 101, 23-10, Nambusunhwan-ro 226-gil, Gwanak-gu, Seoul',
         bestFor: 'Coffee and baked desserts',
         keywords: ['decaf', 'terrine', 'financier', 'dessert'],
         description: 'A neat cafe where you can enjoy coffee and baked desserts. Good for students looking for a relaxing dessert spot.'
       },
       {
-        name: 'Grape Lounge SNU Branch',
-        area: 'Seoul National University',
-        bestFor: 'Studying and laptop work',
-        keywords: ['quiet', 'wide tables', 'laptop-friendly', 'study'],
-        description: 'A quiet cafe with wide tables, making it a good place for assignments, studying, or laptop work.'
-      },
-      {
         name: 'Il Coffee SNU Station Branch',
         area: 'Seoul National University Station',
+        address: '123, Ssukgogae-ro, Gwanak-gu, Seoul',
         bestFor: 'Hand drip coffee and studying',
         keywords: ['hand drip', 'flat white', 'window seats', 'study'],
         description: 'A good choice for students who enjoy hand drip coffee. The window seats are nice for studying quietly.'
@@ -3229,6 +3259,7 @@
       {
         name: 'Orange Pencil',
         area: 'Nakseongdae',
+        address: '1895, Nambusunhwan-ro, Gwanak-gu, Seoul',
         bestFor: 'Group study',
         keywords: ['study room', 'quiet', 'croffle', 'team project'],
         description: 'A cafe with study rooms, making it useful for group study sessions or team projects.'
@@ -3236,6 +3267,7 @@
       {
         name: 'Cafe Frame',
         area: 'Sharosu-gil',
+        address: 'B1, 94, Gwanak-ro 14-gil, Gwanak-gu, Seoul',
         bestFor: 'Cafe atmosphere and studying',
         keywords: ['einspanner', 'matcha latte', 'wide tables', 'vibe'],
         description: 'A cafe near Sharosu-gil where you can enjoy both a nice atmosphere and a comfortable study space.'
@@ -3528,6 +3560,12 @@
                 <section class="cafe-card">
                   <strong>☕ ${cafe.name}</strong>
                   <p class="meta"><b>${ct('area')}:</b> ${cafe.area}</p>
+                  <div class="address-row">
+                    <span class="address-label">Address:</span>
+                    <span class="address-text">${cafe.address}</span>
+                    <button type="button" class="copy-address-button" data-cafe-address="${cafe.address}" data-cafe-name="${cafe.name}">Copy</button>
+                  </div>
+                  ${state.copiedCafeAddress === cafe.address ? `<p class="copy-success-message">Address copied! Paste it into Naver Map or Kakao Map.</p>` : ''}
                   <p class="meta"><b>${ct('bestFor')}:</b> ${cafe.bestFor}</p>
                   <div class="cafe-keywords">
                     ${cafe.keywords.map(keyword => `<span class="badge">${keyword}</span>`).join('')}
@@ -3539,7 +3577,7 @@
             <p class="cafe-note"><b>${ct('note')}:</b> ${ct('cafeNote')}</p>
           ` : `
             <div class="badges">
-              <span class="badge">9 cafes</span>
+              <span class="badge">7 cafes</span>
               <span class="badge">study</span>
               <span class="badge">dessert</span>
               <span class="badge">laptop-friendly</span>
@@ -4680,6 +4718,36 @@
               copy_available: 'no'
             });
             alert(`Copy this address:\n${place.address}`);
+          }
+        };
+      });
+
+      document.querySelectorAll('[data-cafe-address]').forEach(button => {
+        button.onclick = async event => {
+          event.stopPropagation();
+          const address = button.dataset.cafeAddress;
+          const cafeName = button.dataset.cafeName || '';
+          try {
+            await navigator.clipboard.writeText(address);
+            state.copiedCafeAddress = address;
+            trackEvent('cafe_address_copy_click', {
+              cafe_name: cafeName,
+              address
+            });
+            renderAll();
+            setTimeout(() => {
+              if (state.copiedCafeAddress === address) {
+                state.copiedCafeAddress = '';
+                renderAll();
+              }
+            }, 1500);
+          } catch (error) {
+            trackEvent('cafe_address_copy_click', {
+              cafe_name: cafeName,
+              address,
+              copy_available: 'no'
+            });
+            alert('Copy failed. Please copy the address manually.');
           }
         };
       });
