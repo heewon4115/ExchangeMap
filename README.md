@@ -358,6 +358,9 @@ const GA_DEBUG_MODE = false;
 - `address_copy_click`: fires when users copy a place address.
 - `current_location_prompt` and `current_location_click`: fire for location permission/result testing.
 - `add_record_click`: fires when users go to add a new record.
+- `feature_placeholder_open`: fires when users open a feature that is not implemented yet.
+- `feature_placeholder_back_click`: fires when users go back from a not-yet-built feature page.
+- `feature_expectation_click`: fires when users tap the thumbs-up button for a not-yet-built feature. This is the best event for checking which future features people want.
 
 ## Add real places, pins, and reviews
 

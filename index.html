@@ -2496,11 +2496,11 @@
         logSavedPlacesMeta: 'All places I saved',
         logPlaceLists: 'Place lists',
         logPlaceListsMeta: 'My custom place lists',
-        logComingSoon: 'Coming soon',
-        logNotReady: 'This page is not ready yet!',
+        logComingSoon: 'Feature preview',
+        logNotReady: 'This feature is not built yet. Tap thumbs up if you want it next.',
         logBack: 'My Log',
-        logLikeIdle: 'Looks useful',
-        logLikeActive: 'Liked',
+        logLikeIdle: 'I want this feature',
+        logLikeActive: 'I want this',
         personalNote: 'Personal note: useful for the first month near SNU.',
         myCategories: 'My Categories',
         studentNotes: 'student notes',
@@ -2643,10 +2643,10 @@
         logSavedPlacesMeta: '我保存的所有地点',
         logPlaceLists: '地点列表',
         logPlaceListsMeta: '我的地点列表',
-        logComingSoon: '即将推出',
-        logNotReady: '这个页面还没有做好！',
+        logComingSoon: '功能预览',
+        logNotReady: '这个功能还没有做好。如果你期待这个功能，请点个赞。',
         logBack: '我的记录',
-        logLikeIdle: '期待这个功能',
+        logLikeIdle: '我期待这个功能',
         logLikeActive: '已期待',
         personalNote: '个人笔记：适合刚到首尔大学附近的第一个月。',
         myCategories: '我的分类',
@@ -2790,10 +2790,10 @@
         logSavedPlacesMeta: '내가 저장한 모든 장소들',
         logPlaceLists: '장소 리스트',
         logPlaceListsMeta: '나의 장소 리스트들',
-        logComingSoon: '준비 중',
-        logNotReady: '아직 안 만들어졌어요!',
+        logComingSoon: '기능 미리보기',
+        logNotReady: '아직 구현되지 않은 기능이에요. 기대된다면 따봉을 눌러주세요.',
         logBack: '내 기록',
-        logLikeIdle: '기대돼요',
+        logLikeIdle: '이 기능 기대돼요',
         logLikeActive: '기대 중',
         personalNote: '개인 메모: 서울대 근처 첫 달에 유용함.',
         myCategories: '내 카테고리',
@@ -3722,6 +3722,7 @@
       if (eventName.includes('filter') || eventName.includes('language') || eventName.includes('search')) return 'filter';
       if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('map') || eventName.includes('location')) return 'map';
       if (eventName.includes('community')) return 'community';
+      if (eventName.includes('feature')) return 'feature_interest';
       if (eventName.includes('tab') || eventName.includes('screen')) return 'navigation';
       return 'prototype';
     }
@@ -3748,6 +3749,7 @@
       if (eventName.includes('community_post')) return 'community_post';
       if (eventName.includes('community_tip')) return 'community_tip';
       if (eventName.includes('community_board')) return 'community_board';
+      if (eventName.includes('feature')) return 'not_ready_feature';
       if (eventName.includes('location')) return 'location';
       if (eventName.includes('tab') || eventName.includes('screen')) return 'screen';
       if (eventName.includes('address')) return 'address';
@@ -3760,7 +3762,7 @@
       if (eventName.includes('filter') || eventName.includes('search') || eventName.includes('language')) return '03_discovery';
       if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('detail')) return '04_place_interest';
       if (eventName.includes('submit') || eventName.includes('delete')) return '06_create_or_manage';
-      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip')) return '05_engagement';
+      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip') || eventName.includes('feature')) return '05_engagement';
       return '00_other';
     }
 
@@ -3768,6 +3770,7 @@
       if (eventName.includes('submit')) return 'create';
       if (eventName.includes('comment')) return 'comment';
       if (eventName.includes('recommend')) return 'recommend';
+      if (eventName.includes('feature_expectation')) return 'feature_request';
       if (eventName.includes('copy')) return 'copy';
       if (eventName.includes('delete')) return 'delete';
       if (eventName.includes('filter') || eventName.includes('select')) return 'preference';
@@ -3779,6 +3782,7 @@
       if (eventName.includes('marker') || eventName.includes('place')) return 'place_interest';
       if (eventName.includes('review_cta') || eventName.includes('review_submit')) return 'review_intent';
       if (eventName.includes('community_tip_submit') || eventName.includes('community_post_comment_submit')) return 'community_contribution';
+      if (eventName.includes('feature_expectation') || eventName.includes('feature_placeholder')) return 'feature_demand';
       if (eventName.includes('recommend')) return 'social_proof';
       if (eventName.includes('copy')) return 'offline_action';
       if (eventName.includes('filter') || eventName.includes('language')) return 'preference_signal';
@@ -3794,6 +3798,7 @@
         'community_tip_comment_submit',
         'community_post_recommend_click',
         'community_tip_recommend_click',
+        'feature_expectation_click',
         'address_copy_click',
         'cafe_address_copy_click'
       ].includes(eventName) ? 'yes' : 'no';
@@ -5149,7 +5154,7 @@
 
       if (activeFeature) {
         document.getElementById('screen-log').innerHTML = `
-          <button class="secondary" data-log-back="true" type="button">← ${t('logBack')}</button>
+          <button class="secondary placeholder-back" data-log-back="true" type="button">← ${t('logBack')}</button>
           <section class="card placeholder-page">
             <div class="placeholder-icon">${activeFeature.icon}</div>
             <div>
@@ -6239,8 +6244,12 @@
       document.querySelectorAll('[data-log-feature]').forEach(button => {
         button.onclick = () => {
           state.logFeatureId = button.dataset.logFeature;
-          trackEvent('my_log_feature_click', {
-            feature_id: state.logFeatureId
+          const feature = [...document.querySelectorAll('[data-log-feature]')]
+            .find(item => item.dataset.logFeature === state.logFeatureId);
+          trackEvent('feature_placeholder_open', {
+            feature_id: state.logFeatureId,
+            feature_title: feature ? feature.querySelector('strong')?.textContent || '' : '',
+            source_tab: 'log'
           });
           renderAll();
         };
@@ -6248,6 +6257,10 @@
 
       document.querySelectorAll('[data-log-back]').forEach(button => {
         button.onclick = () => {
+          trackEvent('feature_placeholder_back_click', {
+            feature_id: state.logFeatureId,
+            source_tab: 'log'
+          });
           state.logFeatureId = '';
           renderAll();
         };
@@ -6263,9 +6276,11 @@
             state.likedLogFeatures.push(featureId);
           }
           saveLogFeatureLikes();
-          trackEvent('my_log_feature_like_click', {
+          trackEvent('feature_expectation_click', {
             feature_id: featureId,
-            liked: wasLiked ? 'no' : 'yes'
+            liked: wasLiked ? 'no' : 'yes',
+            expectation_state: wasLiked ? 'removed' : 'added',
+            source_tab: 'log'
           });
           renderAll();
         };
