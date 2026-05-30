@@ -1230,10 +1230,7 @@
     }
 
     .leaflet-control-zoom {
-      border: 1px solid rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      overflow: hidden;
-      background: #ffffff;
+      display: none;
     }
 
     .leaflet-control-zoom a {
@@ -4106,7 +4103,6 @@
       }
 
       state.map = L.map('map', { zoomControl: false }).setView(state.mapView.center, state.mapView.zoom);
-      L.control.zoom({ position: 'topright' }).addTo(state.map);
       L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
         maxZoom: 19,
         subdomains: 'abcd',
