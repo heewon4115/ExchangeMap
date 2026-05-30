@@ -206,6 +206,7 @@ All events also include common context so GA4 Realtime and Explorations are easi
 - `community_tip_recommend_click`: fires when users recommend a community tip.
 - `community_tip_comment_submit`: fires when users comment on a community tip.
 - `community_tip_delete_click`: fires when users try to delete a community tip.
+- `community_post_recommend_click`: fires when users recommend a built-in Community board or guide post.
 - `address_copy_click`: fires when users copy a place address.
 - `current_location_prompt` and `current_location_click`: fire for location permission/result testing.
 - `add_record_click`: fires when users go to add a new record.

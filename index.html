@@ -1484,6 +1484,16 @@
       }
     }
 
+    function communityPostRecommendCount(postId, baseCount = 0) {
+      return baseCount + (state.recommendedCommunityTips.includes(`post:${postId}`) ? 1 : 0);
+    }
+
+    function communityPostRecommendButton(postId, baseCount = 0) {
+      const recommendId = `post:${postId}`;
+      const recommended = state.recommendedCommunityTips.includes(recommendId);
+      return `<button class="recommend-button ${recommended ? 'active' : ''}" data-community-post-recommend="${postId}" data-community-post-recommend-base="${baseCount}" type="button">👍 ${communityPostRecommendCount(postId, baseCount)}</button>`;
+    }
+
     function hasSupabaseConfig() {
       return SUPABASE_URL.startsWith('https://') && SUPABASE_URL.includes('.supabase.co') && SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_');
     }
@@ -3268,6 +3278,9 @@
               <span class="badge">laptop-friendly</span>
             </div>
           `}
+          <div class="tip-actions">
+            ${communityPostRecommendButton('cafe-recommendations-snu', 24)}
+          </div>
           <div class="post-expand-row">
             <span>${isExpanded ? ct('collapse') : ct('cafeOpen')}</span>
             <span>${isExpanded ? '⌃' : '⌄'}</span>
@@ -3357,6 +3370,9 @@
               <span class="badge">safety tips</span>
             </div>
           `}
+          <div class="tip-actions">
+            ${communityPostRecommendButton('korean-campus-culture', 18)}
+          </div>
           <div class="post-expand-row">
             <span>${isExpanded ? ct('collapse') : ct('campusOpen')}</span>
             <span>${isExpanded ? '⌃' : '⌄'}</span>
@@ -3460,6 +3476,9 @@
               <span class="badge">what to bring</span>
             </div>
           `}
+          <div class="tip-actions">
+            ${communityPostRecommendButton('summer-festivals-korea', 21)}
+          </div>
           <div class="post-expand-row">
             <span>${isExpanded ? ct('collapse') : ct('summerOpen')}</span>
             <span>${isExpanded ? '⌃' : '⌄'}</span>
@@ -3644,6 +3663,9 @@
                 <p class="meta" style="margin-top:8px;">${ct('postReplyPrompt')}</p>
               </div>
             ` : ''}
+            <div class="tip-actions">
+              ${communityPostRecommendButton(postId, replies)}
+            </div>
             <div class="post-expand-row">
               <span>${isExpanded ? ct('collapse') : ct('openPost')}</span>
               <span>${isExpanded ? '⌃' : '⌄'}</span>
@@ -4070,6 +4092,29 @@
           trackEvent('community_post_toggle', {
             post_id: postId,
             expanded: willOpen ? 'yes' : 'no'
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-community-post-recommend]').forEach(button => {
+        button.onclick = event => {
+          event.stopPropagation();
+          const postId = button.dataset.communityPostRecommend;
+          const baseCount = Number(button.dataset.communityPostRecommendBase || 0);
+          const recommendId = `post:${postId}`;
+          const wasRecommended = state.recommendedCommunityTips.includes(recommendId);
+          if (wasRecommended) {
+            state.recommendedCommunityTips = state.recommendedCommunityTips.filter(item => item !== recommendId);
+          } else {
+            state.recommendedCommunityTips.push(recommendId);
+          }
+          saveCommunityTips();
+          trackEvent('community_post_recommend_click', {
+            post_id: postId,
+            board: state.communityBoard,
+            recommended: wasRecommended ? 'no' : 'yes',
+            recommend_count: communityPostRecommendCount(postId, baseCount)
           });
           renderAll();
         };
