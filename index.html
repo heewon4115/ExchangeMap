@@ -649,6 +649,20 @@
       box-shadow: none;
     }
 
+    .map-add-button {
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: auto;
+      min-height: 38px;
+      margin-top: 0;
+      padding: 8px 13px;
+      border-radius: 999px;
+      font-size: 13px;
+      box-shadow: 0 10px 22px rgba(23, 105, 224, 0.18);
+    }
+
     .map-top-panel .chip-row {
       padding-bottom: 0;
     }
@@ -1066,13 +1080,108 @@
       color: #8a5a00;
     }
 
+    .log-profile {
+      display: grid;
+      grid-template-columns: 58px minmax(0, 1fr);
+      gap: 13px;
+      align-items: center;
+      padding: 16px;
+      margin-bottom: 16px;
+      background:
+        radial-gradient(circle at 0% 0%, rgba(23, 105, 224, 0.10), transparent 34%),
+        linear-gradient(135deg, #ffffff, #fff8ec);
+    }
+
+    .profile-avatar {
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--brown-soft);
+      color: var(--brown);
+      font-weight: 900;
+      font-size: 19px;
+      box-shadow: inset 0 0 0 1px rgba(138, 90, 50, 0.12);
+    }
+
+    .profile-name {
+      margin: 0 0 4px;
+      font-size: 18px;
+      font-weight: 900;
+    }
+
+    .log-feature-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 9px;
+      margin-bottom: 16px;
+    }
+
+    .log-feature-card {
+      min-height: 104px;
+      padding: 12px 10px;
+      text-align: left;
+      color: var(--ink);
+    }
+
+    .log-feature-card span:first-child {
+      display: block;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+
+    .log-feature-card strong {
+      display: block;
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .log-feature-card small {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+
+    .placeholder-page {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .placeholder-icon {
+      width: 62px;
+      height: 62px;
+      margin: 0 auto;
+      border-radius: 24px;
+      display: grid;
+      place-items: center;
+      background: var(--purple-soft);
+      color: var(--purple);
+      font-size: 28px;
+    }
+
+    .like-button {
+      width: auto;
+      justify-self: center;
+      min-width: 132px;
+    }
+
+    .like-button.active {
+      background: var(--purple);
+      box-shadow: 0 10px 22px rgba(123, 97, 255, 0.22);
+    }
+
     .bottom-nav {
       position: absolute;
       left: 12px;
       right: 12px;
       bottom: 10px;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
       padding: 8px;
       border: 1px solid rgba(255, 255, 255, 0.86);
@@ -1486,6 +1595,19 @@
         grid-template-columns: 1fr;
       }
 
+      .log-feature-grid {
+        gap: 7px;
+      }
+
+      .log-feature-card {
+        min-height: 98px;
+        padding: 10px 8px;
+      }
+
+      .log-feature-card strong {
+        font-size: 12px;
+      }
+
       .detail-screen {
         padding-top: 44px;
       }
@@ -1499,7 +1621,6 @@
       <main class="app" id="appRoot">
         <section class="screen active" id="screen-map"></section>
         <section class="screen" id="screen-detail"></section>
-        <section class="screen" id="screen-home"></section>
         <section class="screen" id="screen-add"></section>
         <section class="screen" id="screen-community"></section>
         <section class="screen" id="screen-log"></section>
@@ -1539,6 +1660,7 @@
 
     const COMMUNITY_TIPS_STORAGE_KEY = 'exchange_map_community_tips';
     const COMMUNITY_RECOMMENDS_STORAGE_KEY = 'exchange_map_community_recommended_tips';
+    const LOG_FEATURE_LIKES_STORAGE_KEY = 'exchange_map_log_feature_likes';
 
     function loadStoredJson(key, fallback) {
       try {
@@ -1582,6 +1704,14 @@
         localStorage.setItem(COMMUNITY_RECOMMENDS_STORAGE_KEY, JSON.stringify(state.recommendedCommunityTips));
       } catch (error) {
         console.warn('Community tips could not be saved locally.', error);
+      }
+    }
+
+    function saveLogFeatureLikes() {
+      try {
+        localStorage.setItem(LOG_FEATURE_LIKES_STORAGE_KEY, JSON.stringify(state.likedLogFeatures));
+      } catch (error) {
+        console.warn('My Log likes could not be saved locally.', error);
       }
     }
 
@@ -1752,6 +1882,8 @@
       reviewSubmitted: false,
       communityTips: loadStoredJson(COMMUNITY_TIPS_STORAGE_KEY, defaultCommunityTips()),
       recommendedCommunityTips: loadStoredJson(COMMUNITY_RECOMMENDS_STORAGE_KEY, []),
+      likedLogFeatures: loadStoredJson(LOG_FEATURE_LIKES_STORAGE_KEY, []),
+      logFeatureId: '',
       communitySyncStatus: hasSupabaseConfig() ? 'connecting' : 'local',
       analyticsEventCount: 0,
       mapView: { center: [37.4702, 126.9524], zoom: 14 },
@@ -3031,7 +3163,8 @@
     function renderNav() {
       const navItems = [
         ['map', '⌖', 'navMap'],
-        ['community', '◈', 'navCommunity']
+        ['community', '◈', 'navCommunity'],
+        ['log', '◇', 'navLog']
       ];
       document.getElementById('bottomNav').innerHTML = navItems.map(([tab, icon, labelKey]) => `
         <button class="nav-button ${state.tab === tab ? 'active' : ''}" data-tab="${tab}" type="button"><span>${icon}</span><span>${t(labelKey)}</span></button>
@@ -3108,18 +3241,6 @@
       `;
     }
 
-    function renderHome() {
-      document.getElementById('screen-home').innerHTML = `
-        ${header(t('homeTitle'), t('homeSubtitle'))}
-        ${searchBar(t('homeSearch'))}
-        <div class="quick-grid">
-          ${categories.slice(1).map(category => `<button class="quick" data-category="${category.id}"><span>${category.icon}</span><span>${translatedCategory(category.id)}</span></button>`).join('')}
-        </div>
-        <div class="section-title"><h2>${t('hotPlaces')}</h2><span>${t('nearSnu')}</span></div>
-        ${places.filter(place => place.isStudentReviewed).slice(0, 3).map(placeCard).join('')}
-      `;
-    }
-
     function renderMapScreen() {
       const place = hasSelectedPlace() ? selectedPlace() : null;
       document.getElementById('screen-map').innerHTML = `
@@ -3140,6 +3261,7 @@
             </div>
             <div class="map-filter-area">
               ${searchBar(t('mapSearch'))}
+              <button class="primary map-add-button" data-add-record="true" type="button">＋ ${t('addNewRecord')}</button>
               ${chipRow(categories, state.category, 'category')}
               ${chipRow(countries, state.country, 'country')}
               ${chipRow(languages, state.language, 'language', 'community')}
@@ -3228,9 +3350,10 @@
       const ratingOptions = [];
       for (let rating = 0.5; rating <= 5; rating += 0.5) ratingOptions.push(rating);
       document.getElementById('screen-add').innerHTML = `
+        <button class="secondary" data-back-to-map="true" type="button">← ${t('backToMap')}</button>
         ${header(t('addTitle'), t('addSubtitle'), t('warmLog'))}
         <div class="form">
-          <div class="field"><label>${t('place')}</label><input value="${selectedPlace().name}" /></div>
+          <div class="field"><label>${t('place')}</label><input id="addPlaceName" value="${selectedPlace().name}" /></div>
           <div class="field"><label>${t('addPhotos')}</label><button class="secondary" type="button">＋ ${t('addPhotoPlaceholder')}</button></div>
           <div class="field">
             <label>${t('rating')}</label>
@@ -3239,8 +3362,8 @@
               ${ratingOptions.map(rating => `<button class="rating-pill ${rating === state.selectedRating ? 'active' : ''}" data-rating="${rating}" type="button">${rating.toFixed(1)}</button>`).join('')}
             </div>
           </div>
-          <div class="field"><label>${t('oneLineReview')}</label><input placeholder="${t('reviewPlaceholder')}" /></div>
-          <div class="field"><label>${t('optionalMemo')}</label><textarea rows="3" placeholder="${t('memoPlaceholder')}"></textarea></div>
+          <div class="field"><label>${t('oneLineReview')}</label><input id="addReviewText" placeholder="${t('reviewPlaceholder')}" /></div>
+          <div class="field"><label>${t('optionalMemo')}</label><textarea id="addMemoText" rows="3" placeholder="${t('memoPlaceholder')}"></textarea></div>
           <div class="field">
             <label>${t('practicalTags')}</label>
             <div class="chip-row" data-chip-row="tags">
@@ -3255,7 +3378,7 @@
               <button class="chip">${t('sameSchoolOnly')}</button>
             </div>
           </div>
-          <button class="primary" type="button">${t('saveRecord')}</button>
+          <button class="primary" id="saveAddRecord" type="button">${t('saveRecord')}</button>
           <button class="secondary" type="button">${t('shareTip')}</button>
         </div>
       `;
@@ -4053,25 +4176,68 @@
     }
 
     function renderLog() {
+      const communityFeatures = [
+        { id: 'my-posts', icon: '✍', title: 'My posts', meta: 'Community에서 내가 쓴 글' },
+        { id: 'my-comments', icon: '💬', title: 'My comments', meta: '댓글 단 글' },
+        { id: 'my-liked-posts', icon: '👍', title: 'Liked posts', meta: '좋아요 누른 글' }
+      ];
+      const mapFeatures = [
+        { id: 'my-reviewed-places', icon: '★', title: 'Reviewed places', meta: '내가 리뷰한 장소들' },
+        { id: 'my-saved-places', icon: '◇', title: 'Saved places', meta: '내가 저장한 모든 장소들' },
+        { id: 'my-place-lists', icon: '☰', title: 'Place lists', meta: '나의 장소 리스트들' }
+      ];
+      const allFeatures = [...communityFeatures, ...mapFeatures];
+      const activeFeature = allFeatures.find(feature => feature.id === state.logFeatureId);
+      const liked = activeFeature && state.likedLogFeatures.includes(activeFeature.id);
+
+      if (activeFeature) {
+        document.getElementById('screen-log').innerHTML = `
+          <button class="secondary" data-log-back="true" type="button">← My Log</button>
+          <section class="card placeholder-page">
+            <div class="placeholder-icon">${activeFeature.icon}</div>
+            <div>
+              <p class="eyebrow">Coming soon</p>
+              <h1>${activeFeature.title}</h1>
+              <p class="subtitle">아직 안 만들어졌어요!</p>
+              <p class="meta">${activeFeature.meta}</p>
+            </div>
+            <button class="primary like-button ${liked ? 'active' : ''}" data-log-like="${activeFeature.id}" type="button">
+              👍 ${liked ? 'Liked' : '기대돼요'}
+            </button>
+          </section>
+        `;
+        return;
+      }
+
       document.getElementById('screen-log').innerHTML = `
         ${header(t('logTitle'), t('logSubtitle'), t('warmLog'))}
-        ${chipRow(['All', 'Food', 'Health', 'Life', 'Embassy', 'Saved'], 'All', 'log')}
-        ${places.slice(0, 4).map(place => `
-          <article class="place-card">
-            <div class="thumb">${place.icon}</div>
-            <div>
-              <h3>${place.name}</h3>
-              <p class="meta">May 2026 · ★ ${place.rating} · ${translatedCategory(place.category)}</p>
-              ${badges(place)}
-              <p class="meta" style="margin-top:8px;">${t('personalNote')}</p>
-            </div>
-          </article>
-        `).join('')}
-        <div class="section-title"><h2>${t('myCategories')}</h2><span>${t('studentNotes')}</span></div>
-        ${['English-speaking hospitals', 'Vegan places', 'Places I reviewed', 'Needs sorting'].map(item => `
-          <div class="card" style="padding:13px;margin-bottom:8px;"><strong>${item}</strong><p class="meta">${t('savedList')}</p></div>
-        `).join('')}
-        <button class="primary" data-add-record="true">＋ ${t('addNewRecord')}</button>
+        <section class="card log-profile">
+          <div class="profile-avatar">EM</div>
+          <div>
+            <p class="profile-name">Exchange Map Tester</p>
+            <p class="meta">Seoul National University · Exchange student prototype profile</p>
+          </div>
+        </section>
+        <div class="section-title"><h2>Community activity</h2><span>My interactions</span></div>
+        <div class="log-feature-grid">
+          ${communityFeatures.map(feature => `
+            <button class="card log-feature-card" data-log-feature="${feature.id}" type="button">
+              <span>${feature.icon}</span>
+              <strong>${feature.title}</strong>
+              <small>${feature.meta}</small>
+            </button>
+          `).join('')}
+        </div>
+        <div class="section-title"><h2>Map activity</h2><span>Places and lists</span></div>
+        <div class="log-feature-grid">
+          ${mapFeatures.map(feature => `
+            <button class="card log-feature-card" data-log-feature="${feature.id}" type="button">
+              <span>${feature.icon}</span>
+              <strong>${feature.title}</strong>
+              <small>${feature.meta}</small>
+            </button>
+          `).join('')}
+        </div>
       `;
     }
 
@@ -4351,6 +4517,7 @@
           const previousTab = state.tab;
           state.tab = button.dataset.tab;
           if (state.tab === 'map') state.searchOptionsOpen = false;
+          if (state.tab !== 'log') state.logFeatureId = '';
           trackEvent('tab_click', {
             previous_tab: previousTab,
             destination_tab: state.tab
@@ -4857,8 +5024,10 @@
             country_filter: state.country,
             language_filter: state.language
           });
-          state.reviewModalOpen = true;
+          state.reviewModalOpen = false;
           state.reviewSubmitted = false;
+          state.tab = 'add';
+          trackEvent('screen_view', { screen_name: state.tab, source: 'review_cta' });
           renderAll();
         };
       });
@@ -4927,12 +5096,84 @@
           renderAll();
         };
       });
+
+      const saveAddRecord = document.getElementById('saveAddRecord');
+      if (saveAddRecord) {
+        saveAddRecord.onclick = () => {
+          const place = selectedPlace();
+          const reviewText = document.getElementById('addReviewText') ? document.getElementById('addReviewText').value.trim() : '';
+          const memoText = document.getElementById('addMemoText') ? document.getElementById('addMemoText').value.trim() : '';
+          const newReview = {
+            id: `submitted-${place.id}-${Date.now()}`,
+            name: 'You',
+            country: state.country === 'All' ? 'USA' : state.country,
+            school: 'Seoul National University',
+            language: state.language,
+            rating: state.selectedRating,
+            date: 'Just now',
+            recommends: 0,
+            text: reviewText || memoText || 'Prototype review submitted by a tester.'
+          };
+
+          state.submittedReviews = {
+            ...state.submittedReviews,
+            [place.id]: [newReview, ...(state.submittedReviews[place.id] || [])]
+          };
+
+          trackEvent('review_submit', {
+            place_id: place.id,
+            place_name: place.name,
+            place_category: place.category,
+            country: newReview.country,
+            rating: newReview.rating,
+            review_text_length: newReview.text.length,
+            has_review_text: reviewText || memoText ? 'yes' : 'no',
+            source: 'add_screen'
+          });
+          state.tab = 'detail';
+          renderAll();
+        };
+      }
+
+      document.querySelectorAll('[data-log-feature]').forEach(button => {
+        button.onclick = () => {
+          state.logFeatureId = button.dataset.logFeature;
+          trackEvent('my_log_feature_click', {
+            feature_id: state.logFeatureId
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-log-back]').forEach(button => {
+        button.onclick = () => {
+          state.logFeatureId = '';
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-log-like]').forEach(button => {
+        button.onclick = () => {
+          const featureId = button.dataset.logLike;
+          const wasLiked = state.likedLogFeatures.includes(featureId);
+          if (wasLiked) {
+            state.likedLogFeatures = state.likedLogFeatures.filter(item => item !== featureId);
+          } else {
+            state.likedLogFeatures.push(featureId);
+          }
+          saveLogFeatureLikes();
+          trackEvent('my_log_feature_like_click', {
+            feature_id: featureId,
+            liked: wasLiked ? 'no' : 'yes'
+          });
+          renderAll();
+        };
+      });
     }
 
     function renderAll() {
       renderLanguageSwitcher();
       renderNav();
-      renderHome();
       renderMapScreen();
       renderDetailScreen();
       renderAdd();
