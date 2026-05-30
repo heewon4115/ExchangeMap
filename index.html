@@ -2105,6 +2105,29 @@
         needsTip: 'needs local tip',
         logTitle: 'My Log',
         logSubtitle: 'Your saved memories and useful places.',
+        logProfileName: 'Exchange Map Tester',
+        logProfileMeta: 'Seoul National University · Exchange student prototype profile',
+        logCommunityActivity: 'Community activity',
+        logCommunityMeta: 'My interactions',
+        logMapActivity: 'Map activity',
+        logMapMeta: 'Places and lists',
+        logMyPosts: 'My posts',
+        logMyPostsMeta: 'Posts I wrote in Community',
+        logMyComments: 'My comments',
+        logMyCommentsMeta: 'Posts I commented on',
+        logLikedPosts: 'Liked posts',
+        logLikedPostsMeta: 'Posts I recommended',
+        logReviewedPlaces: 'Reviewed places',
+        logReviewedPlacesMeta: 'Places I reviewed on the map',
+        logSavedPlaces: 'Saved places',
+        logSavedPlacesMeta: 'All places I saved',
+        logPlaceLists: 'Place lists',
+        logPlaceListsMeta: 'My custom place lists',
+        logComingSoon: 'Coming soon',
+        logNotReady: 'This page is not ready yet!',
+        logBack: 'My Log',
+        logLikeIdle: 'Looks useful',
+        logLikeActive: 'Liked',
         personalNote: 'Personal note: useful for the first month near SNU.',
         myCategories: 'My Categories',
         studentNotes: 'student notes',
@@ -2206,6 +2229,29 @@
         needsTip: '需要本地建议',
         logTitle: '我的记录',
         logSubtitle: '你收藏的回忆和实用地点。',
+        logProfileName: 'Exchange Map 测试用户',
+        logProfileMeta: '首尔大学 · 交换学生原型资料',
+        logCommunityActivity: '社区活动',
+        logCommunityMeta: '我的互动',
+        logMapActivity: '地图活动',
+        logMapMeta: '地点和列表',
+        logMyPosts: '我的帖子',
+        logMyPostsMeta: '我在社区写的帖子',
+        logMyComments: '我的评论',
+        logMyCommentsMeta: '我评论过的帖子',
+        logLikedPosts: '推荐过的帖子',
+        logLikedPostsMeta: '我点过推荐的帖子',
+        logReviewedPlaces: '评价过的地点',
+        logReviewedPlacesMeta: '我在地图上评价过的地点',
+        logSavedPlaces: '收藏地点',
+        logSavedPlacesMeta: '我保存的所有地点',
+        logPlaceLists: '地点列表',
+        logPlaceListsMeta: '我的地点列表',
+        logComingSoon: '即将推出',
+        logNotReady: '这个页面还没有做好！',
+        logBack: '我的记录',
+        logLikeIdle: '期待这个功能',
+        logLikeActive: '已期待',
         personalNote: '个人笔记：适合刚到首尔大学附近的第一个月。',
         myCategories: '我的分类',
         studentNotes: '学生笔记',
@@ -2307,6 +2353,29 @@
         needsTip: '현지 팁 필요',
         logTitle: '내 기록',
         logSubtitle: '저장한 추억과 유용한 장소.',
+        logProfileName: 'Exchange Map 테스터',
+        logProfileMeta: '서울대학교 · 교환학생 프로토타입 프로필',
+        logCommunityActivity: '커뮤니티 활동',
+        logCommunityMeta: '내 상호작용',
+        logMapActivity: '지도 활동',
+        logMapMeta: '장소와 리스트',
+        logMyPosts: '내가 쓴 글',
+        logMyPostsMeta: '커뮤니티에서 내가 쓴 글',
+        logMyComments: '내 댓글',
+        logMyCommentsMeta: '댓글 단 글',
+        logLikedPosts: '추천한 글',
+        logLikedPostsMeta: '좋아요 누른 글',
+        logReviewedPlaces: '리뷰한 장소',
+        logReviewedPlacesMeta: '지도에서 내가 리뷰한 장소들',
+        logSavedPlaces: '저장한 장소',
+        logSavedPlacesMeta: '내가 저장한 모든 장소들',
+        logPlaceLists: '장소 리스트',
+        logPlaceListsMeta: '나의 장소 리스트들',
+        logComingSoon: '준비 중',
+        logNotReady: '아직 안 만들어졌어요!',
+        logBack: '내 기록',
+        logLikeIdle: '기대돼요',
+        logLikeActive: '기대 중',
         personalNote: '개인 메모: 서울대 근처 첫 달에 유용함.',
         myCategories: '내 카테고리',
         studentNotes: '학생 노트',
@@ -4386,14 +4455,14 @@
 
     function renderLog() {
       const communityFeatures = [
-        { id: 'my-posts', icon: '✍', title: 'My posts', meta: 'Community에서 내가 쓴 글' },
-        { id: 'my-comments', icon: '💬', title: 'My comments', meta: '댓글 단 글' },
-        { id: 'my-liked-posts', icon: '👍', title: 'Liked posts', meta: '좋아요 누른 글' }
+        { id: 'my-posts', icon: '✍', title: t('logMyPosts'), meta: t('logMyPostsMeta') },
+        { id: 'my-comments', icon: '💬', title: t('logMyComments'), meta: t('logMyCommentsMeta') },
+        { id: 'my-liked-posts', icon: '👍', title: t('logLikedPosts'), meta: t('logLikedPostsMeta') }
       ];
       const mapFeatures = [
-        { id: 'my-reviewed-places', icon: '★', title: 'Reviewed places', meta: '내가 리뷰한 장소들' },
-        { id: 'my-saved-places', icon: '◇', title: 'Saved places', meta: '내가 저장한 모든 장소들' },
-        { id: 'my-place-lists', icon: '☰', title: 'Place lists', meta: '나의 장소 리스트들' }
+        { id: 'my-reviewed-places', icon: '★', title: t('logReviewedPlaces'), meta: t('logReviewedPlacesMeta') },
+        { id: 'my-saved-places', icon: '◇', title: t('logSavedPlaces'), meta: t('logSavedPlacesMeta') },
+        { id: 'my-place-lists', icon: '☰', title: t('logPlaceLists'), meta: t('logPlaceListsMeta') }
       ];
       const allFeatures = [...communityFeatures, ...mapFeatures];
       const activeFeature = allFeatures.find(feature => feature.id === state.logFeatureId);
@@ -4401,17 +4470,17 @@
 
       if (activeFeature) {
         document.getElementById('screen-log').innerHTML = `
-          <button class="secondary" data-log-back="true" type="button">← My Log</button>
+          <button class="secondary" data-log-back="true" type="button">← ${t('logBack')}</button>
           <section class="card placeholder-page">
             <div class="placeholder-icon">${activeFeature.icon}</div>
             <div>
-              <p class="eyebrow">Coming soon</p>
+              <p class="eyebrow">${t('logComingSoon')}</p>
               <h1>${activeFeature.title}</h1>
-              <p class="subtitle">아직 안 만들어졌어요!</p>
+              <p class="subtitle">${t('logNotReady')}</p>
               <p class="meta">${activeFeature.meta}</p>
             </div>
             <button class="primary like-button ${liked ? 'active' : ''}" data-log-like="${activeFeature.id}" type="button">
-              👍 ${liked ? 'Liked' : '기대돼요'}
+              👍 ${liked ? t('logLikeActive') : t('logLikeIdle')}
             </button>
           </section>
         `;
@@ -4423,11 +4492,11 @@
         <section class="card log-profile">
           <div class="profile-avatar">EM</div>
           <div>
-            <p class="profile-name">Exchange Map Tester</p>
-            <p class="meta">Seoul National University · Exchange student prototype profile</p>
+            <p class="profile-name">${t('logProfileName')}</p>
+            <p class="meta">${t('logProfileMeta')}</p>
           </div>
         </section>
-        <div class="section-title"><h2>Community activity</h2><span>My interactions</span></div>
+        <div class="section-title"><h2>${t('logCommunityActivity')}</h2><span>${t('logCommunityMeta')}</span></div>
         <div class="log-feature-grid">
           ${communityFeatures.map(feature => `
             <button class="card log-feature-card" data-log-feature="${feature.id}" type="button">
@@ -4437,7 +4506,7 @@
             </button>
           `).join('')}
         </div>
-        <div class="section-title"><h2>Map activity</h2><span>Places and lists</span></div>
+        <div class="section-title"><h2>${t('logMapActivity')}</h2><span>${t('logMapMeta')}</span></div>
         <div class="log-feature-grid">
           ${mapFeatures.map(feature => `
             <button class="card log-feature-card" data-log-feature="${feature.id}" type="button">
