@@ -287,6 +287,24 @@
       font-size: 17px;
     }
 
+    .community-floating-action {
+      position: sticky;
+      bottom: 12px;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      margin: 18px 0 4px;
+      pointer-events: none;
+    }
+
+    .community-floating-action button {
+      width: auto;
+      min-width: min(320px, 100%);
+      border-radius: 999px;
+      pointer-events: auto;
+      box-shadow: 0 14px 34px rgba(23, 105, 224, 0.24);
+    }
+
     .tip-input,
     .tip-select,
     .tip-textarea,
@@ -1872,6 +1890,7 @@
       searchOptionsOpen: false,
       uiLanguage: 'en',
       communityBoard: 'info',
+      communityComposerOpen: false,
       expandedCommunityPost: '',
       copiedCafeAddress: '',
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
@@ -4066,29 +4085,28 @@
         local: ct('syncLocal')
       }[state.communitySyncStatus] || 'Tips are saved in this browser.';
 
+      if (state.communityComposerOpen) {
+        document.getElementById('screen-community').innerHTML = `
+          <button class="secondary" data-close-tip-composer="true" type="button">← ${t('community')}</button>
+          ${header(ct('composerTitle'), t('communitySubtitle'), t('communityKnowledge'))}
+          <div class="tip-composer">
+            <h3>${ct('composerTitle')}</h3>
+            <select class="tip-select" id="tipBoard">
+              ${boards.map(board => `<option value="${board.id}" ${board.id === activeBoard.id ? 'selected' : ''}>${board.label}</option>`).join('')}
+            </select>
+            <input class="tip-input" id="tipAuthor" placeholder="${ct('authorPlaceholder')}" />
+            <input class="tip-input" id="tipTitle" placeholder="${ct('titlePlaceholder')}" />
+            <textarea class="tip-textarea" id="tipBody" placeholder="${ct('bodyPlaceholder')}"></textarea>
+            <input class="tip-input" id="tipDeleteCode" type="password" placeholder="${ct('deletePasswordPlaceholder')}" autocomplete="new-password" />
+            <button class="primary" id="shareTipButton" type="button">${ct('shareButton')}</button>
+            <p class="meta">${communitySaveNote} ${ct('deleteReminder')}</p>
+          </div>
+        `;
+        return;
+      }
+
       document.getElementById('screen-community').innerHTML = `
         ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
-        <div class="hero-card card">
-          <h2 style="margin:0 0 8px;font-size:18px;">${t('signalBoard')}</h2>
-          <div class="hero-stats">
-            <div class="stat"><strong>1,248</strong><span>${t('placeSaves')}</span></div>
-            <div class="stat"><strong>563</strong><span>${t('studentTips')}</span></div>
-            <div class="stat"><strong>87</strong><span>${t('recentUpdates')}</span></div>
-          </div>
-        </div>
-        <div class="section-title"><h2>${t('community')}</h2><span>${t('studentPosts')}</span></div>
-        <div class="tip-composer">
-          <h3>${ct('composerTitle')}</h3>
-          <select class="tip-select" id="tipBoard">
-            ${boards.map(board => `<option value="${board.id}" ${board.id === activeBoard.id ? 'selected' : ''}>${board.label}</option>`).join('')}
-          </select>
-          <input class="tip-input" id="tipAuthor" placeholder="${ct('authorPlaceholder')}" />
-          <input class="tip-input" id="tipTitle" placeholder="${ct('titlePlaceholder')}" />
-          <textarea class="tip-textarea" id="tipBody" placeholder="${ct('bodyPlaceholder')}"></textarea>
-          <input class="tip-input" id="tipDeleteCode" type="password" placeholder="${ct('deletePasswordPlaceholder')}" autocomplete="new-password" />
-          <button class="primary" id="shareTipButton" type="button">${ct('shareButton')}</button>
-          <p class="meta">${communitySaveNote} ${ct('deleteReminder')}</p>
-        </div>
         <div class="board-chip-row">
           ${boards.map(board => `
             <button class="board-chip ${board.id === activeBoard.id ? 'active' : ''}" data-community-board="${board.id}" type="button">
@@ -4098,6 +4116,9 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
+        <div class="community-floating-action">
+          <button class="primary" data-open-tip-composer="true" type="button">${ct('composerTitle')}</button>
+        </div>
         ${activeBoard.id === 'info' ? `${renderSummerFestivalsPost()}${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
@@ -4518,6 +4539,7 @@
           state.tab = button.dataset.tab;
           if (state.tab === 'map') state.searchOptionsOpen = false;
           if (state.tab !== 'log') state.logFeatureId = '';
+          if (state.tab !== 'community') state.communityComposerOpen = false;
           trackEvent('tab_click', {
             previous_tab: previousTab,
             destination_tab: state.tab
@@ -4648,6 +4670,26 @@
         };
       });
 
+      document.querySelectorAll('[data-open-tip-composer]').forEach(button => {
+        button.onclick = () => {
+          state.communityComposerOpen = true;
+          trackEvent('community_tip_composer_open', {
+            board: state.communityBoard
+          });
+          renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-close-tip-composer]').forEach(button => {
+        button.onclick = () => {
+          state.communityComposerOpen = false;
+          trackEvent('community_tip_composer_close', {
+            board: state.communityBoard
+          });
+          renderAll();
+        };
+      });
+
       document.querySelectorAll('[data-community-post-toggle]').forEach(post => {
         post.onclick = () => {
           const postId = post.dataset.communityPostToggle;
@@ -4717,6 +4759,7 @@
           };
 
           state.communityBoard = board;
+          state.communityComposerOpen = false;
           state.communityTips = [newTip, ...state.communityTips];
           saveCommunityTips();
           trackEvent('community_tip_submit', {
