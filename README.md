@@ -57,8 +57,18 @@ create table community_comments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists community_post_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id text not null,
+  board text not null default 'info',
+  author text not null default 'Anonymous',
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
 alter table community_tips enable row level security;
 alter table community_comments enable row level security;
+alter table community_post_comments enable row level security;
 
 create policy "Anyone can read tips"
 on community_tips for select
@@ -81,6 +91,16 @@ create policy "Anyone can create comments"
 on community_comments for insert
 with check (true);
 
+drop policy if exists "Anyone can read board post comments" on community_post_comments;
+create policy "Anyone can read board post comments"
+on community_post_comments for select
+using (true);
+
+drop policy if exists "Anyone can create board post comments" on community_post_comments;
+create policy "Anyone can create board post comments"
+on community_post_comments for insert
+with check (true);
+
 create or replace function delete_community_tip(
   p_tip_id uuid,
   p_delete_code_hash text
@@ -100,6 +120,31 @@ end;
 $$;
 
 grant execute on function delete_community_tip(uuid, text) to anon, authenticated;
+```
+
+If you already created the Supabase tables before board post comments were added, run this once:
+
+```sql
+create table if not exists community_post_comments (
+  id uuid primary key default gen_random_uuid(),
+  post_id text not null,
+  board text not null default 'info',
+  author text not null default 'Anonymous',
+  body text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table community_post_comments enable row level security;
+
+drop policy if exists "Anyone can read board post comments" on community_post_comments;
+create policy "Anyone can read board post comments"
+on community_post_comments for select
+using (true);
+
+drop policy if exists "Anyone can create board post comments" on community_post_comments;
+create policy "Anyone can create board post comments"
+on community_post_comments for insert
+with check (true);
 ```
 
 If you already created the table before adding deletion passwords, run this once:

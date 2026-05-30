@@ -2026,6 +2026,26 @@
       };
     }
 
+    function normalizeCommunityPostComment(row) {
+      return {
+        id: row.id,
+        postId: row.post_id || '',
+        board: row.board || 'info',
+        author: row.author || 'Anonymous',
+        text: row.body || '',
+        createdAt: formatTipDate(row.created_at)
+      };
+    }
+
+    function groupCommunityPostComments(rows = []) {
+      return (rows || []).reduce((groups, row) => {
+        const comment = normalizeCommunityPostComment(row);
+        if (!comment.postId) return groups;
+        groups[comment.postId] = [...(groups[comment.postId] || []), comment];
+        return groups;
+      }, {});
+    }
+
     async function loadCommunityTipsFromSupabase() {
       if (!hasSupabaseConfig()) return;
       state.communitySyncStatus = 'loading';
@@ -2042,6 +2062,12 @@
         }, {});
         state.communityTips = (tips || []).map(row => normalizeCommunityTip(row, commentsByTip[row.id] || []));
         state.communitySyncStatus = 'online';
+        try {
+          const postComments = await supabaseRequest('/rest/v1/community_post_comments?select=*&order=created_at.asc');
+          state.communityPostComments = groupCommunityPostComments(postComments);
+        } catch (postCommentError) {
+          console.warn('Supabase board post comments are not ready yet. Falling back to local board comments.', postCommentError);
+        }
         saveCommunityTips();
         renderAll();
       } catch (error) {
@@ -2096,6 +2122,20 @@
         })
       });
       return normalizeCommunityComment(rows[0]);
+    }
+
+    async function createCommunityPostCommentInSupabase(postId, board, comment) {
+      const rows = await supabaseRequest('/rest/v1/community_post_comments', {
+        method: 'POST',
+        headers: { Prefer: 'return=representation' },
+        body: JSON.stringify({
+          post_id: postId,
+          board,
+          author: comment.author,
+          body: comment.text
+        })
+      });
+      return normalizeCommunityPostComment(rows[0]);
     }
 
     const state = {
@@ -5241,7 +5281,7 @@
       });
 
       document.querySelectorAll('[data-post-comment-submit]').forEach(button => {
-        button.onclick = event => {
+        button.onclick = async event => {
           event.stopPropagation();
           const postId = button.dataset.postCommentSubmit;
           const authorInput = document.querySelector(`[data-post-comment-author="${postId}"]`);
@@ -5250,14 +5290,17 @@
           const text = input ? input.value.trim() : '';
           if (!postId || !text) return;
 
+          const localCommentId = `post-comment-${Date.now()}`;
+          const newComment = {
+            id: localCommentId,
+            author: author || 'Anonymous',
+            text,
+            createdAt: 'Just now'
+          };
+
           state.communityPostComments[postId] = [
             ...(state.communityPostComments[postId] || []),
-            {
-              id: `post-comment-${Date.now()}`,
-              author: author || 'Anonymous',
-              text,
-              createdAt: 'Just now'
-            }
+            newComment
           ];
           saveCommunityTips();
           trackEvent('community_post_comment_submit', {
@@ -5265,9 +5308,34 @@
             board: state.communityBoard,
             comment_author_provided: author ? 'yes' : 'no',
             comment_length: text.length,
-            storage_target: 'local'
+            storage_target: hasSupabaseConfig() ? 'supabase_pending' : 'local'
           });
           renderAll();
+
+          if (hasSupabaseConfig()) {
+            try {
+              const savedComment = await createCommunityPostCommentInSupabase(postId, state.communityBoard, newComment);
+              state.communityPostComments[postId] = (state.communityPostComments[postId] || []).map(comment =>
+                comment.id === localCommentId ? savedComment : comment
+              );
+              state.communitySyncStatus = 'online';
+              saveCommunityTips();
+              trackEvent('community_post_comment_supabase_saved', {
+                post_id: postId,
+                board: state.communityBoard
+              });
+              renderAll();
+            } catch (error) {
+              state.communitySyncStatus = 'local';
+              console.warn('Board post comment was saved locally because Supabase insert failed.', error);
+              trackEvent('community_post_comment_supabase_error', {
+                post_id: postId,
+                board: state.communityBoard,
+                error_message: String(error.message || error).slice(0, 120)
+              });
+              renderAll();
+            }
+          }
         };
       });
 
