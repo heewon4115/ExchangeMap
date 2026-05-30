@@ -45,6 +45,7 @@ create table community_tips (
   title text not null,
   body text not null,
   recommends integer not null default 0,
+  delete_code_hash text,
   created_at timestamptz not null default now()
 );
 
@@ -79,6 +80,53 @@ using (true);
 create policy "Anyone can create comments"
 on community_comments for insert
 with check (true);
+
+create or replace function delete_community_tip(
+  p_tip_id uuid,
+  p_delete_code_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from community_tips
+  where id = p_tip_id
+    and delete_code_hash = p_delete_code_hash;
+
+  return found;
+end;
+$$;
+
+grant execute on function delete_community_tip(uuid, text) to anon, authenticated;
+```
+
+If you already created the table before adding deletion passwords, run this once:
+
+```sql
+alter table community_tips
+add column if not exists delete_code_hash text;
+
+create or replace function delete_community_tip(
+  p_tip_id uuid,
+  p_delete_code_hash text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  delete from community_tips
+  where id = p_tip_id
+    and delete_code_hash = p_delete_code_hash;
+
+  return found;
+end;
+$$;
+
+grant execute on function delete_community_tip(uuid, text) to anon, authenticated;
 ```
 
 If Supabase is not ready or the tables are missing, the app falls back to browser `localStorage`.
@@ -157,6 +205,7 @@ All events also include common context so GA4 Realtime and Explorations are easi
 - `community_tip_submit`: fires when users share a tip in the Community tab.
 - `community_tip_recommend_click`: fires when users recommend a community tip.
 - `community_tip_comment_submit`: fires when users comment on a community tip.
+- `community_tip_delete_click`: fires when users try to delete a community tip.
 - `address_copy_click`: fires when users copy a place address.
 - `current_location_prompt` and `current_location_click`: fire for location permission/result testing.
 - `add_record_click`: fires when users go to add a new record.
@@ -190,7 +239,7 @@ To add a real review, add an item inside that place's `reviews` array:
 
 Use `school` for the Korean university where the student is studying now, not their original home university.
 
-This prototype saves submitted place reviews in the current browser using `localStorage`. Community tips, community comments, and community recommendation counts are saved to Supabase when the database tables are available, with `localStorage` as a fallback.
+This prototype saves submitted place reviews in the current browser using `localStorage`. Community tips, community comments, community recommendation counts, and deletion password hashes are saved to Supabase when the database tables are available, with `localStorage` as a fallback.
 
 ## Example QR URL
 

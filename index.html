@@ -1447,6 +1447,17 @@
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
+    async function hashDeleteCode(value) {
+      const normalized = (value || '').trim();
+      if (!normalized) return '';
+      if (window.crypto && window.crypto.subtle) {
+        const bytes = new TextEncoder().encode(normalized);
+        const hashBuffer = await window.crypto.subtle.digest('SHA-256', bytes);
+        return Array.from(new Uint8Array(hashBuffer)).map(byte => byte.toString(16).padStart(2, '0')).join('');
+      }
+      return `plain:${normalized}`;
+    }
+
     async function supabaseRequest(path, options = {}) {
       if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
       const headers = {
@@ -1473,6 +1484,7 @@
         author: row.author || 'Anonymous student',
         createdAt: formatTipDate(row.created_at),
         recommends: Number(row.recommends || 0),
+        deleteCodeHash: row.delete_code_hash || '',
         comments
       };
     }
@@ -1520,10 +1532,21 @@
           author: tip.author,
           title: tip.title,
           body: tip.body,
-          recommends: tip.recommends || 0
+          recommends: tip.recommends || 0,
+          delete_code_hash: tip.deleteCodeHash || ''
         })
       });
       return normalizeCommunityTip(rows[0], []);
+    }
+
+    async function deleteCommunityTipInSupabase(tipId, deleteCodeHash) {
+      return supabaseRequest('/rest/v1/rpc/delete_community_tip', {
+        method: 'POST',
+        body: JSON.stringify({
+          p_tip_id: tipId,
+          p_delete_code_hash: deleteCodeHash
+        })
+      });
     }
 
     async function updateCommunityTipRecommendationInSupabase(tipId, recommends) {
@@ -3107,8 +3130,9 @@
           <input class="tip-input" id="tipAuthor" placeholder="Name / country / school" />
           <input class="tip-input" id="tipTitle" placeholder="Tip title" />
           <textarea class="tip-textarea" id="tipBody" placeholder="Write a practical tip, question, or note for other students."></textarea>
+          <input class="tip-input" id="tipDeleteCode" type="password" placeholder="Deletion password" autocomplete="new-password" />
           <button class="primary" id="shareTipButton" type="button">Share tip</button>
-          <p class="meta">${communitySaveNote}</p>
+          <p class="meta">${communitySaveNote} Remember your deletion password. It is required to delete your post later.</p>
         </div>
         <div class="board-chip-row">
           ${boards.map(board => `
@@ -3131,6 +3155,7 @@
               <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">student tip</span></div>
               <div class="tip-actions">
                 <button class="recommend-button ${recommended ? 'active' : ''}" data-tip-recommend="${tip.id}" type="button">👍 ${recommendCount}</button>
+                <button class="secondary" data-tip-delete="${tip.id}" type="button">Delete</button>
               </div>
               <div class="tip-comments">
                 ${(tip.comments || []).map(comment => `<div class="tip-comment"><strong>${escapeHtml(comment.author)}:</strong> ${escapeHtml(comment.text)}</div>`).join('')}
@@ -3567,11 +3592,18 @@
           const author = document.getElementById('tipAuthor').value.trim() || 'Anonymous student';
           const title = document.getElementById('tipTitle').value.trim();
           const body = document.getElementById('tipBody').value.trim();
+          const deleteCode = document.getElementById('tipDeleteCode').value.trim();
 
           if (!title || !body) {
             alert('Please add both a title and a tip.');
             return;
           }
+          if (!deleteCode) {
+            alert('Please add a deletion password so you can delete this post later.');
+            return;
+          }
+
+          const deleteCodeHash = await hashDeleteCode(deleteCode);
 
           const newTip = {
             id: `tip-${Date.now()}`,
@@ -3581,6 +3613,7 @@
             author,
             createdAt: 'Just now',
             recommends: 0,
+            deleteCodeHash,
             comments: []
           };
 
@@ -3592,6 +3625,7 @@
             tip_id: newTip.id,
             tip_title: title,
             tip_body_length: body.length,
+            has_delete_password: 'yes',
             storage_target: state.communitySyncStatus === 'online' ? 'supabase' : 'local'
           });
           renderAll();
@@ -3644,6 +3678,76 @@
               console.warn('Community recommendation was saved locally because Supabase update failed.', error);
             }
           }
+        };
+      });
+
+      document.querySelectorAll('[data-tip-delete]').forEach(button => {
+        button.onclick = async () => {
+          const tipId = button.dataset.tipDelete;
+          const tip = state.communityTips.find(item => item.id === tipId);
+          if (!tip) return;
+
+          if (!tip.deleteCodeHash) {
+            alert('This sample or older post does not have a deletion password.');
+            return;
+          }
+
+          const deleteCode = prompt('Enter the deletion password for this post.');
+          if (deleteCode === null) return;
+          const deleteCodeHash = await hashDeleteCode(deleteCode);
+
+          if (hasSupabaseConfig() && isSupabaseId(tip.id)) {
+            try {
+              const deleted = await deleteCommunityTipInSupabase(tip.id, deleteCodeHash);
+              if (!deleted) {
+                alert('Deletion password does not match.');
+                trackEvent('community_tip_delete_click', {
+                  tip_id: tip.id,
+                  board: tip.board,
+                  delete_success: 'no',
+                  storage_target: 'supabase'
+                });
+                return;
+              }
+              state.communityTips = state.communityTips.filter(item => item.id !== tip.id);
+              state.recommendedCommunityTips = state.recommendedCommunityTips.filter(item => item !== tip.id);
+              state.communitySyncStatus = 'online';
+              saveCommunityTips();
+              trackEvent('community_tip_delete_click', {
+                tip_id: tip.id,
+                board: tip.board,
+                delete_success: 'yes',
+                storage_target: 'supabase'
+              });
+              renderAll();
+            } catch (error) {
+              console.warn('Community tip delete failed in Supabase.', error);
+              alert('Could not delete from Supabase yet. Please check the delete SQL function in README.');
+            }
+            return;
+          }
+
+          if (tip.deleteCodeHash !== deleteCodeHash) {
+            alert('Deletion password does not match.');
+            trackEvent('community_tip_delete_click', {
+              tip_id: tip.id,
+              board: tip.board,
+              delete_success: 'no',
+              storage_target: 'local'
+            });
+            return;
+          }
+
+          state.communityTips = state.communityTips.filter(item => item.id !== tip.id);
+          state.recommendedCommunityTips = state.recommendedCommunityTips.filter(item => item !== tip.id);
+          saveCommunityTips();
+          trackEvent('community_tip_delete_click', {
+            tip_id: tip.id,
+            board: tip.board,
+            delete_success: 'yes',
+            storage_target: 'local'
+          });
+          renderAll();
         };
       });
 
