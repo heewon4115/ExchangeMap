@@ -325,6 +325,61 @@
       line-height: 1.45;
     }
 
+    .recommendation-post {
+      padding: 14px;
+      margin-bottom: 12px;
+      border: 1px solid rgba(176, 128, 78, 0.18);
+      background: linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 248, 238, 0.92));
+    }
+
+    .recommendation-post h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+
+    .recommendation-post > p {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .cafe-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .cafe-card {
+      display: grid;
+      gap: 7px;
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 8px 18px rgba(31, 41, 55, 0.06);
+    }
+
+    .cafe-card strong {
+      font-size: 15px;
+    }
+
+    .cafe-keywords {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .cafe-note {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -2872,6 +2927,108 @@
       `;
     }
 
+    const cafeRecommendations = [
+      {
+        name: 'Goro Coffee Roasters',
+        area: 'Seoul National University Station',
+        bestFor: 'Coffee and dessert',
+        keywords: ['filter coffee', 'dessert', 'cozy', 'quiet'],
+        description: 'A cozy local cafe where you can enjoy quality coffee and desserts. Recommended for students who love filter coffee and a calm atmosphere.'
+      },
+      {
+        name: 'We Wave Bake Shop',
+        area: 'Seoul National University Station',
+        bestFor: 'Dessert and chatting',
+        keywords: ['bakery', 'flat white', 'warm atmosphere', 'dessert'],
+        description: 'A warm bakery cafe that is great for enjoying coffee and desserts with friends.'
+      },
+      {
+        name: 'Yuko',
+        area: 'Seoul National University Station',
+        bestFor: 'Solo coffee time',
+        keywords: ['minimal', 'flat white', 'clean interior', 'calm'],
+        description: 'A clean and minimal cafe with good coffee. Recommended when you want to enjoy a quiet cup of coffee alone.'
+      },
+      {
+        name: 'Slow Motion Coffee Bar',
+        area: 'Seoul National University Station',
+        bestFor: 'Solo cafe visit',
+        keywords: ['latte', 'mood', 'quiet', 'coffee bar'],
+        description: 'A stylish coffee bar with a calm mood. Good for visiting alone and relaxing with a latte.'
+      },
+      {
+        name: 'Tram Seoul',
+        area: 'Seoul National University Station',
+        bestFor: 'Coffee and baked desserts',
+        keywords: ['decaf', 'terrine', 'financier', 'dessert'],
+        description: 'A neat cafe where you can enjoy coffee and baked desserts. Good for students looking for a relaxing dessert spot.'
+      },
+      {
+        name: 'Grape Lounge SNU Branch',
+        area: 'Seoul National University',
+        bestFor: 'Studying and laptop work',
+        keywords: ['quiet', 'wide tables', 'laptop-friendly', 'study'],
+        description: 'A quiet cafe with wide tables, making it a good place for assignments, studying, or laptop work.'
+      },
+      {
+        name: 'Il Coffee SNU Station Branch',
+        area: 'Seoul National University Station',
+        bestFor: 'Hand drip coffee and studying',
+        keywords: ['hand drip', 'flat white', 'window seats', 'study'],
+        description: 'A good choice for students who enjoy hand drip coffee. The window seats are nice for studying quietly.'
+      },
+      {
+        name: 'Orange Pencil',
+        area: 'Nakseongdae',
+        bestFor: 'Group study',
+        keywords: ['study room', 'quiet', 'croffle', 'team project'],
+        description: 'A cafe with study rooms, making it useful for group study sessions or team projects.'
+      },
+      {
+        name: 'Cafe Frame',
+        area: 'Sharosu-gil',
+        bestFor: 'Cafe atmosphere and studying',
+        keywords: ['einspanner', 'matcha latte', 'wide tables', 'vibe'],
+        description: 'A cafe near Sharosu-gil where you can enjoy both a nice atmosphere and a comfortable study space.'
+      },
+      {
+        name: 'Bean Brothers SNU Station Branch',
+        area: 'Seoul National University Station',
+        bestFor: 'Stable study spot',
+        keywords: ['large cafe', 'outlets', 'solo seats', 'laptop-friendly'],
+        description: 'A large cafe with various types of seats and outlets. Good for studying alone or working on a laptop.'
+      }
+    ];
+
+    function renderCafeRecommendationPost() {
+      return `
+        <article class="card recommendation-post">
+          <div class="badges">
+            <span class="badge good">Recommendations</span>
+            <span class="badge student">Cafes</span>
+          </div>
+          <h3>Cafe Recommendations near Seoul National University Station ☕</h3>
+          <p>Looking for a nice cafe near Seoul National University Station? Here are some recommended cafes around Seoul National University Station, Sharosu-gil, and Nakseongdae.</p>
+          <p>This list includes cafes that are good for studying, working on a laptop, enjoying desserts, or spending time with friends.</p>
+          <p>Before visiting, please check the latest opening hours and location information on Naver Map or Kakao Map.</p>
+          <div class="cafe-grid">
+            ${cafeRecommendations.map(cafe => `
+              <section class="cafe-card">
+                <strong>☕ ${cafe.name}</strong>
+                <p class="meta"><b>Area:</b> ${cafe.area}</p>
+                <p class="meta"><b>Best for:</b> ${cafe.bestFor}</p>
+                <div class="cafe-keywords">
+                  ${cafe.keywords.map(keyword => `<span class="badge">${keyword}</span>`).join('')}
+                </div>
+                <p class="meta">${cafe.description}</p>
+              </section>
+            `).join('')}
+          </div>
+          <p class="cafe-note"><b>Note:</b> This recommendation list is based on publicly available information and manual curation. Please check the latest details on Naver Map or Kakao Map before visiting.</p>
+        </article>
+      `;
+    }
+
     function renderCommunity() {
       const boards = [
         {
@@ -2962,6 +3119,7 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2><span>${activeBoard.hint}</span></div>
+        ${activeBoard.id === 'info' ? renderCafeRecommendationPost() : ''}
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
           const recommendCount = tip.recommends || 0;
