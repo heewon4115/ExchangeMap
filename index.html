@@ -288,21 +288,34 @@
     }
 
     .community-floating-action {
-      position: sticky;
-      bottom: 12px;
-      z-index: 50;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 86px;
+      z-index: 760;
       display: flex;
       justify-content: center;
-      margin: 18px 0 4px;
+      margin: 0;
       pointer-events: none;
     }
 
     .community-floating-action button {
       width: auto;
-      min-width: min(320px, 100%);
+      min-width: 168px;
+      min-height: 48px;
+      margin: 0;
+      padding: 11px 18px;
       border-radius: 999px;
       pointer-events: auto;
-      box-shadow: 0 14px 34px rgba(23, 105, 224, 0.24);
+      background: #202124;
+      color: white;
+      box-shadow: 0 16px 40px rgba(31, 41, 55, 0.26);
+    }
+
+    .community-floating-action button::before {
+      content: "✎";
+      margin-right: 8px;
+      color: #ff6b6b;
     }
 
     .tip-input,
@@ -4093,6 +4106,9 @@
 
       document.getElementById('screen-community').innerHTML = `
         ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
+        <div class="community-floating-action">
+          <button class="primary" data-open-tip-composer="true" type="button">${ct('shareButton')}</button>
+        </div>
         <div class="board-chip-row">
           ${boards.map(board => `
             <button class="board-chip ${board.id === activeBoard.id ? 'active' : ''}" data-community-board="${board.id}" type="button">
@@ -4102,9 +4118,6 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2></div>
-        <div class="community-floating-action">
-          <button class="primary" data-open-tip-composer="true" type="button">${ct('composerTitle')}</button>
-        </div>
         ${activeBoard.id === 'info' ? `${renderSummerFestivalsPost()}${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
