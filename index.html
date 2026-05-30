@@ -420,6 +420,18 @@
       font-weight: 800;
     }
 
+    .board-post-card {
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .board-post-card .expanded-body {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -1979,6 +1991,9 @@
         deleteButton: 'Delete',
         commentPlaceholder: 'Add a comment',
         commentButton: 'Comment',
+        openPost: 'Tap to open post',
+        postQuestion: 'Student question',
+        postReplyPrompt: 'Share a helpful reply or local tip from your experience.',
         missingTitleBody: 'Please add both a title and a tip.',
         missingDeletePassword: 'Please add a deletion password so you can delete this post later.',
         noDeletePassword: 'This sample or older post does not have a deletion password.',
@@ -2024,6 +2039,9 @@
         deleteButton: '删除',
         commentPlaceholder: '添加评论',
         commentButton: '评论',
+        openPost: '点击打开帖子',
+        postQuestion: '学生问题',
+        postReplyPrompt: '根据你的经验分享有用回复或本地提示。',
         missingTitleBody: '请填写标题和内容。',
         missingDeletePassword: '请设置删除密码，之后才能删除这篇帖子。',
         noDeletePassword: '这个示例或旧帖子没有删除密码。',
@@ -2069,6 +2087,9 @@
         deleteButton: '삭제',
         commentPlaceholder: '댓글 추가',
         commentButton: '댓글',
+        openPost: '눌러서 글 열기',
+        postQuestion: '학생 질문',
+        postReplyPrompt: '경험을 바탕으로 도움 되는 답변이나 로컬 팁을 공유해 주세요.',
         missingTitleBody: '제목과 내용을 모두 입력해 주세요.',
         missingDeletePassword: '나중에 글을 삭제할 수 있도록 삭제 비밀번호를 입력해 주세요.',
         noDeletePassword: '이 샘플 글 또는 이전 글에는 삭제 비밀번호가 없습니다.',
@@ -3609,14 +3630,27 @@
             </div>
           `;
         }).join('')}
-        ${activeBoard.posts.map(([title, body, author, replies]) => `
-          <div class="card" style="padding:12px;margin-bottom:10px;">
+        ${activeBoard.posts.map(([title, body, author, replies], index) => {
+          const postId = `${activeBoard.id}-static-${index}`;
+          const isExpanded = state.expandedCommunityPost === postId;
+          return `
+          <div class="card board-post-card" data-community-post-toggle="${postId}">
             <strong>${title}</strong>
-            <p class="meta" style="margin-top:6px;">${body}</p>
             <p class="meta" style="margin-top:8px;">${author} · 💬 ${replies}</p>
-            <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">${t('needsTip')}</span></div>
+            <div class="badges"><span class="badge student">${ct('postQuestion')}</span><span class="badge good">${t('needsTip')}</span></div>
+            ${isExpanded ? `
+              <div class="expanded-body">
+                <p class="meta">${body}</p>
+                <p class="meta" style="margin-top:8px;">${ct('postReplyPrompt')}</p>
+              </div>
+            ` : ''}
+            <div class="post-expand-row">
+              <span>${isExpanded ? ct('collapse') : ct('openPost')}</span>
+              <span>${isExpanded ? '⌃' : '⌄'}</span>
+            </div>
           </div>
-        `).join('')}
+        `;
+        }).join('')}
       `;
     }
 
