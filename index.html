@@ -2109,6 +2109,60 @@
       return merged;
     }
 
+    function isDefaultCommunityTip(tip) {
+      return String(tip.id || '').startsWith('tip-default-') || tip.createdAt === 'Sample';
+    }
+
+    async function syncLocalCommunityTipsToSupabase(localTips = []) {
+      const syncedTips = [];
+      const idMap = {};
+
+      for (const tip of localTips || []) {
+        if (isSupabaseId(tip.id) || isDefaultCommunityTip(tip)) {
+          continue;
+        }
+
+        try {
+          const savedTip = await createCommunityTipInSupabase(tip);
+          const savedComments = [];
+
+          for (const comment of tip.comments || []) {
+            try {
+              const savedComment = await createCommunityCommentInSupabase(savedTip.id, comment);
+              savedComments.push(savedComment);
+            } catch (commentError) {
+              console.warn('Local community tip comment could not be synced to Supabase yet.', commentError);
+              savedComments.push(comment);
+            }
+          }
+
+          idMap[tip.id] = savedTip.id;
+          syncedTips.push({ ...savedTip, comments: savedComments });
+        } catch (error) {
+          console.warn('Local community tip could not be synced to Supabase yet.', error);
+          syncedTips.push(tip);
+        }
+      }
+
+      return { syncedTips, idMap };
+    }
+
+    function mergeCommunityTips(remoteTips = [], syncedLocalTips = []) {
+      const merged = [...remoteTips];
+      (syncedLocalTips || []).forEach(tip => {
+        const alreadyExists = merged.some(remoteTip =>
+          remoteTip.id === tip.id ||
+          (
+            remoteTip.title === tip.title &&
+            remoteTip.body === tip.body &&
+            remoteTip.author === tip.author
+          )
+        );
+        if (!alreadyExists) merged.unshift(tip);
+      });
+      return merged;
+    }
+
     async function syncLocalCommunityPostCommentsToSupabase(localComments = {}) {
       const synced = {};
       for (const [postId, comments] of Object.entries(localComments || {})) {
@@ -2128,6 +2182,7 @@
 
     async function loadCommunityTipsFromSupabase() {
       if (!hasSupabaseConfig()) return;
+      const localTips = state.communityTips;
       const localPostComments = state.communityPostComments;
       state.communitySyncStatus = 'loading';
       renderAll();
@@ -2141,7 +2196,12 @@
           groups[row.tip_id] = [...(groups[row.tip_id] || []), comment];
           return groups;
         }, {});
-        state.communityTips = (tips || []).map(row => normalizeCommunityTip(row, commentsByTip[row.id] || []));
+        const remoteTips = (tips || []).map(row => normalizeCommunityTip(row, commentsByTip[row.id] || []));
+        const { syncedTips, idMap } = await syncLocalCommunityTipsToSupabase(localTips);
+        state.communityTips = mergeCommunityTips(remoteTips, syncedTips);
+        if (Object.keys(idMap).length) {
+          state.recommendedCommunityTips = state.recommendedCommunityTips.map(id => idMap[id] || id);
+        }
         state.communitySyncStatus = 'online';
         try {
           const postComments = await supabaseRequest('/rest/v1/community_post_comments?select=*&order=created_at.asc');
