@@ -4172,10 +4172,6 @@
       const isExpanded = state.expandedCommunityPost === 'cafe-recommendations-snu';
       return `
         <article class="card recommendation-post" data-community-post-toggle="cafe-recommendations-snu">
-          <div class="badges">
-            <span class="badge good">Recommendations</span>
-            <span class="badge student">Cafes</span>
-          </div>
           <h3>${ct('cafeTitle')} ☕</h3>
           <p>${ct('cafeIntro')}</p>
           ${isExpanded ? `
@@ -4193,9 +4189,6 @@
                   </div>
                   ${state.copiedCafeAddress === cafe.address ? `<p class="copy-success-message">Address copied! Paste it into Naver Map or Kakao Map.</p>` : ''}
                   <p class="meta"><b>${ct('bestFor')}:</b> ${cafe.bestFor}</p>
-                  <div class="cafe-keywords">
-                    ${cafe.keywords.map(keyword => `<span class="badge">${keyword}</span>`).join('')}
-                  </div>
                   <p class="meta">${cafe.description}</p>
                 </section>
               `).join('')}
@@ -4203,12 +4196,7 @@
             <p class="cafe-note"><b>${ct('note')}:</b> ${ct('cafeNote')}</p>
             ${renderBoardPostComments('cafe-recommendations-snu')}
           ` : `
-            <div class="badges">
-              <span class="badge">7 cafes</span>
-              <span class="badge">study</span>
-              <span class="badge">dessert</span>
-              <span class="badge">laptop-friendly</span>
-            </div>
+            <p class="meta">${ct('cafeBody')}</p>
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('cafe-recommendations-snu', 24)}
@@ -4225,10 +4213,6 @@
       const isExpanded = state.expandedCommunityPost === 'korean-campus-culture';
       return `
         <article class="card recommendation-post" data-community-post-toggle="korean-campus-culture">
-          <div class="badges">
-            <span class="badge good">Tips</span>
-            <span class="badge student">Campus Life</span>
-          </div>
           <h3>${ct('campusTitle')} 🎪</h3>
           <p>${ct('campusIntro')}</p>
           ${isExpanded ? `
@@ -4274,18 +4258,18 @@
               </section>
               <section class="guide-section">
                 <h4>🗣️ Useful Korean words</h4>
-                <div class="cafe-keywords">
-                  <span class="badge">일일호프: One-Day Pub</span>
-                  <span class="badge">축제: Festival</span>
-                  <span class="badge">주점: Pub booth</span>
-                  <span class="badge">부스: Booth</span>
-                  <span class="badge">공연: Performance</span>
-                  <span class="badge">라인업: Lineup</span>
-                  <span class="badge">입장료: Entrance fee</span>
-                  <span class="badge">예매: Reservation</span>
-                  <span class="badge">학생증: Student ID</span>
-                  <span class="badge">외부인: Non-student visitor</span>
-                </div>
+                <ul>
+                  <li>일일호프: One-Day Pub</li>
+                  <li>축제: Festival</li>
+                  <li>주점: Pub booth</li>
+                  <li>부스: Booth</li>
+                  <li>공연: Performance</li>
+                  <li>라인업: Lineup</li>
+                  <li>입장료: Entrance fee</li>
+                  <li>예매: Reservation</li>
+                  <li>학생증: Student ID</li>
+                  <li>외부인: Non-student visitor</li>
+                </ul>
               </section>
               <section class="guide-section">
                 <h4>💡 Final tips</h4>
@@ -4296,12 +4280,7 @@
             <p class="cafe-note"><b>Note:</b> Event rules, ticket policies, and entry restrictions can be different depending on the university and event. Please check official announcements before visiting.</p>
             ${renderBoardPostComments('korean-campus-culture')}
           ` : `
-            <div class="badges">
-              <span class="badge">Ilil Hof</span>
-              <span class="badge">festivals</span>
-              <span class="badge">Korean words</span>
-              <span class="badge">safety tips</span>
-            </div>
+            <p class="meta">${ct('campusIntro')}</p>
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('korean-campus-culture', 18)}
@@ -4318,10 +4297,6 @@
       const isExpanded = state.expandedCommunityPost === 'summer-festivals-korea';
       return `
         <article class="card recommendation-post" data-community-post-toggle="summer-festivals-korea">
-          <div class="badges">
-            <span class="badge good">Tips</span>
-            <span class="badge student">Events</span>
-          </div>
           <h3>${ct('summerTitle')} 💦</h3>
           <p>${ct('summerIntro')}</p>
           ${isExpanded ? `
@@ -4379,20 +4354,20 @@
               </section>
               <section class="guide-section">
                 <h4>🗣️ Useful Korean words</h4>
-                <div class="cafe-keywords">
-                  <span class="badge">워터밤: Waterbomb</span>
-                  <span class="badge">흠뻑쇼: PSY Soaked Show</span>
-                  <span class="badge">축제: Festival</span>
-                  <span class="badge">공연: Performance</span>
-                  <span class="badge">티켓 예매: Ticket reservation</span>
-                  <span class="badge">라인업: Lineup</span>
-                  <span class="badge">입장: Entry</span>
-                  <span class="badge">물품보관소: Locker</span>
-                  <span class="badge">우비: Raincoat</span>
-                  <span class="badge">방수팩: Waterproof pouch</span>
-                  <span class="badge">신분증: ID card</span>
-                  <span class="badge">매진: Sold out</span>
-                </div>
+                <ul>
+                  <li>워터밤: Waterbomb</li>
+                  <li>흠뻑쇼: PSY Soaked Show</li>
+                  <li>축제: Festival</li>
+                  <li>공연: Performance</li>
+                  <li>티켓 예매: Ticket reservation</li>
+                  <li>라인업: Lineup</li>
+                  <li>입장: Entry</li>
+                  <li>물품보관소: Locker</li>
+                  <li>우비: Raincoat</li>
+                  <li>방수팩: Waterproof pouch</li>
+                  <li>신분증: ID card</li>
+                  <li>매진: Sold out</li>
+                </ul>
               </section>
               <section class="guide-section">
                 <h4>✨ Final tips</h4>
@@ -4403,12 +4378,7 @@
             <p class="cafe-note"><b>Note:</b> Festival dates, ticket rules, age restrictions, and entry policies can change every year. Please check the official festival website, official social media, and ticketing platform before buying tickets or visiting.</p>
             ${renderBoardPostComments('summer-festivals-korea')}
           ` : `
-            <div class="badges">
-              <span class="badge">Waterbomb</span>
-              <span class="badge">흠뻑쇼</span>
-              <span class="badge">ticket tips</span>
-              <span class="badge">what to bring</span>
-            </div>
+            <p class="meta">${ct('summerIntro')}</p>
           `}
           <div class="tip-actions">
             ${communityPostRecommendButton('summer-festivals-korea', 21)}
@@ -4568,7 +4538,6 @@
               <strong>${escapeHtml(tip.title)}</strong>
               <p class="meta" style="margin-top:6px;">${escapeHtml(tip.body)}</p>
               <p class="meta" style="margin-top:8px;">${escapeHtml(tip.author)} · ${escapeHtml(tip.createdAt || 'Just now')}</p>
-              <div class="badges"><span class="badge student">${t('communityPost')}</span><span class="badge good">${ct('studentTip')}</span></div>
               <div class="tip-actions">
                 <button class="recommend-button ${recommended ? 'active' : ''}" data-tip-recommend="${tip.id}" type="button">👍 ${recommendCount}</button>
                 <button class="secondary" data-tip-delete="${tip.id}" type="button">${ct('deleteButton')}</button>
@@ -4588,7 +4557,6 @@
           const isExpanded = state.expandedCommunityPost === postId;
           return `
           <div class="card board-post-card" data-community-post-toggle="${postId}">
-            <div class="badges"><span class="badge good">${post.category}</span><span class="badge student">${post.country}</span></div>
             <strong>${post.title}</strong>
             <p class="meta" style="margin-top:8px;">${post.country} · English · 💬 ${post.comments.length}</p>
             ${isExpanded ? `
@@ -4614,7 +4582,6 @@
           <div class="card board-post-card" data-community-post-toggle="${postId}">
             <strong>${title}</strong>
             <p class="meta" style="margin-top:8px;">${author} · 💬 ${replies}</p>
-            <div class="badges"><span class="badge student">${ct('postQuestion')}</span><span class="badge good">${t('needsTip')}</span></div>
             ${isExpanded ? `
               <div class="expanded-body">
                 <p class="meta">${body}</p>
