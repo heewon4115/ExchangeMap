@@ -293,15 +293,35 @@ If Git is not installed, use GitHub's website:
 All events also include common context so GA4 Realtime and Explorations are easier to read:
 
 - `event_group`: map, filter, review, community, navigation, or prototype.
+- `analytics_area`: same broad area as `event_group`, useful as a GA4 custom dimension.
+- `analytics_action`: click, open, close, select, submit, copy, delete, view, or interact.
+- `analytics_object`: review, map_marker, place, filter, language, community_post, community_tip, community_board, location, screen, address, or prototype.
+- `funnel_step`: simple prototype journey step such as `01_landing`, `03_discovery`, `04_place_interest`, or `05_engagement`.
+- `engagement_type`: browse, preference, create, comment, recommend, copy, or delete.
+- `context_summary`: short combined label like `map/click/map_marker`.
 - `activity_label`: readable event label.
 - `current_tab`, `ui_language`, `country_filter`, `category_filter`, `review_language_filter`, `community_board`.
-- `selected_place_id`, `selected_place_name` when a place is selected.
+- `selected_place_id`, `selected_place_name`, and `selected_place_category` when a place is selected.
+- `active_filters`: compact snapshot of the current map category, country, feature, and review language filters.
 - `visitor_id`, `session_id`, and `event_index` for prototype-level behavior tracing.
 - `ga_connected`: yes/no, useful while testing before GA is connected.
 
+Recommended GA4 custom dimensions to register for easier reports:
+
+- `analytics_area`
+- `analytics_action`
+- `analytics_object`
+- `funnel_step`
+- `engagement_type`
+- `community_board`
+- `selected_place_category`
+- `active_filters`
+
+In GA4 Realtime or Explore, start by grouping events by `analytics_area`, then filter by `funnel_step` or `engagement_type` to quickly see what users are doing.
+
 - `prototype_view`: fires when the page loads with page title and current URL.
 - `qr_landing`: fires when the URL has UTM parameters.
-- `tab_click` and `screen_view`: fire when users move between Home, Map, Add, Community, and My Log.
+- `tab_click` and `screen_view`: fire when users move between Map, Community, and My Log.
 - `search_filter_toggle`: fires when the map search/filter panel opens or closes.
 - `category_filter_click`: fires when a category filter is clicked.
 - `language_select`: fires when a language button is clicked.

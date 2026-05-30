@@ -3725,11 +3725,68 @@
       return 'prototype';
     }
 
+    function analyticsAction(eventName) {
+      if (eventName.includes('submit')) return 'submit';
+      if (eventName.includes('click')) return 'click';
+      if (eventName.includes('open')) return 'open';
+      if (eventName.includes('close')) return 'close';
+      if (eventName.includes('select')) return 'select';
+      if (eventName.includes('toggle')) return 'toggle';
+      if (eventName.includes('copy')) return 'copy';
+      if (eventName.includes('delete')) return 'delete';
+      if (eventName.includes('view')) return 'view';
+      return 'interact';
+    }
+
+    function analyticsObject(eventName) {
+      if (eventName.includes('review')) return 'review';
+      if (eventName.includes('marker')) return 'map_marker';
+      if (eventName.includes('place')) return 'place';
+      if (eventName.includes('filter')) return 'filter';
+      if (eventName.includes('language')) return 'language';
+      if (eventName.includes('community_post')) return 'community_post';
+      if (eventName.includes('community_tip')) return 'community_tip';
+      if (eventName.includes('community_board')) return 'community_board';
+      if (eventName.includes('location')) return 'location';
+      if (eventName.includes('tab') || eventName.includes('screen')) return 'screen';
+      if (eventName.includes('address')) return 'address';
+      return 'prototype';
+    }
+
+    function analyticsFunnelStep(eventName) {
+      if (eventName === 'prototype_view' || eventName === 'qr_landing') return '01_landing';
+      if (eventName.includes('tab') || eventName.includes('screen')) return '02_navigation';
+      if (eventName.includes('filter') || eventName.includes('search') || eventName.includes('language')) return '03_discovery';
+      if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('detail')) return '04_place_interest';
+      if (eventName.includes('submit') || eventName.includes('delete')) return '06_create_or_manage';
+      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip')) return '05_engagement';
+      return '00_other';
+    }
+
+    function engagementType(eventName) {
+      if (eventName.includes('submit')) return 'create';
+      if (eventName.includes('comment')) return 'comment';
+      if (eventName.includes('recommend')) return 'recommend';
+      if (eventName.includes('copy')) return 'copy';
+      if (eventName.includes('delete')) return 'delete';
+      if (eventName.includes('filter') || eventName.includes('select')) return 'preference';
+      return 'browse';
+    }
+
     function readableEventLabel(eventName) {
       return eventName
         .split('_')
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
+    }
+
+    function activeFilterSummary() {
+      return [
+        `category:${state.category}`,
+        `countries:${countryFilterLabel()}`,
+        `features:${state.featureFilters.length ? state.featureFilters.join('|') : 'none'}`,
+        `review_language:${state.language}`
+      ].join(', ');
     }
 
     function analyticsContext() {
@@ -3748,6 +3805,8 @@
         community_board: state.communityBoard,
         selected_place_id: place ? place.id : '',
         selected_place_name: place ? place.name : '',
+        selected_place_category: place ? place.category : '',
+        active_filters: activeFilterSummary(),
         page_path: window.location.pathname || '/',
         page_url: window.location.href,
         ga_connected: hasRealGaId ? 'yes' : 'no'
@@ -3758,12 +3817,38 @@
       state.analyticsEventCount += 1;
       const eventParams = {
         event_group: eventGroup(eventName),
+        analytics_area: eventGroup(eventName),
+        analytics_action: analyticsAction(eventName),
+        analytics_object: analyticsObject(eventName),
+        funnel_step: analyticsFunnelStep(eventName),
+        engagement_type: engagementType(eventName),
         activity_label: readableEventLabel(eventName),
         ...analyticsContext(),
         ...params,
         ...getUtmParams()
       };
-      console.log(`[Exchange Map event #${state.analyticsEventCount}] ${eventName}`, eventParams);
+      eventParams.context_summary = `${eventParams.analytics_area}/${eventParams.analytics_action}/${eventParams.analytics_object}`;
+      const consoleSummary = {
+        event: eventName,
+        event_index: eventParams.event_index,
+        funnel_step: eventParams.funnel_step,
+        area: eventParams.analytics_area,
+        action: eventParams.analytics_action,
+        object: eventParams.analytics_object,
+        engagement_type: eventParams.engagement_type,
+        current_tab: eventParams.current_tab,
+        selected_place: eventParams.selected_place_name || '',
+        community_board: eventParams.community_board || '',
+        active_filters: eventParams.active_filters
+      };
+      if (typeof console.groupCollapsed === 'function') {
+        console.groupCollapsed(`[Exchange Map GA] #${state.analyticsEventCount} ${eventName}`);
+        console.table(consoleSummary);
+        console.log('Full GA params', eventParams);
+        console.groupEnd();
+      } else {
+        console.log(`[Exchange Map event #${state.analyticsEventCount}] ${eventName}`, eventParams);
+      }
       if (hasRealGaId && typeof gtag === 'function') {
         gtag('event', eventName, eventParams);
       }
