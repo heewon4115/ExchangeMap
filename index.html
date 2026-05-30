@@ -617,12 +617,24 @@
       height: 100%;
     }
 
-    .map-top-panel {
+    .map-controls-stack {
       position: absolute;
       top: 58px;
       left: 12px;
       right: 12px;
       z-index: 700;
+      display: grid;
+      gap: 8px;
+      align-items: start;
+      pointer-events: none;
+    }
+
+    .map-controls-stack > * {
+      pointer-events: auto;
+    }
+
+    .map-top-panel {
+      position: relative;
       display: grid;
       gap: 10px;
       padding: 12px;
@@ -794,14 +806,16 @@
       justify-self: start;
       display: inline-flex;
       align-items: center;
-      gap: 7px;
-      width: auto;
-      min-height: 38px;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      min-height: 48px;
       margin-top: 0;
-      padding: 8px 13px;
-      border-radius: 999px;
-      font-size: 13px;
-      box-shadow: 0 10px 22px rgba(23, 105, 224, 0.18);
+      padding: 0;
+      border-radius: 50%;
+      font-size: 28px;
+      line-height: 1;
+      box-shadow: 0 12px 28px rgba(23, 105, 224, 0.26);
     }
 
     .map-top-panel .chip-row {
@@ -1639,7 +1653,7 @@
 
       .map-fullscreen #map { height: 100%; }
 
-      .map-top-panel {
+      .map-controls-stack {
         top: 64px;
         left: 18px;
         right: auto;
@@ -1687,10 +1701,13 @@
         min-height: calc(100dvh - 86px);
       }
 
-      .map-top-panel {
+      .map-controls-stack {
         top: 58px;
         left: 10px;
         right: 10px;
+      }
+
+      .map-top-panel {
         border-radius: 18px;
       }
 
@@ -3532,14 +3549,16 @@
       document.getElementById('screen-map').innerHTML = `
         <div class="map-fullscreen">
           <div id="map"></div>
-          <div class="map-top-panel">
-            <div class="map-search-row">
-              ${searchBar(t('mapSearch'))}
-              <button class="filter-button" data-search-toggle="true" type="button">☷ Filter</button>
+          <div class="map-controls-stack">
+            <div class="map-top-panel">
+              <div class="map-search-row">
+                ${searchBar(t('mapSearch'))}
+                <button class="filter-button" data-search-toggle="true" type="button">☷ Filter</button>
+              </div>
+              ${mapCategoryButtons()}
+              ${mapFilterSheet()}
             </div>
-            <button class="primary map-add-button" data-add-record="true" type="button">＋ ${t('addNewRecord')}</button>
-            ${mapCategoryButtons()}
-            ${mapFilterSheet()}
+            <button class="primary map-add-button" data-add-record="true" type="button" aria-label="${t('addNewRecord')}">+</button>
           </div>
           <button class="locate-button" data-locate-me="true" type="button" aria-label="Go to my current location">⌖</button>
           <div id="mapBottomSheet">${mapBottomSheetHtml(place)}</div>
