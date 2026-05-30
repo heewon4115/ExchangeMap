@@ -1581,6 +1581,10 @@
 
     .emoji-marker.health { background: linear-gradient(135deg, #e5484d, #ff8b8f); }
     .emoji-marker.food { background: linear-gradient(135deg, #f5a623, #ffd37a); }
+    .emoji-marker.cafe { background: linear-gradient(135deg, #1769e0, #6ea8ff); }
+    .emoji-marker.grocery { background: linear-gradient(135deg, #2f9e44, #8de0aa); }
+    .emoji-marker.transport { background: linear-gradient(135deg, #7b61ff, #b2a4ff); }
+    .emoji-marker.info { background: linear-gradient(135deg, #f97316, #fdba74); }
     .emoji-marker.life { background: linear-gradient(135deg, #43a86b, #8de0aa); }
     .emoji-marker.community { background: linear-gradient(135deg, #7b61ff, #b2a4ff); }
 
@@ -4688,7 +4692,7 @@
       state.markers = filteredPlaces().map(place => {
         const marker = L.marker([place.latitude, place.longitude], {
           icon: L.divIcon({
-            className: `emoji-marker ${markerType(place.category)} ${place.id === state.selectedPlaceId ? 'selected' : ''}`,
+            className: `emoji-marker ${markerType(place)} ${place.id === state.selectedPlaceId ? 'selected' : ''}`,
             html: `<span>${markerIcon(place)}</span>`,
             iconSize: [38, 38],
             iconAnchor: [19, 38],
@@ -4721,31 +4725,32 @@
       });
     }
 
-    function markerType(category) {
-      if (category === 'Hospital' || category === 'Pharmacy') return 'health';
+    function markerType(place) {
+      const category = typeof place === 'string' ? place : place.category;
+      if (typeof place === 'object' && isCafePlace(place)) return 'cafe';
+      if (category === 'Hospital' || category === 'Pharmacy' || category === 'Emergency') return 'health';
       if (category === 'Food') return 'food';
-      if (category === 'Study' || category === 'Transport') return 'community';
-      if (category === 'Official') return 'community';
+      if (category === 'Transport') return 'transport';
+      if (category === 'Grocery') return 'grocery';
+      if (category === 'Official' || category === 'Study' || category === 'Embassy') return 'info';
       return 'life';
     }
 
     function markerIcon(place) {
-      const text = `${place.name} ${(place.badges || []).join(' ')} ${(place.tags || []).join(' ')}`.toLowerCase();
-
-      if (text.includes('cafe') || text.includes('coffee') || text.includes('dessert') || text.includes('cake')) return '☕';
+      if (isCafePlace(place)) return '☕';
 
       const iconsByCategory = {
         Official: 'ℹ️',
-        Hospital: '🏥',
-        Pharmacy: '💊',
-        Food: '🍚',
-        Embassy: '🏛️',
+        Hospital: '✚',
+        Pharmacy: '✚',
+        Food: '🍽️',
+        Embassy: 'ℹ️',
         Bank: '🏧',
         Grocery: '🛒',
         Laundry: '🧺',
-        Study: '📚',
-        Transport: '🚌',
-        Emergency: '🚨'
+        Study: 'ℹ️',
+        Transport: '🚇',
+        Emergency: '✚'
       };
 
       return iconsByCategory[place.category] || '📍';
