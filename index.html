@@ -4785,7 +4785,7 @@
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
       const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
       const schoolLifeBoardPosts = schoolLifePosts.filter(post => post.board === activeBoard.id);
-      const curatedPostRecords = activeBoard.id === 'info' ? [
+      const curatedPostRecords = [
         {
           id: 'summer-festivals-korea',
           board: 'info',
@@ -4813,10 +4813,10 @@
           source: 'curated',
           recommends: 24
         }
-      ] : [];
+      ];
       const communityPostRecords = [
         ...curatedPostRecords,
-        ...schoolLifeBoardPosts.map(post => ({
+        ...schoolLifePosts.map(post => ({
           id: post.id,
           board: post.board,
           title: post.title,
@@ -4825,16 +4825,16 @@
           source: 'school_life',
           recommends: post.recommends
         })),
-        ...activeBoard.posts.map(([title, body, author, replies], index) => ({
-          id: `${activeBoard.id}-static-${index}`,
-          board: activeBoard.id,
+        ...boards.flatMap(board => board.posts.map(([title, body, author, replies], index) => ({
+          id: `${board.id}-static-${index}`,
+          board: board.id,
           title,
           body,
           author,
           source: 'sample_board',
           recommends: replies
-        })),
-        ...localTips.filter(tip => isSupabaseId(tip.id)).map(tip => ({
+        }))),
+        ...state.communityTips.filter(tip => isSupabaseId(tip.id)).map(tip => ({
           id: tip.id,
           board: tip.board,
           title: tip.title,
