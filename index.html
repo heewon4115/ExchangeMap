@@ -2009,7 +2009,7 @@
         board: row.board || 'info',
         title: row.title || 'Untitled tip',
         body: row.body || '',
-        author: row.author || 'Anonymous student',
+        author: row.author || 'Anonymous',
         createdAt: formatTipDate(row.created_at),
         recommends: Number(row.recommends || 0),
         deleteCodeHash: row.delete_code_hash || '',
@@ -2020,7 +2020,7 @@
     function normalizeCommunityComment(row) {
       return {
         id: row.id,
-        author: row.author || 'Anonymous student',
+        author: row.author || 'Anonymous',
         text: row.body || '',
         createdAt: formatTipDate(row.created_at)
       };
@@ -5254,7 +5254,7 @@
             ...(state.communityPostComments[postId] || []),
             {
               id: `post-comment-${Date.now()}`,
-              author: author || 'Anonymous student',
+              author: author || 'Anonymous',
               text,
               createdAt: 'Just now'
             }
@@ -5298,7 +5298,7 @@
       if (shareTipButton) {
         shareTipButton.onclick = async () => {
           const board = document.getElementById('tipBoard').value;
-          const author = document.getElementById('tipAuthor').value.trim() || 'Anonymous student';
+          const author = document.getElementById('tipAuthor').value.trim() || 'Anonymous';
           const title = document.getElementById('tipTitle').value.trim();
           const body = document.getElementById('tipBody').value.trim();
           const deleteCode = document.getElementById('tipDeleteCode').value.trim();
@@ -5473,7 +5473,7 @@
 
           const newComment = {
             id: `comment-${Date.now()}`,
-            author: author || 'Anonymous student',
+            author: author || 'Anonymous',
             text,
             createdAt: 'Just now'
           };
