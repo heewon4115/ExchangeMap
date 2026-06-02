@@ -2024,6 +2024,22 @@
       return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     }
 
+    function tipSortTime(tip) {
+      if (!tip) return 0;
+      if (tip.createdAtRaw) {
+        const rawTime = new Date(tip.createdAtRaw).getTime();
+        if (!Number.isNaN(rawTime)) return rawTime;
+      }
+      if (String(tip.createdAt || '') === 'Just now') return Date.now();
+      if (String(tip.createdAt || '') === 'Sample') return 0;
+      const displayTime = new Date(tip.createdAt || '').getTime();
+      return Number.isNaN(displayTime) ? 0 : displayTime;
+    }
+
+    function newestCommunityTipsFirst(tips = []) {
+      return [...tips].sort((a, b) => tipSortTime(b) - tipSortTime(a));
+    }
+
     async function hashDeleteCode(value) {
       const normalized = (value || '').trim();
       if (!normalized) return '';
@@ -2060,6 +2076,7 @@
         body: row.body || '',
         author: row.author || 'Anonymous',
         createdAt: formatTipDate(row.created_at),
+        createdAtRaw: row.created_at || '',
         recommends: Number(row.recommends || 0),
         deleteCodeHash: row.delete_code_hash || '',
         comments
@@ -2209,7 +2226,7 @@
         }, {});
         const remoteTips = (tips || []).map(row => normalizeCommunityTip(row, commentsByTip[row.id] || []));
         const { syncedTips, idMap } = await syncLocalCommunityTipsToSupabase(localTips);
-        state.communityTips = mergeCommunityTips(remoteTips, syncedTips);
+        state.communityTips = newestCommunityTipsFirst(mergeCommunityTips(remoteTips, syncedTips));
         if (Object.keys(idMap).length) {
           state.recommendedCommunityTips = state.recommendedCommunityTips.map(id => idMap[id] || id);
         }
@@ -4956,7 +4973,7 @@
         }
       ];
       const activeBoard = boards.find(board => board.id === state.communityBoard) || boards[0];
-      const localTips = state.communityTips.filter(tip => tip.board === activeBoard.id);
+      const localTips = newestCommunityTipsFirst(state.communityTips.filter(tip => tip.board === activeBoard.id));
       const schoolLifeBoardPosts = schoolLifePosts.filter(post => post.board === activeBoard.id);
       const curatedPostRecords = [
         {
@@ -5804,6 +5821,7 @@
             body,
             author,
             createdAt: 'Just now',
+            createdAtRaw: new Date().toISOString(),
             recommends: 0,
             deleteCodeHash,
             comments: []
