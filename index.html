@@ -5075,7 +5075,6 @@
           `).join('')}
         </div>
         <div class="section-title"><h2>${activeBoard.label}</h2></div>
-        ${activeBoard.id === 'info' ? `${renderSummerFestivalsPost()}${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
         ${localTips.map(tip => {
           const recommended = state.recommendedCommunityTips.includes(tip.id);
           const recommendCount = tip.recommends || 0;
@@ -5100,6 +5099,7 @@
             </div>
           `;
         }).join('')}
+        ${activeBoard.id === 'info' ? `${renderSummerFestivalsPost()}${renderKoreanCampusCulturePost()}${renderCafeRecommendationPost()}` : ''}
         ${schoolLifeBoardPosts.map(post => {
           const postId = post.id;
           const isExpanded = state.expandedCommunityPost === postId;
