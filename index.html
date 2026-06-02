@@ -1891,10 +1891,10 @@
     <div class="phone">
       <div class="language-switcher" id="uiLanguageSwitcher" aria-label="Site language"></div>
       <main class="app" id="appRoot">
-        <section class="screen active" id="screen-map"></section>
+        <section class="screen" id="screen-map"></section>
         <section class="screen" id="screen-detail"></section>
         <section class="screen" id="screen-add"></section>
-        <section class="screen" id="screen-community"></section>
+        <section class="screen active" id="screen-community"></section>
         <section class="screen" id="screen-log"></section>
       </main>
       <div id="modalRoot"></div>
@@ -2377,7 +2377,7 @@
     }
 
     const state = {
-      tab: 'map',
+      tab: 'community',
       country: 'All',
       countryFilters: ['All'],
       language: 'English',
