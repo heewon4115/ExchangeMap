@@ -409,6 +409,8 @@ const GA_DEBUG_MODE = false;
 - `review_modal_close`: fires when the review modal is closed.
 - `community_board_click`: fires when users switch between information, social, travel, and Q&A boards.
 - `country_origin_vote_click`: fires when users answer the Community "Where are you from?" country/region vote. Includes `origin_country`, `origin_country_id`, `origin_country_vote_count`, and `origin_vote_total_count`.
+- `country_origin_add_toggle_click`: fires when users open or close the custom country form.
+- `country_origin_option_add`: fires when users add a custom country/region and vote for it.
 - `community_tip_submit`: fires when users share a tip in the Community tab.
 - `community_tip_recommend_click`: fires when users recommend a community tip.
 - `community_tip_comment_submit`: fires when users comment on a community tip.

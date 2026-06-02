@@ -1278,6 +1278,36 @@
       color: var(--blue);
     }
 
+    .origin-add-toggle {
+      width: fit-content;
+      min-height: 34px;
+      padding: 7px 11px;
+      font-size: 12px;
+      border-radius: 999px;
+    }
+
+    .origin-add-form {
+      display: grid;
+      grid-template-columns: minmax(82px, 0.55fr) minmax(0, 1.45fr);
+      gap: 8px;
+      padding-top: 2px;
+    }
+
+    .origin-add-form .tip-input {
+      margin: 0;
+      min-height: 40px;
+      font-size: 13px;
+    }
+
+    .origin-add-submit {
+      grid-column: 1 / -1;
+      min-height: 40px;
+      margin-top: 0;
+      border-radius: 13px;
+      padding: 10px;
+      font-size: 13px;
+    }
+
     #screen-community {
       padding-bottom: 72px;
     }
@@ -2012,6 +2042,7 @@
     const COMMUNITY_RECOMMENDS_STORAGE_KEY = 'exchange_map_community_recommended_tips';
     const COMMUNITY_POST_COMMENTS_STORAGE_KEY = 'exchange_map_community_post_comments';
     const ORIGIN_COUNTRY_VOTE_STORAGE_KEY = 'exchange_map_origin_country_vote';
+    const CUSTOM_ORIGIN_COUNTRIES_STORAGE_KEY = 'exchange_map_custom_origin_countries';
     const LOG_FEATURE_LIKES_STORAGE_KEY = 'exchange_map_log_feature_likes';
     const syncedCommunityPostRecordIds = new Set();
 
@@ -2074,6 +2105,14 @@
         localStorage.setItem(ORIGIN_COUNTRY_VOTE_STORAGE_KEY, JSON.stringify(state.originCountryVote));
       } catch (error) {
         console.warn('Origin country vote could not be saved locally.', error);
+      }
+    }
+
+    function saveCustomOriginCountries() {
+      try {
+        localStorage.setItem(CUSTOM_ORIGIN_COUNTRIES_STORAGE_KEY, JSON.stringify(state.customOriginCountries));
+      } catch (error) {
+        console.warn('Custom origin countries could not be saved locally.', error);
       }
     }
 
@@ -2451,8 +2490,20 @@
 
     async function refreshOriginVoteCountsFromSupabase() {
       if (!hasSupabaseConfig()) return;
-      const rows = await supabaseRequest('/rest/v1/community_origin_votes?select=country_id');
+      const rows = await supabaseRequest('/rest/v1/community_origin_votes?select=country_id,country_label,country_flag');
       state.originVoteCounts = countOriginVotes(rows);
+      const defaultIds = new Set(defaultOriginCountryOptions.map(option => option.id));
+      state.remoteOriginCountries = (rows || [])
+        .filter(row => row.country_id && !defaultIds.has(row.country_id))
+        .reduce((options, row) => {
+          if (options.some(option => option.id === row.country_id)) return options;
+          options.push({
+            id: row.country_id,
+            flag: row.country_flag || '🏳️',
+            label: row.country_label || row.country_id
+          });
+          return options;
+        }, []);
     }
 
     async function recordCommunityPostsInSupabase(records = []) {
@@ -2516,6 +2567,9 @@
       copiedCafeAddress: '',
       originCountryVote: '',
       originVoteCounts: {},
+      customOriginCountries: loadStoredJson(CUSTOM_ORIGIN_COUNTRIES_STORAGE_KEY, []),
+      remoteOriginCountries: [],
+      originCountryFormOpen: false,
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -2544,7 +2598,7 @@
       { id: 'zh', label: 'CH', htmlLang: 'zh' },
       { id: 'ko', label: 'KOR', htmlLang: 'ko' }
     ];
-    const originCountryOptions = [
+    const defaultOriginCountryOptions = [
       { id: 'korea', flag: '🇰🇷', label: 'Korea' },
       { id: 'china', flag: '🇨🇳', label: 'China' },
       { id: 'vietnam', flag: '🇻🇳', label: 'Vietnam' },
@@ -2559,6 +2613,29 @@
       { id: 'taiwan', flag: '🇹🇼', label: 'Taiwan' },
       { id: 'another-country', flag: '🌏', label: 'Another country' }
     ];
+
+    function originCountryOptions() {
+      const merged = [...defaultOriginCountryOptions];
+      (state.remoteOriginCountries || []).forEach(option => {
+        if (!option || !option.id || merged.some(item => item.id === option.id)) return;
+        merged.push(option);
+      });
+      (state.customOriginCountries || []).forEach(option => {
+        if (!option || !option.id || merged.some(item => item.id === option.id)) return;
+        merged.push(option);
+      });
+      return merged;
+    }
+
+    function customCountryId(label) {
+      const slug = (label || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 34);
+      return `custom-${slug || 'country'}-${Date.now().toString(36)}`;
+    }
     const copy = {
       en: {
         brand: 'Exchange Map',
@@ -3881,7 +3958,7 @@
       if (eventName.includes('review')) return 'review';
       if (eventName.includes('filter') || eventName.includes('language') || eventName.includes('search')) return 'filter';
       if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('map') || eventName.includes('location')) return 'map';
-      if (eventName.includes('community') || eventName.includes('origin_vote')) return 'community';
+      if (eventName.includes('community') || eventName.includes('origin_vote') || eventName.includes('origin_country')) return 'community';
       if (eventName.includes('feature')) return 'feature_interest';
       if (eventName.includes('tab') || eventName.includes('screen')) return 'navigation';
       return 'prototype';
@@ -3909,7 +3986,7 @@
       if (eventName.includes('community_post')) return 'community_post';
       if (eventName.includes('community_tip')) return 'community_tip';
       if (eventName.includes('community_board')) return 'community_board';
-      if (eventName.includes('origin_vote')) return 'origin_country_vote';
+      if (eventName.includes('origin_vote') || eventName.includes('origin_country')) return 'origin_country_vote';
       if (eventName.includes('feature')) return 'not_ready_feature';
       if (eventName.includes('location')) return 'location';
       if (eventName.includes('tab') || eventName.includes('screen')) return 'screen';
@@ -3923,7 +4000,7 @@
       if (eventName.includes('filter') || eventName.includes('search') || eventName.includes('language')) return '03_discovery';
       if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('detail')) return '04_place_interest';
       if (eventName.includes('submit') || eventName.includes('delete')) return '06_create_or_manage';
-      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip') || eventName.includes('feature') || eventName.includes('origin_vote')) return '05_engagement';
+      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip') || eventName.includes('feature') || eventName.includes('origin_vote') || eventName.includes('origin_country')) return '05_engagement';
       return '00_other';
     }
 
@@ -3931,7 +4008,7 @@
       if (eventName.includes('submit')) return 'create';
       if (eventName.includes('comment')) return 'comment';
       if (eventName.includes('recommend')) return 'recommend';
-      if (eventName.includes('origin_vote')) return 'vote';
+      if (eventName.includes('origin_vote') || eventName.includes('origin_country')) return 'vote';
       if (eventName.includes('feature_expectation')) return 'feature_request';
       if (eventName.includes('copy')) return 'copy';
       if (eventName.includes('delete')) return 'delete';
@@ -3944,7 +4021,7 @@
       if (eventName.includes('marker') || eventName.includes('place')) return 'place_interest';
       if (eventName.includes('review_cta') || eventName.includes('review_submit')) return 'review_intent';
       if (eventName.includes('community_tip_submit') || eventName.includes('community_post_comment_submit')) return 'community_contribution';
-      if (eventName.includes('origin_vote')) return 'audience_research';
+      if (eventName.includes('origin_vote') || eventName.includes('origin_country')) return 'audience_research';
       if (eventName.includes('feature_expectation') || eventName.includes('feature_placeholder')) return 'feature_demand';
       if (eventName.includes('recommend')) return 'social_proof';
       if (eventName.includes('copy')) return 'offline_action';
@@ -3963,6 +4040,7 @@
         'community_tip_recommend_click',
         'feature_expectation_click',
         'country_origin_vote_click',
+        'country_origin_option_add',
         'address_copy_click',
         'cafe_address_copy_click'
       ].includes(eventName) ? 'yes' : 'no';
@@ -5048,7 +5126,8 @@
 
     function renderOriginVoteCard() {
       const text = originVoteText();
-      const selectedOption = originCountryOptions.find(option => option.id === state.originCountryVote);
+      const options = originCountryOptions();
+      const selectedOption = options.find(option => option.id === state.originCountryVote);
       const localSelectedCounts = state.originCountryVote && !state.originVoteCounts[state.originCountryVote]
         ? { [state.originCountryVote]: 1 }
         : {};
@@ -5063,7 +5142,7 @@
             ${selectedOption ? `<span class="comment-count-pill">${text.selected}: ${selectedOption.flag}</span>` : ''}
           </div>
           <div class="origin-vote-grid">
-            ${originCountryOptions.map(option => `
+            ${options.map(option => `
               <button
                 class="origin-vote-button ${state.originCountryVote === option.id ? 'active' : ''}"
                 data-origin-country-vote="${option.id}"
@@ -5073,6 +5152,16 @@
               </button>
             `).join('')}
           </div>
+          <button class="secondary origin-add-toggle" data-origin-country-add-toggle="true" type="button">
+            + Add country
+          </button>
+          ${state.originCountryFormOpen ? `
+            <div class="origin-add-form">
+              <input class="tip-input" id="originCountryFlag" maxlength="8" placeholder="Flag emoji" />
+              <input class="tip-input" id="originCountryLabel" maxlength="40" placeholder="Country or region name" />
+              <button class="primary origin-add-submit" id="originCountryAddButton" type="button">Add and vote</button>
+            </div>
+          ` : ''}
         </section>
       `;
     }
@@ -5888,7 +5977,7 @@
         button.onclick = async () => {
           const previousCountry = state.originCountryVote || '';
           const countryId = button.dataset.originCountryVote;
-          const country = originCountryOptions.find(option => option.id === countryId);
+          const country = originCountryOptions().find(option => option.id === countryId);
           state.originCountryVote = countryId;
           if (previousCountry !== countryId) {
             if (previousCountry && state.originVoteCounts[previousCountry]) {
@@ -5932,6 +6021,92 @@
           }
         };
       });
+
+      document.querySelectorAll('[data-origin-country-add-toggle]').forEach(button => {
+        button.onclick = () => {
+          state.originCountryFormOpen = !state.originCountryFormOpen;
+          trackEvent('country_origin_add_toggle_click', {
+            form_open: state.originCountryFormOpen ? 'yes' : 'no',
+            community_board: state.communityBoard
+          });
+          renderAll();
+        };
+      });
+
+      const addOriginCountryButton = document.getElementById('originCountryAddButton');
+      if (addOriginCountryButton) {
+        addOriginCountryButton.onclick = async () => {
+          const flagInput = document.getElementById('originCountryFlag');
+          const labelInput = document.getElementById('originCountryLabel');
+          const flag = (flagInput && flagInput.value.trim()) || '🏳️';
+          const label = (labelInput && labelInput.value.trim()) || '';
+          if (!label) return;
+
+          const previousCountry = state.originCountryVote || '';
+          const newCountry = {
+            id: customCountryId(label),
+            flag,
+            label
+          };
+          state.customOriginCountries = [...(state.customOriginCountries || []), newCountry];
+          state.originCountryVote = newCountry.id;
+          state.originCountryFormOpen = false;
+          if (previousCountry && state.originVoteCounts[previousCountry]) {
+            state.originVoteCounts[previousCountry] = Math.max(0, state.originVoteCounts[previousCountry] - 1);
+          }
+          state.originVoteCounts[newCountry.id] = 1;
+          saveCustomOriginCountries();
+          saveOriginCountryVote();
+
+          trackEvent('country_origin_option_add', {
+            origin_country: newCountry.label,
+            origin_country_id: newCountry.id,
+            origin_country_flag: newCountry.flag,
+            previous_origin_country_id: previousCountry,
+            origin_country_vote_count: state.originVoteCounts[newCountry.id],
+            origin_vote_total_count: originVoteTotalCount(),
+            community_board: state.communityBoard,
+            storage_target: hasSupabaseConfig() ? 'supabase_pending' : 'local'
+          });
+          trackEvent('country_origin_vote_click', {
+            origin_country: newCountry.label,
+            origin_country_id: newCountry.id,
+            origin_country_flag: newCountry.flag,
+            origin_country_vote_count: state.originVoteCounts[newCountry.id],
+            origin_vote_total_count: originVoteTotalCount(),
+            previous_origin_country_id: previousCountry,
+            changed_vote: previousCountry ? 'yes' : 'no',
+            community_board: state.communityBoard,
+            storage_target: hasSupabaseConfig() ? 'supabase_pending' : 'local',
+            custom_origin_country: 'yes'
+          });
+          renderAll();
+
+          if (hasSupabaseConfig()) {
+            try {
+              await saveOriginCountryVoteToSupabase(newCountry.id, newCountry, previousCountry);
+              await refreshOriginVoteCountsFromSupabase();
+              trackEvent('country_origin_vote_supabase_saved', {
+                origin_country: newCountry.label,
+                origin_country_id: newCountry.id,
+                origin_country_vote_count: state.originVoteCounts[newCountry.id] || 0,
+                origin_vote_total_count: originVoteTotalCount(),
+                community_board: state.communityBoard,
+                custom_origin_country: 'yes'
+              });
+              renderAll();
+            } catch (error) {
+              console.warn('Custom origin country vote could not be saved to Supabase yet.', error);
+              trackEvent('country_origin_vote_supabase_error', {
+                origin_country: newCountry.label,
+                origin_country_id: newCountry.id,
+                error_message: String(error.message || error).slice(0, 120),
+                custom_origin_country: 'yes'
+              });
+            }
+          }
+        };
+      }
 
       document.querySelectorAll('[data-open-tip-composer]').forEach(button => {
         button.onclick = () => {
