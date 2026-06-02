@@ -2482,7 +2482,7 @@
 
     function countOriginVotes(rows = []) {
       return (rows || []).reduce((counts, row) => {
-        const countryId = row.country_id || 'another-country';
+        const countryId = row.country_id || 'custom-country';
         counts[countryId] = (counts[countryId] || 0) + 1;
         return counts;
       }, {});
@@ -2610,8 +2610,7 @@
       { id: 'uzbekistan', flag: '🇺🇿', label: 'Uzbekistan' },
       { id: 'mongolia', flag: '🇲🇳', label: 'Mongolia' },
       { id: 'nepal', flag: '🇳🇵', label: 'Nepal' },
-      { id: 'taiwan', flag: '🇹🇼', label: 'Taiwan' },
-      { id: 'another-country', flag: '🌏', label: 'Another country' }
+      { id: 'taiwan', flag: '🇹🇼', label: 'Taiwan' }
     ];
 
     function originCountryOptions() {
