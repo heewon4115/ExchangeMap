@@ -1202,13 +1202,29 @@
     }
 
     .origin-vote-card {
+      position: relative;
       display: grid;
       gap: 16px;
       margin-bottom: 16px;
-      padding: 18px;
+      padding: 20px 18px 18px;
+      border-color: rgba(23, 105, 224, 0.24);
       background:
-        radial-gradient(circle at 100% 0%, rgba(23, 105, 224, 0.08), transparent 34%),
-        #ffffff;
+        linear-gradient(135deg, rgba(23, 105, 224, 0.12), rgba(123, 97, 255, 0.08)),
+        #f8fbff;
+      box-shadow: 0 18px 34px rgba(23, 105, 224, 0.12);
+      overflow: hidden;
+    }
+
+    .origin-vote-card::before {
+      content: "Quick vote";
+      width: fit-content;
+      border-radius: 999px;
+      background: #ffffff;
+      color: var(--blue);
+      padding: 5px 9px;
+      font-size: 11px;
+      font-weight: 900;
+      box-shadow: 0 8px 18px rgba(23, 105, 224, 0.10);
     }
 
     .origin-vote-head {
@@ -2707,7 +2723,7 @@
         thisWeek: 'this week',
         community: 'Community',
         originVoteTitle: 'Where are you from?',
-        originVoteSubtitle: 'Tap your country or region so we can understand who is testing Exchange Map.',
+        originVoteSubtitle: '',
         originVoteSelected: 'Selected',
         studentPosts: 'student posts',
         communityPost: 'community post',
@@ -5105,20 +5121,20 @@
       if (state.uiLanguage === 'zh') {
         return {
           title: '你来自哪里？',
-          subtitle: '请选择你的国家或地区，帮助我们了解谁在测试 Exchange Map。',
+          subtitle: '',
           selected: '已选择'
         };
       }
       if (state.uiLanguage === 'ko') {
         return {
           title: '어느 나라에서 오셨나요?',
-          subtitle: 'Exchange Map을 테스트하는 분들이 어디에서 왔는지 알려주세요.',
+          subtitle: '',
           selected: '선택됨'
         };
       }
       return {
         title: 'Where are you from?',
-        subtitle: 'Tap your country or region so we can understand who is testing Exchange Map.',
+        subtitle: '',
         selected: 'Selected'
       };
     }
@@ -5136,7 +5152,7 @@
           <div class="origin-vote-head">
             <div>
               <h2>${text.title}</h2>
-              <p>${text.subtitle}</p>
+              ${text.subtitle ? `<p>${text.subtitle}</p>` : ''}
             </div>
             ${selectedOption ? `<span class="comment-count-pill">${text.selected}: ${selectedOption.flag}</span>` : ''}
           </div>
