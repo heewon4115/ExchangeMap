@@ -1203,8 +1203,9 @@
 
     .origin-vote-card {
       display: grid;
-      gap: 12px;
-      margin-bottom: 14px;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 18px;
       background:
         radial-gradient(circle at 100% 0%, rgba(23, 105, 224, 0.08), transparent 34%),
         #ffffff;
@@ -1214,37 +1215,42 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
+      gap: 14px;
     }
 
     .origin-vote-head h2 {
       margin: 0;
-      font-size: 18px;
-      line-height: 1.2;
+      font-size: 19px;
+      line-height: 1.25;
     }
 
     .origin-vote-head p {
-      margin: 5px 0 0;
+      margin: 7px 0 0;
       color: var(--muted);
-      font-size: 12px;
-      line-height: 1.4;
+      font-size: 13px;
+      line-height: 1.5;
     }
 
     .origin-vote-grid {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 9px;
     }
 
     .origin-vote-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 7px;
       border: 1px solid var(--line);
       border-radius: 999px;
       background: #fff;
       color: var(--ink);
-      padding: 8px 10px;
+      padding: 9px 11px 9px 12px;
       font-size: 12px;
       font-weight: 900;
       cursor: pointer;
+      line-height: 1.2;
       box-shadow: 0 6px 14px rgba(31, 41, 55, 0.05);
     }
 
@@ -1260,7 +1266,6 @@
       justify-content: center;
       min-width: 20px;
       min-height: 20px;
-      margin-left: 4px;
       padding: 2px 6px;
       border-radius: 999px;
       background: #f1f5f9;
@@ -5072,6 +5077,10 @@
       `;
     }
 
+    function originVoteTotalCount() {
+      return Object.values(state.originVoteCounts || {}).reduce((total, count) => total + Number(count || 0), 0);
+    }
+
     function renderCommunity() {
       const staticPosts = {
         en: {
@@ -5892,6 +5901,8 @@
             origin_country: country ? country.label : countryId,
             origin_country_id: countryId,
             origin_country_flag: country ? country.flag : '',
+            origin_country_vote_count: state.originVoteCounts[countryId] || 0,
+            origin_vote_total_count: originVoteTotalCount(),
             previous_origin_country_id: previousCountry,
             changed_vote: previousCountry && previousCountry !== countryId ? 'yes' : 'no',
             community_board: state.communityBoard,
@@ -5906,6 +5917,8 @@
               trackEvent('country_origin_vote_supabase_saved', {
                 origin_country: country ? country.label : countryId,
                 origin_country_id: countryId,
+                origin_country_vote_count: state.originVoteCounts[countryId] || 0,
+                origin_vote_total_count: originVoteTotalCount(),
                 community_board: state.communityBoard
               });
             } catch (error) {
