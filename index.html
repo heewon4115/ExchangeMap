@@ -374,6 +374,29 @@
       background: #f3f4f6;
     }
 
+    .tip-image-button {
+      display: block;
+      width: 100%;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      cursor: zoom-in;
+      text-align: left;
+    }
+
+    .image-preview-modal {
+      padding: 12px;
+    }
+
+    .image-preview {
+      display: block;
+      width: 100%;
+      max-height: 72vh;
+      object-fit: contain;
+      border-radius: 18px;
+      background: #111827;
+    }
+
     .tip-card {
       padding: 13px;
       margin-bottom: 10px;
@@ -2662,6 +2685,7 @@
       communityBoard: 'info',
       communityComposerOpen: false,
       expandedCommunityPost: '',
+      imagePreview: null,
       communityPostComments: loadStoredJson(COMMUNITY_POST_COMMENTS_STORAGE_KEY, {}),
       copiedCafeAddress: '',
       originCountryVote: '',
@@ -5477,7 +5501,11 @@
           const recommendCount = tip.recommends || 0;
           return `
             <div class="card tip-card">
-              ${tip.imageUrl ? `<img class="tip-image" src="${escapeHtml(tip.imageUrl)}" alt="${escapeHtml(tip.title)}" loading="lazy" />` : ''}
+              ${tip.imageUrl ? `
+                <button class="tip-image-button" data-tip-image-preview="${tip.id}" type="button" aria-label="Open image">
+                  <img class="tip-image" src="${escapeHtml(tip.imageUrl)}" alt="${escapeHtml(tip.title)}" loading="lazy" />
+                </button>
+              ` : ''}
               <strong>${escapeHtml(tip.title)}</strong>
               <p class="meta" style="margin-top:6px;">${escapeHtml(tip.body)}</p>
               <p class="meta" style="margin-top:8px;">${escapeHtml(tip.author)}</p>
@@ -5622,6 +5650,23 @@
     function renderModal() {
       const modalRoot = document.getElementById('modalRoot');
       const place = selectedPlace();
+
+      if (state.imagePreview) {
+        modalRoot.innerHTML = `
+          <div class="modal-backdrop" id="imagePreviewBackdrop">
+            <section class="modal image-preview-modal" role="dialog" aria-modal="true" aria-label="${escapeHtml(state.imagePreview.title || 'Image preview')}">
+              <div class="modal-head">
+                <div>
+                  <h2>${escapeHtml(state.imagePreview.title || 'Image')}</h2>
+                </div>
+                <button class="icon-button" id="closeImagePreview" type="button" aria-label="Close">x</button>
+              </div>
+              <img class="image-preview" src="${escapeHtml(state.imagePreview.url)}" alt="${escapeHtml(state.imagePreview.title || 'Community image')}" />
+            </section>
+          </div>
+        `;
+        return;
+      }
 
       if (!state.reviewModalOpen) {
         modalRoot.innerHTML = '';
@@ -6232,6 +6277,25 @@
         };
       });
 
+      document.querySelectorAll('[data-tip-image-preview]').forEach(button => {
+        button.onclick = event => {
+          event.stopPropagation();
+          const tipId = button.dataset.tipImagePreview;
+          const tip = state.communityTips.find(item => item.id === tipId);
+          if (!tip || !tip.imageUrl) return;
+          state.imagePreview = {
+            url: tip.imageUrl,
+            title: tip.title
+          };
+          trackEvent('community_image_open', {
+            tip_id: tip.id,
+            tip_title: tip.title,
+            board: tip.board
+          });
+          renderAll();
+        };
+      });
+
       document.querySelectorAll('[data-community-post-toggle]').forEach(post => {
         post.onclick = event => {
           if (event.target.closest('[data-post-comments]')) return;
@@ -6727,6 +6791,25 @@
         closeReviewModal.onclick = () => {
           trackEvent('review_modal_close', { close_source: 'x_button' });
           state.reviewModalOpen = false;
+          renderAll();
+        };
+      }
+
+      const closeImagePreview = document.getElementById('closeImagePreview');
+      if (closeImagePreview) {
+        closeImagePreview.onclick = () => {
+          trackEvent('community_image_close', { close_source: 'x_button' });
+          state.imagePreview = null;
+          renderAll();
+        };
+      }
+
+      const imagePreviewBackdrop = document.getElementById('imagePreviewBackdrop');
+      if (imagePreviewBackdrop) {
+        imagePreviewBackdrop.onclick = event => {
+          if (event.target !== imagePreviewBackdrop) return;
+          trackEvent('community_image_close', { close_source: 'backdrop' });
+          state.imagePreview = null;
           renderAll();
         };
       }
