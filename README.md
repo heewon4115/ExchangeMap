@@ -35,6 +35,8 @@ const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_...';
 
 The publishable key is safe to use in the browser when Row Level Security policies are enabled. Do not put a Supabase `service_role` key in this static site.
 
+Supabase `timestamptz` values are stored in UTC internally. Exchange Map formats Supabase timestamps in the app as Korea time (`Asia/Seoul`, KST) for display.
+
 Run this SQL in Supabase SQL Editor before testing shared community posts:
 
 ```sql

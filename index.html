@@ -2162,7 +2162,20 @@
       if (!value || value === 'Sample' || value === 'Just now') return value || 'Just now';
       const date = new Date(value);
       if (Number.isNaN(date.getTime())) return value;
-      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      return date.toLocaleString('en-US', {
+        timeZone: 'Asia/Seoul',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }) + ' KST';
+    }
+
+    function koreaTimestampIso() {
+      const date = new Date();
+      const koreaOffsetMs = 9 * 60 * 60 * 1000;
+      return new Date(date.getTime() + koreaOffsetMs).toISOString().replace('Z', '+09:00');
     }
 
     function tipSortTime(tip) {
@@ -2491,7 +2504,7 @@
           previous_country_id: previousCountryId || '',
           ui_language: state.uiLanguage,
           community_board: state.communityBoard,
-          updated_at: new Date().toISOString()
+          updated_at: koreaTimestampIso()
         })
       });
     }
@@ -6267,7 +6280,7 @@
             body,
             author,
             createdAt: 'Just now',
-            createdAtRaw: new Date().toISOString(),
+            createdAtRaw: koreaTimestampIso(),
             recommends: 0,
             deleteCodeHash,
             comments: []
