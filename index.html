@@ -5125,7 +5125,8 @@
           </div>
         `;
         }).join('')}
-        ${activeBoard.posts.map(([title, body, author, replies], index) => {
+        ${activeBoard.posts.map((post, index) => ({ post, index })).reverse().map(({ post, index }) => {
+          const [title, body, author, replies] = post;
           const postId = `${activeBoard.id}-static-${index}`;
           const isExpanded = state.expandedCommunityPost === postId;
           const commentCount = communityPostCommentCount(postId);
