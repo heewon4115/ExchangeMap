@@ -1201,6 +1201,59 @@
       line-height: 1;
     }
 
+    .origin-vote-card {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 14px;
+      background:
+        radial-gradient(circle at 100% 0%, rgba(23, 105, 224, 0.08), transparent 34%),
+        #ffffff;
+    }
+
+    .origin-vote-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .origin-vote-head h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .origin-vote-head p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .origin-vote-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .origin-vote-button {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 6px 14px rgba(31, 41, 55, 0.05);
+    }
+
+    .origin-vote-button.active {
+      border-color: rgba(23, 105, 224, 0.42);
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
     #screen-community {
       padding-bottom: 72px;
     }
@@ -1934,6 +1987,7 @@
     const COMMUNITY_TIPS_STORAGE_KEY = 'exchange_map_community_tips';
     const COMMUNITY_RECOMMENDS_STORAGE_KEY = 'exchange_map_community_recommended_tips';
     const COMMUNITY_POST_COMMENTS_STORAGE_KEY = 'exchange_map_community_post_comments';
+    const ORIGIN_COUNTRY_VOTE_STORAGE_KEY = 'exchange_map_origin_country_vote';
     const LOG_FEATURE_LIKES_STORAGE_KEY = 'exchange_map_log_feature_likes';
     const syncedCommunityPostRecordIds = new Set();
 
@@ -1988,6 +2042,14 @@
         localStorage.setItem(LOG_FEATURE_LIKES_STORAGE_KEY, JSON.stringify(state.likedLogFeatures));
       } catch (error) {
         console.warn('My Log likes could not be saved locally.', error);
+      }
+    }
+
+    function saveOriginCountryVote() {
+      try {
+        localStorage.setItem(ORIGIN_COUNTRY_VOTE_STORAGE_KEY, JSON.stringify(state.originCountryVote));
+      } catch (error) {
+        console.warn('Origin country vote could not be saved locally.', error);
       }
     }
 
@@ -2332,6 +2394,24 @@
       return normalizeCommunityPostComment(rows[0]);
     }
 
+    async function saveOriginCountryVoteToSupabase(countryId, country, previousCountryId = '') {
+      if (!hasSupabaseConfig()) return;
+      await supabaseRequest('/rest/v1/community_origin_votes?on_conflict=visitor_id', {
+        method: 'POST',
+        headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({
+          visitor_id: prototypeVisitorId,
+          country_id: countryId,
+          country_label: country ? country.label : countryId,
+          country_flag: country ? country.flag : '',
+          previous_country_id: previousCountryId || '',
+          ui_language: state.uiLanguage,
+          community_board: state.communityBoard,
+          updated_at: new Date().toISOString()
+        })
+      });
+    }
+
     async function recordCommunityPostsInSupabase(records = []) {
       if (!hasSupabaseConfig()) return;
       const uniqueRecords = [];
@@ -2391,6 +2471,7 @@
       expandedCommunityPost: '',
       communityPostComments: loadStoredJson(COMMUNITY_POST_COMMENTS_STORAGE_KEY, {}),
       copiedCafeAddress: '',
+      originCountryVote: loadStoredJson(ORIGIN_COUNTRY_VOTE_STORAGE_KEY, ''),
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -2418,6 +2499,21 @@
       { id: 'en', label: 'ENG', htmlLang: 'en' },
       { id: 'zh', label: 'CH', htmlLang: 'zh' },
       { id: 'ko', label: 'KOR', htmlLang: 'ko' }
+    ];
+    const originCountryOptions = [
+      { id: 'korea', flag: '🇰🇷', label: 'Korea' },
+      { id: 'china', flag: '🇨🇳', label: 'China' },
+      { id: 'vietnam', flag: '🇻🇳', label: 'Vietnam' },
+      { id: 'usa', flag: '🇺🇸', label: 'USA' },
+      { id: 'spain', flag: '🇪🇸', label: 'Spain' },
+      { id: 'japan', flag: '🇯🇵', label: 'Japan' },
+      { id: 'malaysia', flag: '🇲🇾', label: 'Malaysia' },
+      { id: 'indonesia', flag: '🇮🇩', label: 'Indonesia' },
+      { id: 'uzbekistan', flag: '🇺🇿', label: 'Uzbekistan' },
+      { id: 'mongolia', flag: '🇲🇳', label: 'Mongolia' },
+      { id: 'nepal', flag: '🇳🇵', label: 'Nepal' },
+      { id: 'taiwan', flag: '🇹🇼', label: 'Taiwan' },
+      { id: 'another-country', flag: '🌏', label: 'Another country' }
     ];
     const copy = {
       en: {
@@ -2490,6 +2586,9 @@
         hotPlaces: 'Hot places students checked',
         thisWeek: 'this week',
         community: 'Community',
+        originVoteTitle: 'Where are you from?',
+        originVoteSubtitle: 'Tap your country or region so we can understand who is testing Exchange Map.',
+        originVoteSelected: 'Selected',
         studentPosts: 'student posts',
         communityPost: 'community post',
         needsTip: 'needs local tip',
@@ -3738,7 +3837,7 @@
       if (eventName.includes('review')) return 'review';
       if (eventName.includes('filter') || eventName.includes('language') || eventName.includes('search')) return 'filter';
       if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('map') || eventName.includes('location')) return 'map';
-      if (eventName.includes('community')) return 'community';
+      if (eventName.includes('community') || eventName.includes('origin_vote')) return 'community';
       if (eventName.includes('feature')) return 'feature_interest';
       if (eventName.includes('tab') || eventName.includes('screen')) return 'navigation';
       return 'prototype';
@@ -3766,6 +3865,7 @@
       if (eventName.includes('community_post')) return 'community_post';
       if (eventName.includes('community_tip')) return 'community_tip';
       if (eventName.includes('community_board')) return 'community_board';
+      if (eventName.includes('origin_vote')) return 'origin_country_vote';
       if (eventName.includes('feature')) return 'not_ready_feature';
       if (eventName.includes('location')) return 'location';
       if (eventName.includes('tab') || eventName.includes('screen')) return 'screen';
@@ -3779,7 +3879,7 @@
       if (eventName.includes('filter') || eventName.includes('search') || eventName.includes('language')) return '03_discovery';
       if (eventName.includes('marker') || eventName.includes('place') || eventName.includes('detail')) return '04_place_interest';
       if (eventName.includes('submit') || eventName.includes('delete')) return '06_create_or_manage';
-      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip') || eventName.includes('feature')) return '05_engagement';
+      if (eventName.includes('review') || eventName.includes('recommend') || eventName.includes('comment') || eventName.includes('tip') || eventName.includes('feature') || eventName.includes('origin_vote')) return '05_engagement';
       return '00_other';
     }
 
@@ -3787,6 +3887,7 @@
       if (eventName.includes('submit')) return 'create';
       if (eventName.includes('comment')) return 'comment';
       if (eventName.includes('recommend')) return 'recommend';
+      if (eventName.includes('origin_vote')) return 'vote';
       if (eventName.includes('feature_expectation')) return 'feature_request';
       if (eventName.includes('copy')) return 'copy';
       if (eventName.includes('delete')) return 'delete';
@@ -3799,6 +3900,7 @@
       if (eventName.includes('marker') || eventName.includes('place')) return 'place_interest';
       if (eventName.includes('review_cta') || eventName.includes('review_submit')) return 'review_intent';
       if (eventName.includes('community_tip_submit') || eventName.includes('community_post_comment_submit')) return 'community_contribution';
+      if (eventName.includes('origin_vote')) return 'audience_research';
       if (eventName.includes('feature_expectation') || eventName.includes('feature_placeholder')) return 'feature_demand';
       if (eventName.includes('recommend')) return 'social_proof';
       if (eventName.includes('copy')) return 'offline_action';
@@ -3816,6 +3918,7 @@
         'community_post_recommend_click',
         'community_tip_recommend_click',
         'feature_expectation_click',
+        'country_origin_vote_click',
         'address_copy_click',
         'cafe_address_copy_click'
       ].includes(eventName) ? 'yes' : 'no';
@@ -4877,6 +4980,55 @@
       `;
     }
 
+    function originVoteText() {
+      if (state.uiLanguage === 'zh') {
+        return {
+          title: '你来自哪里？',
+          subtitle: '请选择你的国家或地区，帮助我们了解谁在测试 Exchange Map。',
+          selected: '已选择'
+        };
+      }
+      if (state.uiLanguage === 'ko') {
+        return {
+          title: '어느 나라에서 오셨나요?',
+          subtitle: 'Exchange Map을 테스트하는 분들이 어디에서 왔는지 알려주세요.',
+          selected: '선택됨'
+        };
+      }
+      return {
+        title: 'Where are you from?',
+        subtitle: 'Tap your country or region so we can understand who is testing Exchange Map.',
+        selected: 'Selected'
+      };
+    }
+
+    function renderOriginVoteCard() {
+      const text = originVoteText();
+      const selectedOption = originCountryOptions.find(option => option.id === state.originCountryVote);
+      return `
+        <section class="card origin-vote-card">
+          <div class="origin-vote-head">
+            <div>
+              <h2>${text.title}</h2>
+              <p>${text.subtitle}</p>
+            </div>
+            ${selectedOption ? `<span class="comment-count-pill">${text.selected}: ${selectedOption.flag}</span>` : ''}
+          </div>
+          <div class="origin-vote-grid">
+            ${originCountryOptions.map(option => `
+              <button
+                class="origin-vote-button ${state.originCountryVote === option.id ? 'active' : ''}"
+                data-origin-country-vote="${option.id}"
+                type="button"
+              >
+                ${option.flag} ${option.label}
+              </button>
+            `).join('')}
+          </div>
+        </section>
+      `;
+    }
+
     function renderCommunity() {
       const staticPosts = {
         en: {
@@ -5064,6 +5216,7 @@
 
       document.getElementById('screen-community').innerHTML = `
         ${header(t('communityTitle'), t('communitySubtitle'), t('communityKnowledge'))}
+        ${renderOriginVoteCard()}
         <div class="community-floating-action">
           <button class="primary" data-open-tip-composer="true" type="button">${ct('shareButton')}</button>
         </div>
@@ -5676,6 +5829,44 @@
             board: state.communityBoard
           });
           renderAll();
+        };
+      });
+
+      document.querySelectorAll('[data-origin-country-vote]').forEach(button => {
+        button.onclick = async () => {
+          const previousCountry = state.originCountryVote || '';
+          const countryId = button.dataset.originCountryVote;
+          const country = originCountryOptions.find(option => option.id === countryId);
+          state.originCountryVote = countryId;
+          saveOriginCountryVote();
+          trackEvent('country_origin_vote_click', {
+            origin_country: country ? country.label : countryId,
+            origin_country_id: countryId,
+            origin_country_flag: country ? country.flag : '',
+            previous_origin_country_id: previousCountry,
+            changed_vote: previousCountry && previousCountry !== countryId ? 'yes' : 'no',
+            community_board: state.communityBoard,
+            storage_target: hasSupabaseConfig() ? 'supabase_pending' : 'local'
+          });
+          renderAll();
+
+          if (hasSupabaseConfig()) {
+            try {
+              await saveOriginCountryVoteToSupabase(countryId, country, previousCountry);
+              trackEvent('country_origin_vote_supabase_saved', {
+                origin_country: country ? country.label : countryId,
+                origin_country_id: countryId,
+                community_board: state.communityBoard
+              });
+            } catch (error) {
+              console.warn('Origin country vote could not be saved to Supabase yet.', error);
+              trackEvent('country_origin_vote_supabase_error', {
+                origin_country: country ? country.label : countryId,
+                origin_country_id: countryId,
+                error_message: String(error.message || error).slice(0, 120)
+              });
+            }
+          }
         };
       });
 

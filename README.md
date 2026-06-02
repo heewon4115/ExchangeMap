@@ -78,10 +78,23 @@ create table if not exists community_posts (
   last_seen_at timestamptz not null default now()
 );
 
+create table if not exists community_origin_votes (
+  visitor_id text primary key,
+  country_id text not null,
+  country_label text not null,
+  country_flag text not null default '',
+  previous_country_id text not null default '',
+  ui_language text not null default 'en',
+  community_board text not null default 'info',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table community_tips enable row level security;
 alter table community_comments enable row level security;
 alter table community_post_comments enable row level security;
 alter table community_posts enable row level security;
+alter table community_origin_votes enable row level security;
 
 create policy "Anyone can read tips"
 on community_tips for select
@@ -136,6 +149,22 @@ on community_posts for update
 using (true)
 with check (true);
 
+drop policy if exists "Anyone can read origin votes" on community_origin_votes;
+create policy "Anyone can read origin votes"
+on community_origin_votes for select
+using (true);
+
+drop policy if exists "Anyone can create origin votes" on community_origin_votes;
+create policy "Anyone can create origin votes"
+on community_origin_votes for insert
+with check (true);
+
+drop policy if exists "Anyone can update origin votes" on community_origin_votes;
+create policy "Anyone can update origin votes"
+on community_origin_votes for update
+using (true)
+with check (true);
+
 create or replace function delete_community_tip(
   p_tip_id uuid,
   p_delete_code_hash text
@@ -181,8 +210,21 @@ create table if not exists community_post_comments (
   created_at timestamptz not null default now()
 );
 
+create table if not exists community_origin_votes (
+  visitor_id text primary key,
+  country_id text not null,
+  country_label text not null,
+  country_flag text not null default '',
+  previous_country_id text not null default '',
+  ui_language text not null default 'en',
+  community_board text not null default 'info',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 alter table community_post_comments enable row level security;
 alter table community_posts enable row level security;
+alter table community_origin_votes enable row level security;
 
 drop policy if exists "Anyone can read board posts" on community_posts;
 create policy "Anyone can read board posts"
@@ -208,6 +250,22 @@ using (true);
 drop policy if exists "Anyone can create board post comments" on community_post_comments;
 create policy "Anyone can create board post comments"
 on community_post_comments for insert
+with check (true);
+
+drop policy if exists "Anyone can read origin votes" on community_origin_votes;
+create policy "Anyone can read origin votes"
+on community_origin_votes for select
+using (true);
+
+drop policy if exists "Anyone can create origin votes" on community_origin_votes;
+create policy "Anyone can create origin votes"
+on community_origin_votes for insert
+with check (true);
+
+drop policy if exists "Anyone can update origin votes" on community_origin_votes;
+create policy "Anyone can update origin votes"
+on community_origin_votes for update
+using (true)
 with check (true);
 ```
 
@@ -350,6 +408,7 @@ const GA_DEBUG_MODE = false;
 - `review_submit`: fires when the prototype review modal is submitted.
 - `review_modal_close`: fires when the review modal is closed.
 - `community_board_click`: fires when users switch between information, social, travel, and Q&A boards.
+- `country_origin_vote_click`: fires when users answer the Community "Where are you from?" country/region vote.
 - `community_tip_submit`: fires when users share a tip in the Community tab.
 - `community_tip_recommend_click`: fires when users recommend a community tip.
 - `community_tip_comment_submit`: fires when users comment on a community tip.
