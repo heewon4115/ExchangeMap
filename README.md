@@ -46,6 +46,7 @@ create table community_tips (
   author text not null default 'Anonymous student',
   title text not null,
   body text not null,
+  image_url text,
   recommends integer not null default 0,
   delete_code_hash text,
   created_at timestamptz not null default now()
@@ -269,13 +270,26 @@ create policy "Anyone can update origin votes"
 on community_origin_votes for update
 using (true)
 with check (true);
+
+drop policy if exists "Public can read community images" on storage.objects;
+create policy "Public can read community images"
+on storage.objects for select
+using (bucket_id = 'community-images');
+
+drop policy if exists "Anyone can upload community images" on storage.objects;
+create policy "Anyone can upload community images"
+on storage.objects for insert
+with check (bucket_id = 'community-images');
 ```
 
-If you already created the table before adding deletion passwords, run this once:
+If you already created the table before adding deletion passwords or image uploads, run this once:
 
 ```sql
 alter table community_tips
 add column if not exists delete_code_hash text;
+
+alter table community_tips
+add column if not exists image_url text;
 
 drop policy if exists "Anyone can delete tips with password filter"
 on community_tips;
@@ -302,6 +316,16 @@ end;
 $$;
 
 grant execute on function delete_community_tip(uuid, text) to anon, authenticated;
+
+drop policy if exists "Public can read community images" on storage.objects;
+create policy "Public can read community images"
+on storage.objects for select
+using (bucket_id = 'community-images');
+
+drop policy if exists "Anyone can upload community images" on storage.objects;
+create policy "Anyone can upload community images"
+on storage.objects for insert
+with check (bucket_id = 'community-images');
 ```
 
 If Supabase is not ready or the tables are missing, the app falls back to browser `localStorage`.

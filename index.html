@@ -356,6 +356,24 @@
       resize: vertical;
     }
 
+    .tip-image-field {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+    }
+
+    .tip-image {
+      width: 100%;
+      max-height: 220px;
+      object-fit: cover;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      margin-bottom: 10px;
+      background: #f3f4f6;
+    }
+
     .tip-card {
       padding: 13px;
       margin-bottom: 10px;
@@ -2222,6 +2240,40 @@
       return text ? JSON.parse(text) : null;
     }
 
+    async function uploadCommunityImageToSupabase(file) {
+      if (!hasSupabaseConfig()) throw new Error('Supabase is not configured.');
+      if (!file) return '';
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+      if (!allowedTypes.includes(file.type)) {
+        throw new Error('Please upload a JPG, PNG, or WebP image.');
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Please upload an image smaller than 5 MB.');
+      }
+      const extensionByType = {
+        'image/jpeg': 'jpg',
+        'image/png': 'png',
+        'image/webp': 'webp'
+      };
+      const extension = extensionByType[file.type] || 'jpg';
+      const objectPath = `tips/${Date.now()}-${Math.random().toString(36).slice(2)}.${extension}`;
+      const response = await fetch(`${SUPABASE_URL}/storage/v1/object/community-images/${objectPath}`, {
+        method: 'POST',
+        headers: {
+          apikey: SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+          'Content-Type': file.type,
+          'x-upsert': 'false'
+        },
+        body: file
+      });
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Image upload failed: ${response.status}`);
+      }
+      return `${SUPABASE_URL}/storage/v1/object/public/community-images/${objectPath}`;
+    }
+
     function normalizeCommunityTip(row, comments = []) {
       return {
         id: row.id,
@@ -2233,6 +2285,7 @@
         createdAtRaw: row.created_at || '',
         recommends: Number(row.recommends || 0),
         deleteCodeHash: row.delete_code_hash || '',
+        imageUrl: row.image_url || '',
         comments
       };
     }
@@ -2415,22 +2468,39 @@
         title: tip.title,
         body: tip.body,
         recommends: tip.recommends || 0,
-        delete_code_hash: tip.deleteCodeHash || ''
+        delete_code_hash: tip.deleteCodeHash || '',
+        image_url: tip.imageUrl || ''
       };
       let rows;
-      try {
+      let currentPayload = { ...payload };
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        try {
+          rows = await supabaseRequest('/rest/v1/community_tips', {
+            method: 'POST',
+            headers: { Prefer: 'return=representation' },
+            body: JSON.stringify(currentPayload)
+          });
+          break;
+        } catch (error) {
+          const message = String(error.message || error);
+          if (message.includes('image_url') && 'image_url' in currentPayload) {
+            const { image_url: _imageUrl, ...fallbackPayload } = currentPayload;
+            currentPayload = fallbackPayload;
+            continue;
+          }
+          if (message.includes('delete_code_hash') && 'delete_code_hash' in currentPayload) {
+            const { delete_code_hash: _deleteCodeHash, ...fallbackPayload } = currentPayload;
+            currentPayload = fallbackPayload;
+            continue;
+          }
+          throw error;
+        }
+      }
+      if (!rows) {
         rows = await supabaseRequest('/rest/v1/community_tips', {
           method: 'POST',
           headers: { Prefer: 'return=representation' },
-          body: JSON.stringify(payload)
-        });
-      } catch (error) {
-        if (!String(error.message || error).includes('delete_code_hash')) throw error;
-        const { delete_code_hash: _unused, ...fallbackPayload } = payload;
-        rows = await supabaseRequest('/rest/v1/community_tips', {
-          method: 'POST',
-          headers: { Prefer: 'return=representation' },
-          body: JSON.stringify(fallbackPayload)
+          body: JSON.stringify(currentPayload)
         });
       }
       return normalizeCommunityTip(rows[0], []);
@@ -5376,9 +5446,13 @@
             <input class="tip-input" id="tipAuthor" placeholder="${ct('authorPlaceholder')}" />
             <input class="tip-input" id="tipTitle" placeholder="${ct('titlePlaceholder')}" />
             <textarea class="tip-textarea" id="tipBody" placeholder="${ct('bodyPlaceholder')}"></textarea>
+            <label class="tip-image-field">
+              Optional image
+              <input class="tip-input" id="tipImage" type="file" accept="image/jpeg,image/png,image/webp" />
+            </label>
             <input class="tip-input" id="tipDeleteCode" type="password" placeholder="${ct('deletePasswordPlaceholder')}" autocomplete="new-password" />
             <button class="primary" id="shareTipButton" type="button">${ct('shareButton')}</button>
-            <p class="meta">${communitySaveNote} ${ct('deleteReminder')}</p>
+            <p class="meta">JPG, PNG, or WebP only. Max 5 MB. ${communitySaveNote} ${ct('deleteReminder')}</p>
           </div>
         `;
         return;
@@ -5403,6 +5477,7 @@
           const recommendCount = tip.recommends || 0;
           return `
             <div class="card tip-card">
+              ${tip.imageUrl ? `<img class="tip-image" src="${escapeHtml(tip.imageUrl)}" alt="${escapeHtml(tip.title)}" loading="lazy" />` : ''}
               <strong>${escapeHtml(tip.title)}</strong>
               <p class="meta" style="margin-top:6px;">${escapeHtml(tip.body)}</p>
               <p class="meta" style="margin-top:8px;">${escapeHtml(tip.author)}</p>
@@ -6261,6 +6336,10 @@
           const title = document.getElementById('tipTitle').value.trim();
           const body = document.getElementById('tipBody').value.trim();
           const deleteCode = document.getElementById('tipDeleteCode').value.trim();
+          const imageInput = document.getElementById('tipImage');
+          const imageFile = imageInput && imageInput.files && imageInput.files[0] ? imageInput.files[0] : null;
+          let imageUrl = '';
+          let imageUploadStatus = imageFile ? 'selected' : 'none';
 
           if (!title || !body) {
             alert(ct('missingTitleBody'));
@@ -6269,6 +6348,31 @@
           if (!deleteCode) {
             alert(ct('missingDeletePassword'));
             return;
+          }
+
+          if (imageFile) {
+            const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!allowedImageTypes.includes(imageFile.type)) {
+              alert('Please upload a JPG, PNG, or WebP image.');
+              return;
+            }
+            if (imageFile.size > 5 * 1024 * 1024) {
+              alert('Please upload an image smaller than 5 MB.');
+              return;
+            }
+            if (hasSupabaseConfig()) {
+              try {
+                imageUrl = await uploadCommunityImageToSupabase(imageFile);
+                imageUploadStatus = 'uploaded';
+              } catch (error) {
+                imageUploadStatus = 'failed';
+                console.warn('Community image upload failed. Saving the post without an image.', error);
+                alert('Image upload failed. The post will be saved without the image.');
+              }
+            } else {
+              imageUploadStatus = 'supabase_not_configured';
+              alert('Image upload needs Supabase Storage. The post will be saved without the image.');
+            }
           }
 
           const deleteCodeHash = await hashDeleteCode(deleteCode);
@@ -6283,6 +6387,7 @@
             createdAtRaw: koreaTimestampIso(),
             recommends: 0,
             deleteCodeHash,
+            imageUrl,
             comments: []
           };
 
@@ -6296,6 +6401,8 @@
             tip_title: title,
             tip_body_length: body.length,
             has_delete_password: 'yes',
+            has_image: imageUrl ? 'yes' : 'no',
+            image_upload_status: imageUploadStatus,
             storage_target: state.communitySyncStatus === 'online' ? 'supabase' : 'local'
           });
           renderAll();
