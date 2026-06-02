@@ -1215,16 +1215,16 @@
       overflow: hidden;
     }
 
-    .origin-vote-card::before {
-      content: "Quick vote";
+    .origin-vote-badge {
       width: fit-content;
       border-radius: 999px;
-      background: #ffffff;
-      color: var(--blue);
-      padding: 5px 9px;
-      font-size: 11px;
+      background: var(--blue);
+      color: #ffffff;
+      padding: 8px 12px;
+      font-size: 14px;
       font-weight: 900;
-      box-shadow: 0 8px 18px rgba(23, 105, 224, 0.10);
+      box-shadow: 0 12px 22px rgba(23, 105, 224, 0.20);
+      letter-spacing: 0;
     }
 
     .origin-vote-head {
@@ -5149,6 +5149,7 @@
       const voteCounts = { ...localSelectedCounts, ...state.originVoteCounts };
       return `
         <section class="card origin-vote-card">
+          <div class="origin-vote-badge">🗳️ Quick vote</div>
           <div class="origin-vote-head">
             <div>
               <h2>${text.title}</h2>
