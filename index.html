@@ -1254,6 +1254,25 @@
       color: var(--blue);
     }
 
+    .origin-vote-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      min-height: 20px;
+      margin-left: 4px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #f1f5f9;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .origin-vote-button.active .origin-vote-count {
+      background: #ffffff;
+      color: var(--blue);
+    }
+
     #screen-community {
       padding-bottom: 72px;
     }
@@ -2302,6 +2321,11 @@
           state.communityPostComments = localPostComments;
           console.warn('Supabase board post comments are not ready yet. Falling back to local board comments.', postCommentError);
         }
+        try {
+          await refreshOriginVoteCountsFromSupabase();
+        } catch (originVoteError) {
+          console.warn('Origin vote counts could not be loaded from Supabase yet.', originVoteError);
+        }
         saveCommunityTips();
         renderAll();
       } catch (error) {
@@ -2412,6 +2436,20 @@
       });
     }
 
+    function countOriginVotes(rows = []) {
+      return (rows || []).reduce((counts, row) => {
+        const countryId = row.country_id || 'another-country';
+        counts[countryId] = (counts[countryId] || 0) + 1;
+        return counts;
+      }, {});
+    }
+
+    async function refreshOriginVoteCountsFromSupabase() {
+      if (!hasSupabaseConfig()) return;
+      const rows = await supabaseRequest('/rest/v1/community_origin_votes?select=country_id');
+      state.originVoteCounts = countOriginVotes(rows);
+    }
+
     async function recordCommunityPostsInSupabase(records = []) {
       if (!hasSupabaseConfig()) return;
       const uniqueRecords = [];
@@ -2472,6 +2510,7 @@
       communityPostComments: loadStoredJson(COMMUNITY_POST_COMMENTS_STORAGE_KEY, {}),
       copiedCafeAddress: '',
       originCountryVote: loadStoredJson(ORIGIN_COUNTRY_VOTE_STORAGE_KEY, ''),
+      originVoteCounts: {},
       selectedTags: ['English-speaking staff', 'foreigner friendly'],
       selectedRating: 4.5,
       recommendedReviews: [],
@@ -5005,6 +5044,10 @@
     function renderOriginVoteCard() {
       const text = originVoteText();
       const selectedOption = originCountryOptions.find(option => option.id === state.originCountryVote);
+      const localSelectedCounts = state.originCountryVote && !state.originVoteCounts[state.originCountryVote]
+        ? { [state.originCountryVote]: 1 }
+        : {};
+      const voteCounts = { ...localSelectedCounts, ...state.originVoteCounts };
       return `
         <section class="card origin-vote-card">
           <div class="origin-vote-head">
@@ -5021,7 +5064,7 @@
                 data-origin-country-vote="${option.id}"
                 type="button"
               >
-                ${option.flag} ${option.label}
+                ${option.flag} ${option.label} <span class="origin-vote-count">${voteCounts[option.id] || 0}</span>
               </button>
             `).join('')}
           </div>
@@ -5838,6 +5881,12 @@
           const countryId = button.dataset.originCountryVote;
           const country = originCountryOptions.find(option => option.id === countryId);
           state.originCountryVote = countryId;
+          if (previousCountry !== countryId) {
+            if (previousCountry && state.originVoteCounts[previousCountry]) {
+              state.originVoteCounts[previousCountry] = Math.max(0, state.originVoteCounts[previousCountry] - 1);
+            }
+            state.originVoteCounts[countryId] = (state.originVoteCounts[countryId] || 0) + 1;
+          }
           saveOriginCountryVote();
           trackEvent('country_origin_vote_click', {
             origin_country: country ? country.label : countryId,
@@ -5853,6 +5902,7 @@
           if (hasSupabaseConfig()) {
             try {
               await saveOriginCountryVoteToSupabase(countryId, country, previousCountry);
+              await refreshOriginVoteCountsFromSupabase();
               trackEvent('country_origin_vote_supabase_saved', {
                 origin_country: country ? country.label : countryId,
                 origin_country_id: countryId,
