@@ -2079,11 +2079,14 @@
     const SUPABASE_URL = 'https://ylbkmipzslrstvwgkgda.supabase.co';
     const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_pnpG3qqqPORUO9gRRkxQNw_R3Ih3s3R';
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const isInternalTestMode = ['1', 'true', 'yes'].includes(String(urlParams.get('internal_test') || '').toLowerCase());
     const hasRealGaId = /^G-[A-Z0-9]+$/i.test(GA_MEASUREMENT_ID) && GA_MEASUREMENT_ID !== 'G-XXXXXXXXXX';
+    const shouldSendGaEvents = hasRealGaId && !isInternalTestMode;
     window.dataLayer = window.dataLayer || [];
     function gtag() { window.dataLayer.push(arguments); }
 
-    if (hasRealGaId) {
+    if (shouldSendGaEvents) {
       const gaScript = document.createElement('script');
       gaScript.async = true;
       gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_MEASUREMENT_ID)}`;
@@ -2093,6 +2096,8 @@
         page_title: document.title,
         page_location: window.location.href
       });
+    } else if (isInternalTestMode) {
+      console.info('[Exchange Map GA] Internal test mode is on. GA events will be logged here but not sent to GA4.');
     }
 
     const COMMUNITY_TIPS_STORAGE_KEY = 'exchange_map_community_tips';
@@ -4204,7 +4209,8 @@
         active_filters: activeFilterSummary(),
         page_path: window.location.pathname || '/',
         page_url: window.location.href,
-        ga_connected: hasRealGaId ? 'yes' : 'no'
+        ga_connected: shouldSendGaEvents ? 'yes' : 'no',
+        analytics_mode: isInternalTestMode ? 'internal_test_console_only' : 'public_ga'
       };
     }
 
@@ -4255,7 +4261,7 @@
       } else {
         console.log(`[Exchange Map event #${state.analyticsEventCount}] ${eventName}`, eventParams);
       }
-      if (hasRealGaId && typeof gtag === 'function') {
+      if (shouldSendGaEvents && typeof gtag === 'function') {
         gtag('event', eventName, eventParams);
       }
     }

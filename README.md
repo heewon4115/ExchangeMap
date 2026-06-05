@@ -24,6 +24,14 @@ If you leave the placeholder value, the page still works. Events are printed to 
 
 Google Analytics status is not shown anywhere in the UI. It is only in the code and browser console so normal users do not see analytics/testing details.
 
+For internal team testing, add `?internal_test=1` to the URL:
+
+```text
+https://exchange-map-three.vercel.app/?internal_test=1
+```
+
+When this parameter is present, GA events are still printed to the browser console but are not sent to GA4.
+
 ## Connect Supabase community posts
 
 Community tips, comments, and recommendation counts can be shared publicly through Supabase. Open `index.html` and check these constants near the top of the JavaScript:
